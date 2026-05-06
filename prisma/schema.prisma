@@ -1,0 +1,725 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model UserPermission {
+  id        String   @id @default(uuid())
+  userId    String
+  resource  String
+  actions   String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resource])
+  @@index([userId])
+}
+
+model User {
+  id                         String                      @id @default(uuid())
+  name                       String
+  email                      String                      @unique
+  emailVerified              DateTime?
+  password                   String?
+  image                      String?
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @default(now())
+  invalid_login_attempts     Int                         @default(0)
+  lockedAt                   DateTime?
+  totalPoints                Int                         @default(0)
+  currentRank                Int                         @default(1)
+  role                       UserRole                    @default(USER)
+  isBlocked                  Boolean                     @default(false)
+  accounts                   Account[]
+  attackBoxSession           AttackBoxSession?
+  cloudIdeSession            CloudIDESession?
+  containers                 ContainerInstance[]
+  submissions                FlagSubmission[]
+  invitations                Invitation[]
+  learnAssignmentSubmissions LearnAssignmentSubmission[]
+  flags                      MachineFlag[]
+  playgroundEnrollments      PlaygroundEnrollment[]
+  playgroundFlagSubmissions  PlaygroundFlagSubmission[]
+  sandboxInstances           SandboxInstance[]
+  sandboxSolves              SandboxSolve[]
+  scoreHistory               ScoreHistory[]
+  sessions                   Session[]
+  teamMembers                TeamMember[]
+  moduleCompletions          UserModuleCompletion[]
+  moduleNotes                UserModuleNote[]
+  userPermissions            UserPermission[]
+  skillPathEnrollments       UserSkillPathEnrollment[]
+  reviewedWriteups           Writeup[]                   @relation("WriteupReviewer")
+  writeups                   Writeup[]
+  kucisReports               KucisVulnerabilityReport[]
+}
+
+model Team {
+  id              String              @id @default(uuid())
+  name            String
+  slug            String              @unique
+  domain          String?             @unique
+  defaultRole     Role                @default(MEMBER)
+  billingId       String?
+  billingProvider String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  inviteCode      String?             @unique
+  apiKeys         ApiKey[]
+  containers      ContainerInstance[]
+  submissions     FlagSubmission[]
+  invitations     Invitation[]
+  flags           MachineFlag[]
+  members         TeamMember[]
+
+  @@index([billingId])
+  @@index([inviteCode])
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  userId    String
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+model Invitation {
+  id             String   @id @default(uuid())
+  teamId         String
+  email          String?
+  role           Role     @default(MEMBER)
+  token          String   @unique
+  expires        DateTime
+  invitedBy      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now())
+  sentViaEmail   Boolean  @default(true)
+  allowedDomains String[] @default([])
+  user           User     @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, email])
+  @@index([email])
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  email     String
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  name       String
+  teamId     String
+  hashedKey  String    @unique
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+}
+
+model Subscription {
+  id         String    @id
+  customerId String
+  priceId    String
+  active     Boolean   @default(false)
+  startDate  DateTime
+  endDate    DateTime
+  cancelAt   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+
+  @@index([customerId])
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  description String
+  features    String[]
+  image       String
+  name        String
+  created     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  Price       Price[]
+}
+
+model Price {
+  id            String   @id @default(uuid())
+  billingScheme String
+  currency      String
+  serviceId     String
+  amount        Int?
+  metadata      Json
+  type          String
+  created       DateTime
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model jackson_store {
+  key           String          @id(map: "_jackson_store_key") @db.VarChar(1500)
+  value         String
+  iv            String?         @db.VarChar(64)
+  tag           String?         @db.VarChar(64)
+  createdAt     DateTime        @default(now()) @db.Timestamp(6)
+  modifiedAt    DateTime?       @db.Timestamp(6)
+  namespace     String?         @db.VarChar(256)
+  jackson_index jackson_index[]
+
+  @@index([namespace], map: "_jackson_store_namespace")
+  @@ignore
+}
+
+model jackson_index {
+  id       Int           @id(map: "_jackson_index_id") @default(autoincrement())
+  key      String        @db.VarChar(1500)
+  storeKey String        @db.VarChar(1500)
+  store    jackson_store @relation(fields: [storeKey], references: [key], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([key], map: "_jackson_index_key")
+  @@index([key, storeKey], map: "_jackson_index_key_store")
+  @@ignore
+}
+
+model jackson_ttl {
+  key       String @id(map: "jackson_ttl_key") @db.VarChar(1500)
+  expiresAt BigInt
+
+  @@index([expiresAt], map: "_jackson_ttl_expires_at")
+  @@ignore
+}
+
+model ScoreHistory {
+  id           String    @id @default(uuid())
+  userId       String
+  type         ScoreType
+  basePoints   Int
+  earnedPoints Int
+  description  String?
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([createdAt])
+}
+
+model Writeup {
+  id         String    @id @default(uuid())
+  userId     String
+  machineId  String?
+  title      String
+  content    String
+  status     String    @default("pending")
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  reviewer   User?     @relation("WriteupReviewer", fields: [reviewedBy], references: [id])
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([machineId])
+  @@index([status])
+}
+
+model EventLog {
+  id        String   @id @default(uuid())
+  type      String
+  userId    String?
+  teamId    String?
+  machineId String?
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([userId])
+  @@index([teamId])
+  @@index([machineId])
+  @@index([createdAt])
+}
+
+model PlaygroundSettings {
+  id               String                 @id @unique @default(uuid())
+  name             String
+  codeName         String
+  season           String
+  type             String
+  startDate        String?
+  endDate          String?
+  description      String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  isActive         Boolean                @default(false)
+  badgeName        String?
+  badgeImage       String?
+  badgeDescription String?
+  enrollments      PlaygroundEnrollment[]
+}
+
+model PlaygroundEnrollment {
+  id           String             @id @default(uuid())
+  userId       String
+  playgroundId String
+  createdAt    DateTime           @default(now())
+  playground   PlaygroundSettings @relation(fields: [playgroundId], references: [id], onDelete: Cascade)
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, playgroundId])
+  @@index([userId])
+  @@index([playgroundId])
+}
+
+model PlaygroundChallenge {
+  id                 String                     @id @default(uuid())
+  playgroundCodeName String
+  title              String
+  category           String
+  difficulty         String
+  value              Int
+  flagType           String
+  flag               String
+  description        String?
+  attachments        Json?
+  isActive           Boolean                    @default(true)
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+  serverAddress      String?
+  serverPort         Int?
+  submissions        PlaygroundFlagSubmission[]
+
+  @@index([playgroundCodeName])
+  @@index([isActive])
+}
+
+model PlaygroundFlagSubmission {
+  id                 String              @id @default(uuid())
+  challengeId        String
+  userId             String
+  playgroundCodeName String
+  challengeTitle     String
+  submittedFlag      String
+  isCorrect          Boolean
+  submissionMethod   String              @default("flag_input")
+  attemptNumber      Int                 @default(1)
+  createdAt          DateTime            @default(now())
+  challenge          PlaygroundChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([playgroundCodeName, createdAt])
+  @@index([challengeId, createdAt])
+  @@index([userId, createdAt])
+  @@index([isCorrect])
+}
+
+model SandboxProblem {
+  id            String         @id @default(uuid())
+  title         String
+  description   String?
+  category      String
+  positionX     Float
+  positionY     Float
+  orderIndex    Int            @default(0)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  dockerImage   String?
+  flag          String?
+  containerPort Int            @default(7681)
+  solves        SandboxSolve[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model Machine {
+  id                   String              @id @default(uuid())
+  title                String
+  description          String?
+  category             String
+  maxAttempts          Int?
+  score                Int
+  difficultyFactor     Float
+  minimumScoreRatio    Int
+  bloodBonus           Boolean             @default(true)
+  containerImage       String?
+  servicePort          Int?
+  cpuLimit             Int?
+  memoryLimit          Int?
+  storageLimit         Int?
+  enableTrafficCapture Boolean             @default(false)
+  categoryType         String              @default("active")
+  hints                String[]
+  isActive             Boolean             @default(true)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  flagTemplate         String?
+  staticFlags          String[]            @default([])
+  type                 MachineType
+  attachmentUrl        String?
+  containers           ContainerInstance[]
+  submissions          FlagSubmission[]
+  flags                MachineFlag[]
+
+  @@index([categoryType])
+  @@index([isActive])
+  @@index([type])
+}
+
+model MachineFlag {
+  id          String           @id @default(uuid())
+  machineId   String
+  flag        String
+  teamId      String?
+  userId      String?
+  isStatic    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  submissions FlagSubmission[]
+  machine     Machine          @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([machineId, teamId, userId])
+  @@index([machineId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+model FlagSubmission {
+  id            String       @id @default(uuid())
+  machineId     String
+  flagId        String?
+  userId        String
+  teamId        String?
+  submittedFlag String
+  isCorrect     Boolean
+  basePoints    Int
+  earnedPoints  Int
+  attemptNumber Int
+  isFirstBlood  Boolean      @default(false)
+  bloodBonus    Int          @default(0)
+  createdAt     DateTime     @default(now())
+  flag          MachineFlag? @relation(fields: [flagId], references: [id])
+  machine       Machine      @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  team          Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([machineId])
+  @@index([userId])
+  @@index([teamId])
+  @@index([isCorrect])
+  @@index([createdAt])
+}
+
+model ContainerInstance {
+  id          String    @id @default(uuid())
+  machineId   String
+  userId      String?
+  teamId      String?
+  containerId String
+  status      String
+  ipAddress   String?
+  ports       Json?
+  flag        String?
+  startedAt   DateTime  @default(now())
+  stoppedAt   DateTime?
+  expiresAt   DateTime?
+  machine     Machine   @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  team        Team?     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([machineId])
+  @@index([userId])
+  @@index([teamId])
+  @@index([status])
+}
+
+model LearningModule {
+  id          String                 @id @default(uuid())
+  title       String
+  description String?
+  category    String
+  difficulty  String
+  duration    String?
+  tier        String
+  type        String
+  imageUrl    String?
+  isActive    Boolean                @default(true)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  content     String?
+  skillPaths  SkillPathModule[]
+  completions UserModuleCompletion[]
+  notes       UserModuleNote[]
+
+  @@index([category])
+  @@index([difficulty])
+  @@index([tier])
+  @@index([isActive])
+}
+
+model UserModuleCompletion {
+  id          String         @id @default(uuid())
+  userId      String
+  moduleId    String
+  completedAt DateTime       @default(now())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  module      LearningModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId])
+  @@index([userId])
+  @@index([moduleId])
+}
+
+model SkillPath {
+  id          String                    @id @default(uuid())
+  title       String
+  description String?
+  type        String
+  difficulty  String
+  duration    String?
+  imageUrl    String?
+  isActive    Boolean                   @default(true)
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  modules     SkillPathModule[]
+  enrollments UserSkillPathEnrollment[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model SkillPathModule {
+  id          String         @id @default(uuid())
+  skillPathId String
+  moduleId    String
+  order       Int            @default(0)
+  createdAt   DateTime       @default(now())
+  module      LearningModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  skillPath   SkillPath      @relation(fields: [skillPathId], references: [id], onDelete: Cascade)
+
+  @@unique([skillPathId, moduleId])
+  @@index([skillPathId])
+  @@index([moduleId])
+}
+
+model UserSkillPathEnrollment {
+  id          String    @id @default(uuid())
+  userId      String
+  skillPathId String
+  enrolledAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  skillPath   SkillPath @relation(fields: [skillPathId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillPathId])
+  @@index([userId])
+  @@index([skillPathId])
+}
+
+model UserModuleNote {
+  id        String         @id @default(uuid())
+  userId    String
+  moduleId  String
+  content   String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  module    LearningModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId])
+  @@index([userId])
+  @@index([moduleId])
+}
+
+model LearnAssignment {
+  id          String                      @id @default(uuid())
+  title       String
+  description String?
+  dueAt       DateTime?
+  targetType  String
+  targetId    String?
+  isActive    Boolean                     @default(true)
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+  submissions LearnAssignmentSubmission[]
+
+  @@index([targetType])
+  @@index([isActive])
+}
+
+model LearnAssignmentSubmission {
+  id            String          @id @default(uuid())
+  assignmentId  String
+  userId        String
+  content       String?
+  attachmentUrl String?
+  submittedAt   DateTime        @default(now())
+  assignment    LearnAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, userId])
+  @@index([assignmentId])
+  @@index([userId])
+}
+
+model AttackBoxSession {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  boxName       String
+  containerName String
+  host          String
+  port          Int
+  port8080      Int
+  username      String
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CloudIDESession {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  containerName String
+  host          String
+  port          Int
+  password      String
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SandboxInstance {
+  id          String   @id @default(uuid())
+  userId      String
+  problemId   String
+  containerId String
+  host        String
+  port        Int
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+  @@index([userId])
+}
+
+model SandboxSolve {
+  id        String         @id @default(uuid())
+  userId    String
+  problemId String
+  solvedAt  DateTime       @default(now())
+  problem   SandboxProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+  @@index([problemId])
+}
+
+model KucisVulnerabilityReport {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  team        String
+  target      String
+  reportedTo  String?
+  severity    String
+  status      String   @default("OPEN")
+  submittedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([severity])
+  @@index([target])
+  @@index([status])
+}
+
+enum Role {
+  ADMIN
+  OWNER
+  MEMBER
+}
+
+enum UserRole {
+  USER
+  LAB
+  ADMIN
+}
+
+enum ScoreType {
+  MACHINE
+  TRACK
+  PLAYGROUND
+}
+
+enum MachineType {
+  STATIC_ATTACHMENT
+  DYNAMIC_ATTACHMENT
+  STATIC_CONTAINER
+  DYNAMIC_CONTAINER
+}
