@@ -57,6 +57,7 @@ interface Track {
       tier: string;
       type: string;
       imageUrl: string | null;
+      content: string | null;
     };
   }>;
 }

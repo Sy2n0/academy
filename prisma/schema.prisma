@@ -699,6 +699,32 @@ model KucisVulnerabilityReport {
   @@index([status])
 }
 
+model TestRun {
+  id          String       @id @default(uuid())
+  status      TestRunStatus @default(PENDING)
+  trigger     String       @default("manual")
+  commit      String?
+  branch      String?
+  passedCount Int          @default(0)
+  failedCount Int          @default(0)
+  skipCount   Int          @default(0)
+  duration    Int?
+  results     Json?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum TestRunStatus {
+  PENDING
+  RUNNING
+  PASSED
+  FAILED
+  ERROR
+}
+
 enum Role {
   ADMIN
   OWNER

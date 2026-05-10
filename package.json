@@ -19,6 +19,8 @@
     "playwright:update": "playwright install && playwright install-deps",
     "test:e2e": "playwright test -x",
     "test": "jest",
+    "test:unit": "jest --testPathPatterns='__tests__/lib'",
+    "test:integration": "jest --testPathPatterns='__tests__/api'",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage --env=jsdom",
     "build-ci": "next build",

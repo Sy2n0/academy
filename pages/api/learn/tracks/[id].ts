@@ -97,6 +97,7 @@ export default async function handler(
           tier: spm.module.tier,
           type: spm.module.type,
           imageUrl: spm.module.imageUrl,
+          content: spm.module.content,
         },
       })),
     };

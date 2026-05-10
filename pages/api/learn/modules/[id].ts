@@ -27,6 +27,21 @@ export default async function handler(
         id,
         isActive: true,
       },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        category: true,
+        difficulty: true,
+        duration: true,
+        tier: true,
+        type: true,
+        imageUrl: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        content: true,
+      },
     });
 
     if (!module) {

@@ -77,7 +77,39 @@ jobs:
       - run: npm run check-lint
       - run: npm run check-format
       - run: npm run check-locale
-      - run: npm run test
+      - name: Run unit/integration tests (capture JSON)
+        id: jest
+        run: |
+          npx jest --json --forceExit --testPathIgnorePatterns=tests/e2e \
+            --outputFile=jest-results.json || true
+      - name: Report test results to platform
+        if: always()
+        env:
+          PLATFORM_URL: https://academy.hub-h4ck.com
+          PLATFORM_API_KEY: ${{ secrets.PLATFORM_API_KEY }}
+        run: |
+          COMMIT_SHA="${{ github.sha }}"
+          BRANCH="${{ github.ref_name }}"
+          PASSED=$(jq '.numPassedTests // 0' jest-results.json 2>/dev/null || echo 0)
+          FAILED=$(jq '.numFailedTests // 0' jest-results.json 2>/dev/null || echo 0)
+          SKIPPED=$(jq '(.numPendingTests // 0) + (.numTodoTests // 0)' jest-results.json 2>/dev/null || echo 0)
+          SUCCESS=$(jq '.success' jest-results.json 2>/dev/null || echo false)
+          STATUS=$([ "$SUCCESS" = "true" ] && echo "PASSED" || echo "FAILED")
+          SUITES=$(jq '[.testResults[]? | {file: .testFilePath, passed: .numPassingTests, failed: .numFailingTests}]' jest-results.json 2>/dev/null || echo '[]')
+
+          curl -s -X POST "${PLATFORM_URL}/api/admin/test-runs/report" \
+            -H "Content-Type: application/json" \
+            -H "X-Api-Key: ${PLATFORM_API_KEY}" \
+            -d "{
+              \"trigger\": \"ci\",
+              \"commit\": \"${COMMIT_SHA}\",
+              \"branch\": \"${BRANCH}\",
+              \"status\": \"${STATUS}\",
+              \"passedCount\": ${PASSED},
+              \"failedCount\": ${FAILED},
+              \"skipCount\": ${SKIPPED},
+              \"results\": { \"suites\": ${SUITES} }
+            }" || echo "Warning: failed to report results to platform"
       - run: npm run build-ci
       - run: npm run check-types
       - run: npx prisma migrate deploy
@@ -91,3 +123,9 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 2
+      - uses: actions/upload-artifact@v5
+        if: ${{ !cancelled() }}
+        with:
+          name: jest-results
+          path: jest-results.json
+          retention-days: 7

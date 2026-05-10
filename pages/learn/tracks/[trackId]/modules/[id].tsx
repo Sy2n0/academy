@@ -381,8 +381,8 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
   // ### 기준으로 콘텐츠를 스텝으로 분할 (hooks must be before early returns)
   const contentSteps = useMemo(() => {
     if (!module?.content) return [];
-    const parts = module.content.split(/(?=^###\s)/m).filter(p => p.trim());
-    return parts.length > 1 ? parts : [module.content];
+    // 전체 콘텐츠를 한 번에 표시 (스텝 분할 비활성화)
+    return [module.content];
   }, [module?.content]);
 
   const totalContentSteps = contentSteps.length;
