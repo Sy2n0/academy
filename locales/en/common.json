@@ -246,5 +246,20 @@
   "internal-server-error": "Internal Server Error !",
   "unable-to-find": "We're unable to find out what's happening! We suggest you to",
   "try-again-later": "or visit here later.",
-  "multiple-sso-teams": "User belongs to multiple teams with SSO enabled. Please enter your team slug to get started."
+  "multiple-sso-teams": "User belongs to multiple teams with SSO enabled. Please enter your team slug to get started.",
+  "sandbox": "Sandbox",
+  "sandbox-page-title": "Sandbox::HUB ACADEMY",
+  "no-challenges-available": "No challenges available",
+  "no-description-provided": "No description provided.",
+  "requires-instance": "This challenge requires creating an instance",
+  "instance-duration": "Instance will live for 120 mins.",
+  "connection": "Connection",
+  "incorrect-flag": "Incorrect flag. Try again.",
+  "no-solvers-yet": "No solvers yet.",
+  "first-blood": "FIRST BLOOD",
+  "stop": "Stop",
+  "create": "Create",
+  "starting": "Starting...",
+  "checking": "Checking...",
+  "submit-flag": "Submit Flag"
 }

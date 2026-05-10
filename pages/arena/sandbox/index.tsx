@@ -1,4 +1,5 @@
 import { type ReactElement, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'next-i18next';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -91,6 +92,7 @@ const FlagIcon = ({ cx, cy, color }: { cx: number; cy: number; color: string }) 
 );
 
 const SandboxPage: NextPageWithLayout = () => {
+  const { t } = useTranslation('common');
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
@@ -112,8 +114,8 @@ const SandboxPage: NextPageWithLayout = () => {
   const animFrameRef = useRef<number>();
 
   const { data, isLoading, mutate } = useSWR<SandboxResponse>('/api/sandbox', fetcher);
-  const problems = data?.data?.problems ?? [];
-  const solvedIds = data?.data?.solvedIds ?? [];
+  const problems = useMemo(() => data?.data?.problems ?? [], [data]);
+  const solvedIds = useMemo(() => data?.data?.solvedIds ?? [], [data]);
 
   const categoryMap = useMemo(() => {
     const map = new Map<string, { problems: SandboxProblem[]; index: number }>();
@@ -255,7 +257,7 @@ const SandboxPage: NextPageWithLayout = () => {
   return (
     <>
       <Head>
-        <title>Sandbox::HUB ACADEMY</title>
+        <title>{t('sandbox-page-title')}</title>
       </Head>
       <div className="relative min-h-screen bg-background">
         <AnimatedNoise opacity={0.03} />
@@ -271,7 +273,7 @@ const SandboxPage: NextPageWithLayout = () => {
                     <BreadcrumbList>
                       <BreadcrumbItem>
                         <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Sandbox
+                          {t('sandbox')}
                         </BreadcrumbPage>
                       </BreadcrumbItem>
                     </BreadcrumbList>
@@ -298,7 +300,7 @@ const SandboxPage: NextPageWithLayout = () => {
                 )}
                 {!isLoading && problems.length === 0 && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="font-mono text-sm text-white/30">No challenges available</p>
+                    <p className="font-mono text-sm text-white/30">{t('no-challenges-available')}</p>
                   </div>
                 )}
 
@@ -498,7 +500,7 @@ const SandboxPage: NextPageWithLayout = () => {
                               {modalProblem.description ? (
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{modalProblem.description}</ReactMarkdown>
                               ) : (
-                                <p className="text-sm leading-relaxed">No description provided.</p>
+                                <p className="text-sm leading-relaxed">{t('no-description-provided')}</p>
                               )}
                             </div>
                             <div className="h-px w-full bg-border/30" />
@@ -508,9 +510,9 @@ const SandboxPage: NextPageWithLayout = () => {
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <p className="text-base font-bold text-foreground mb-1">
-                                    This challenge requires creating an instance
+                                    {t('requires-instance')}
                                   </p>
-                                  <p className="text-sm text-muted-foreground">Instance will live for 120 mins.</p>
+                                  <p className="text-sm text-muted-foreground">{t('instance-duration')}</p>
                                 </div>
                                 {instance ? (
                                   <Button
@@ -520,7 +522,7 @@ const SandboxPage: NextPageWithLayout = () => {
                                     }}
                                     className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2"
                                   >
-                                    <Square className="h-4 w-4 mr-2" /> Stop
+                                    <Square className="h-4 w-4 mr-2" /> {t('stop')}
                                   </Button>
                                 ) : (
                                   <Button
@@ -542,7 +544,7 @@ const SandboxPage: NextPageWithLayout = () => {
                                     }}
                                     className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2"
                                   >
-                                    <Play className="h-4 w-4 mr-2" /> {instanceLoading ? 'Starting...' : 'Create'}
+                                    <Play className="h-4 w-4 mr-2" /> {instanceLoading ? t('starting') : t('create')}
                                   </Button>
                                 )}
                               </div>
@@ -553,9 +555,9 @@ const SandboxPage: NextPageWithLayout = () => {
                                   style={{ background: 'rgba(45,204,150,0.06)', border: '1px solid rgba(45,204,150,0.2)' }}
                                 >
                                   <div className="min-w-0">
-                                    <p className="font-mono text-[10px] text-muted-foreground mb-0.5 uppercase tracking-wider">Connection</p>
+                                    <p className="font-mono text-[10px] text-muted-foreground mb-0.5 uppercase tracking-wider">{t('connection')}</p>
                                     <p className="font-mono text-sm font-bold text-white break-all">
-                                      http://{instance.host}:{instance.port}
+                                      {`http://${instance.host}:${instance.port}`}
                                     </p>
                                   </div>
                                   <a
@@ -618,11 +620,11 @@ const SandboxPage: NextPageWithLayout = () => {
                                       disabled={!flag.trim() || submitLoading}
                                       className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2 h-11"
                                     >
-                                      {submitLoading ? 'Checking...' : 'Submit Flag'}
+                                      {submitLoading ? t('checking') : t('submit-flag')}
                                     </Button>
                                   </form>
                                   {submitResult === 'wrong' && (
-                                    <p className="font-mono text-xs text-center" style={{ color: '#ef4444' }}>Incorrect flag. Try again.</p>
+                                    <p className="font-mono text-xs text-center" style={{ color: '#ef4444' }}>{t('incorrect-flag')}</p>
                                   )}
                                 </>
                               )}
@@ -632,7 +634,7 @@ const SandboxPage: NextPageWithLayout = () => {
                           /* Solvers Tab */
                           <div className="space-y-2 min-h-[120px]">
                             {solvers.length === 0 ? (
-                              <p className="font-mono text-xs text-muted-foreground text-center py-8">No solvers yet.</p>
+                              <p className="font-mono text-xs text-muted-foreground text-center py-8">{t('no-solvers-yet')}</p>
                             ) : (
                               solvers.map((s, i) => (
                                 <div key={s.user.id} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -642,7 +644,7 @@ const SandboxPage: NextPageWithLayout = () => {
                                   </div>
                                   <span className="flex-1 text-sm text-foreground">{s.user.name}</span>
                                   <span className="font-mono text-[10px] text-muted-foreground">{new Date(s.solvedAt).toLocaleDateString()}</span>
-                                  {i === 0 && <span className="font-mono text-[10px]" style={{ color: '#f59e0b' }}>FIRST BLOOD</span>}
+                                  {i === 0 && <span className="font-mono text-[10px]" style={{ color: '#f59e0b' }}>{t('first-blood')}</span>}
                                 </div>
                               ))
                             )}
