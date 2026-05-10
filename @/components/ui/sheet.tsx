@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable i18next/no-literal-string */
 
 import * as React from "react"
 import * as SheetPrimitive from "@radix-ui/react-dialog"

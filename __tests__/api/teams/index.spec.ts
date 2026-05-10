@@ -140,7 +140,7 @@ describe('POST /api/teams', () => {
       method: 'POST',
       body: { name: 'Team', slug: 'Invalid-Slug' },
     });
-    const { res, json, status } = makeRes();
+    const { res, status } = makeRes();
 
     await handler(req, res);
 

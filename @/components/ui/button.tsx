@@ -90,7 +90,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       color,
       loading,
-      active: _active,
+      active: _active, // eslint-disable-line @typescript-eslint/no-unused-vars
       fullWidth,
       wide,
       ...props

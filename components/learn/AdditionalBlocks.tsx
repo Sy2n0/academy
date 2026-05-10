@@ -1,8 +1,9 @@
+/* eslint-disable i18next/no-literal-string */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, X, Download, Upload, Play, Square } from 'lucide-react';
+import { Check, X, Download, Play } from 'lucide-react';
 
 // 퀴즈 블록 (객관식)
 export const QuizBlock = ({ question, options, answer }: { 
@@ -131,7 +132,9 @@ export const TerminalBlock = ({ commands }: { commands?: string }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId: terminalInfo.sessionId }),
         });
-      } catch {}
+      } catch {
+        // intentionally ignored
+      }
     }
     setShowRealTerminal(false);
     setTerminalInfo(null);

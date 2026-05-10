@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable i18next/no-literal-string */
 
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"

@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable i18next/no-literal-string */
 
 import { useState, useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"

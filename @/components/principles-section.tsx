@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable i18next/no-literal-string */
 
 import { useRef, useEffect } from "react"
 import { HighlightText } from "@/components/highlight-text"

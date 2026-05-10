@@ -36,6 +36,7 @@ import { throwIfNoTeamAccess, getTeamMembers, removeTeamMember } from 'models/te
 import { throwIfNotAllowed } from 'models/user';
 import { updateTeamMember } from 'models/teamMember';
 import { validateMembershipOperation } from '@/lib/rbac';
+import { validateWithSchema } from '@/lib/zod';
 
 const mockThrowIfNoTeamAccess = throwIfNoTeamAccess as jest.MockedFunction<typeof throwIfNoTeamAccess>;
 const mockThrowIfNotAllowed = throwIfNotAllowed as jest.MockedFunction<typeof throwIfNotAllowed>;
@@ -43,6 +44,7 @@ const mockGetTeamMembers = getTeamMembers as jest.MockedFunction<typeof getTeamM
 const mockRemoveTeamMember = removeTeamMember as jest.MockedFunction<typeof removeTeamMember>;
 const mockUpdateTeamMember = updateTeamMember as jest.MockedFunction<typeof updateTeamMember>;
 const mockValidateMembership = validateMembershipOperation as jest.MockedFunction<typeof validateMembershipOperation>;
+const mockValidateWithSchema = validateWithSchema as jest.Mock;
 
 const ownerTeamMember = {
   role: 'OWNER',
@@ -96,8 +98,7 @@ describe('GET /api/teams/[slug]/members', () => {
 
 describe('DELETE /api/teams/[slug]/members', () => {
   beforeEach(() => {
-    const { validateWithSchema } = require('@/lib/zod');
-    (validateWithSchema as jest.Mock).mockReturnValue({ memberId: 'user-2' });
+    mockValidateWithSchema.mockReturnValue({ memberId: 'user-2' });
   });
 
   it('멤버를 삭제한다', async () => {
@@ -120,8 +121,7 @@ describe('DELETE /api/teams/[slug]/members', () => {
 
 describe('PATCH /api/teams/[slug]/members - 역할 변경', () => {
   beforeEach(() => {
-    const { validateWithSchema } = require('@/lib/zod');
-    (validateWithSchema as jest.Mock).mockReturnValue({ memberId: 'user-2', role: 'ADMIN' });
+    mockValidateWithSchema.mockReturnValue({ memberId: 'user-2', role: 'ADMIN' });
     mockUpdateTeamMember.mockResolvedValue({ id: 'user-2', role: 'ADMIN' } as any);
   });
 

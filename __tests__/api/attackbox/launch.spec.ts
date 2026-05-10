@@ -23,14 +23,15 @@ jest.mock('child_process', () => ({
   exec: jest.fn(),
 }));
 jest.mock('util', () => ({
-  promisify: (fn: Function) =>
-    (...args: any[]) =>
-      new Promise((resolve, reject) => fn(...args, (err: any, val: any) => (err ? reject(err) : resolve(val)))),
+  promisify: (fn: (...args: unknown[]) => void) =>
+    (...args: unknown[]) =>
+      new Promise((resolve, reject) => fn(...args, (err: unknown, val: unknown) => (err ? reject(err) : resolve(val)))),
 }));
 
 import handler from '../../../pages/api/attackbox/launch';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
+import { prisma } from '@/lib/prisma';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
 const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
@@ -53,9 +54,8 @@ beforeEach(() => {
   mockGetSession.mockResolvedValue({ user: mockUser } as any);
   mockGetUserBySession.mockResolvedValue(mockUser as any);
 
-  const { prisma } = require('@/lib/prisma');
   // 기존 세션 없는 상태로 초기화
-  prisma.attackBoxSession = { findUnique: jest.fn().mockResolvedValue(null), deleteMany: jest.fn(), upsert: jest.fn() };
+  (prisma as any).attackBoxSession = { findUnique: jest.fn().mockResolvedValue(null), deleteMany: jest.fn(), upsert: jest.fn() };
 });
 
 describe('POST /api/attackbox/launch - 405', () => {

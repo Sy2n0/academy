@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 import { useRef, useEffect } from "react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"

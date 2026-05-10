@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,11 +9,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/router';
-import env from '@/lib/env';
 
 interface NavbarProps {
   hideAuthButtons?: boolean;

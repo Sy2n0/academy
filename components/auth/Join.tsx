@@ -22,7 +22,6 @@ import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import type { ApiResponse } from 'types';
 import * as Yup from 'yup';
-import AgreeMessage from './AgreeMessage';
 import GoogleReCAPTCHA from '../shared/GoogleReCAPTCHA';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { maxLengthPolicies } from '@/lib/common';
@@ -162,7 +161,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
       } else {
         setTokenValidation({ status: 'invalid', message: t('token-invalid') || 'Invalid token' });
       }
-    } catch (error) {
+    } catch {
       setTokenValidation({ status: 'invalid', message: t('token-validation-error') || 'Failed to validate token' });
     }
   };

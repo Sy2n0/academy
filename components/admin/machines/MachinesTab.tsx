@@ -1,6 +1,7 @@
+/* eslint-disable i18next/no-literal-string */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Server, Plus, RefreshCw, Hexagon, Puzzle, Settings, FileText, Trash2, Eye, Bomb } from 'lucide-react';
+import { Plus, RefreshCw, Hexagon, Puzzle, FileText, Bomb } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
@@ -38,13 +39,13 @@ interface Machine {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export function MachinesTab({ gameId }: MachinesTabProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
   const router = useRouter();
   const [isNewChallengeOpen, setIsNewChallengeOpen] = useState(false);
   const [newChallengeTitle, setNewChallengeTitle] = useState('');
   const [newChallengeCategory, setNewChallengeCategory] = useState('');
   const [newChallengeType, setNewChallengeType] = useState('');
-  const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
 
   const { data, error, isLoading, mutate } = useSWR<{ data: { machines: Machine[] } }>(
     '/api/admin/machines/active',

@@ -8,7 +8,6 @@ import {
   LandPlot,
   LayoutDashboard,
   Satellite,
-  Server,
   Swords,
 } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
@@ -158,7 +157,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { teams, isLoading } = useTeams()
+  const { teams } = useTeams()
 
   // teams 데이터를 TeamSwitcher가 기대하는 형식으로 변환
   const teamsData = teams && teams.length > 0

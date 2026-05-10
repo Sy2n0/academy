@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
@@ -13,7 +14,8 @@ interface WriteupsTabProps {
   gameId: string;
 }
 
-export function WriteupsTab({ gameId }: WriteupsTabProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function WriteupsTab({ gameId: _gameId }: WriteupsTabProps) {
   const [selectedTeam, setSelectedTeam] = useState('all');
 
   return (

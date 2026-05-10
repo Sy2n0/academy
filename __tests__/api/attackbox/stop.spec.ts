@@ -21,6 +21,8 @@ jest.mock('child_process', () => ({
 import handler from '../../../pages/api/attackbox/stop';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
+import { exec } from 'child_process';
+import { prisma } from '@/lib/prisma';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
 const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
@@ -82,11 +84,8 @@ describe('POST /api/attackbox/stop - containerName 유효성 검사', () => {
   });
 
   it('올바른 containerName은 통과한다 (kali 타입)', async () => {
-    const { exec } = require('child_process');
-    exec.mockImplementation((_cmd: string, cb: Function) => cb(null, { stdout: '', stderr: '' }));
-
-    const { prisma } = require('@/lib/prisma');
-    prisma.attackBoxSession.deleteMany.mockResolvedValue({});
+    (exec as jest.Mock).mockImplementation((_cmd: string, cb: (err: null, result: { stdout: string; stderr: string }) => void) => cb(null, { stdout: '', stderr: '' }));
+    (prisma as any).attackBoxSession.deleteMany.mockResolvedValue({});
 
     const { res, json } = makeRes();
     await handler(makeReq({ body: { containerName: 'attackbox-kali-22000' } }), res);

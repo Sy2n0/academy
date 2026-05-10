@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {

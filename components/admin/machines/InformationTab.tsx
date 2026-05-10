@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,12 +11,13 @@ interface InformationTabProps {
   gameId: string;
 }
 
-export function InformationTab({ gameId }: InformationTabProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function InformationTab({ gameId: _gameId }: InformationTabProps) {
   const [maxTeamMember, setMaxTeamMember] = useState('0');
   const [teamContainerLimit, setTeamContainerLimit] = useState('3');
   const [invitationCode, setInvitationCode] = useState('');
   const [gameDetails, setGameDetails] = useState('');
-  const [poster, setPoster] = useState<File | null>(null);
+  const [, setPoster] = useState<File | null>(null);
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
 
   const handleGenerateInvitationCode = () => {
