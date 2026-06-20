@@ -49,10 +49,14 @@ export default async function handler(
   const inspect = await execAsync(
     `docker ps --filter name=^/${row.containerName}$ --format "{{.Names}}"`
   ).catch(() => ({ stdout: '' }));
-  const isRunning = typeof inspect.stdout === 'string' && inspect.stdout.trim() === row.containerName;
+  const isRunning =
+    typeof inspect.stdout === 'string' &&
+    inspect.stdout.trim() === row.containerName;
 
   if (!isRunning) {
-    const deleteModel = sessionModel as { deleteMany?: (args: { where: { userId: string } }) => Promise<unknown> };
+    const deleteModel = sessionModel as {
+      deleteMany?: (args: { where: { userId: string } }) => Promise<unknown>;
+    };
     if (deleteModel.deleteMany) {
       await deleteModel.deleteMany({ where: { userId: user.id } });
     }

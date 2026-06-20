@@ -30,7 +30,11 @@ const Modal = ({ open, close, children }: ModalProps) => {
 };
 
 const Header = ({ children }: { children: React.ReactNode }) => {
-  return <DialogHeader><DialogTitle>{children}</DialogTitle></DialogHeader>;
+  return (
+    <DialogHeader>
+      <DialogTitle>{children}</DialogTitle>
+    </DialogHeader>
+  );
 };
 
 const Description = ({ children }: { children: React.ReactNode }) => {
@@ -38,11 +42,13 @@ const Description = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Body = ({ children, className }: BodyProps) => {
-  return <div className={cn("py-3", className)}>{children}</div>;
+  return <div className={cn('py-3', className)}>{children}</div>;
 };
 
 const Footer = ({ children }: { children: React.ReactNode }) => {
-  return <DialogFooter className="flex justify-end gap-2">{children}</DialogFooter>;
+  return (
+    <DialogFooter className="flex justify-end gap-2">{children}</DialogFooter>
+  );
 };
 
 Modal.Header = Header;

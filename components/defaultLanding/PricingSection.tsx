@@ -49,10 +49,7 @@ const PricingSection = () => {
                     </div>
                   </CardContent>
                   <CardFooter className="justify-center m-2">
-                    <Button
-                      className="md:w-full w-3/4 rounded-md"
-                      size="md"
-                    >
+                    <Button className="md:w-full w-3/4 rounded-md" size="md">
                       {t('buy-now')}
                     </Button>
                   </CardFooter>

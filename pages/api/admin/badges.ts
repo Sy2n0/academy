@@ -28,13 +28,17 @@ const slugify = (value: string) =>
     .replace(/[\s_]+/g, '-')
     .replace(/-+/g, '-');
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const session = await getSession(req, res);
     const currentUser = await getUserBySession(session);
 
     if (!currentUser) throw new ApiError(401, 'Unauthorized');
-    if (!isAdmin(currentUser.role)) throw new ApiError(403, 'Only admins can manage badges');
+    if (!isAdmin(currentUser.role))
+      throw new ApiError(403, 'Only admins can manage badges');
 
     await ensureBadgeInfrastructure();
 
@@ -53,7 +57,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
       default:
         res.setHeader('Allow', 'GET, POST, PUT, DELETE');
-        res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+        res
+          .status(405)
+          .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
   } catch (error: any) {
     const message = error.message || 'Something went wrong';
@@ -63,16 +69,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 const handleGET = async (res: NextApiResponse) => {
-  const badges = await prisma.$queryRaw<Array<{
-    id: string;
-    slug: string;
-    name: string;
-    description: string | null;
-    imageUrl: string | null;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }>>`
+  const badges = await prisma.$queryRaw<
+    Array<{
+      id: string;
+      slug: string;
+      name: string;
+      description: string | null;
+      imageUrl: string | null;
+      isActive: boolean;
+      createdAt: Date;
+      updatedAt: Date;
+    }>
+  >`
     SELECT "id", "slug", "name", "description", "imageUrl", "isActive", "createdAt", "updatedAt"
     FROM "BadgeCatalog"
     ORDER BY "updatedAt" DESC
@@ -130,7 +138,9 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
-  const id = (typeof req.query.id === 'string' ? req.query.id : req.body?.id) as string | undefined;
+  const id = (
+    typeof req.query.id === 'string' ? req.query.id : req.body?.id
+  ) as string | undefined;
   if (!id) throw new ApiError(400, 'Badge id is required');
 
   await prisma.$executeRaw`DELETE FROM "BadgeCatalog" WHERE "id" = ${id}`;

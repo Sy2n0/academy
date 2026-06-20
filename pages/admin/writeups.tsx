@@ -116,7 +116,8 @@ const WriteupManagement: NextPageWithLayout = () => {
       writeup.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       writeup.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       writeup.machine?.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || writeup.status === statusFilter;
+    const matchesStatus =
+      statusFilter === 'all' || writeup.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -139,7 +140,9 @@ const WriteupManagement: NextPageWithLayout = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error?.message || '라이트업 검토에 실패했습니다');
+        throw new Error(
+          result.error?.message || '라이트업 검토에 실패했습니다'
+        );
       }
 
       toast.success(`Writeup ${status} successfully`);
@@ -222,7 +225,10 @@ const WriteupManagement: NextPageWithLayout = () => {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <h1 className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2" style={{ fontStyle: 'italic' }}>
+                        <h1
+                          className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2"
+                          style={{ fontStyle: 'italic' }}
+                        >
                           WRITEUP MANAGEMENT
                         </h1>
                         <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
@@ -241,7 +247,9 @@ const WriteupManagement: NextPageWithLayout = () => {
                     {/* Filters */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
-                        <Label className="font-mono text-sm mb-2 block">Search</Label>
+                        <Label className="font-mono text-sm mb-2 block">
+                          Search
+                        </Label>
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -254,8 +262,13 @@ const WriteupManagement: NextPageWithLayout = () => {
                         </div>
                       </div>
                       <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
-                        <Label className="font-mono text-sm mb-2 block">Status</Label>
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <Label className="font-mono text-sm mb-2 block">
+                          Status
+                        </Label>
+                        <Select
+                          value={statusFilter}
+                          onValueChange={setStatusFilter}
+                        >
                           <SelectTrigger className="font-mono">
                             <SelectValue />
                           </SelectTrigger>
@@ -306,15 +319,18 @@ const WriteupManagement: NextPageWithLayout = () => {
                                         writeup.status === 'approved'
                                           ? 'text-accent border-accent/30 bg-accent/10'
                                           : writeup.status === 'rejected'
-                                          ? 'text-destructive border-destructive/30 bg-destructive/10'
-                                          : 'text-muted-foreground border-border/30 bg-background/60'
+                                            ? 'text-destructive border-destructive/30 bg-destructive/10'
+                                            : 'text-muted-foreground border-border/30 bg-background/60'
                                       }`}
                                     >
                                       {writeup.status}
                                     </span>
                                   </div>
                                   <p className="font-mono text-[10px] text-muted-foreground mt-1">
-                                    Submitted: {new Date(writeup.createdAt).toLocaleString()}
+                                    Submitted:{' '}
+                                    {new Date(
+                                      writeup.createdAt
+                                    ).toLocaleString()}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 ml-4">
@@ -323,7 +339,9 @@ const WriteupManagement: NextPageWithLayout = () => {
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => openReviewDialog(writeup)}
+                                        onClick={() =>
+                                          openReviewDialog(writeup)
+                                        }
                                         className="font-mono text-xs"
                                       >
                                         <Eye className="h-3 w-3 mr-1" />
@@ -335,7 +353,12 @@ const WriteupManagement: NextPageWithLayout = () => {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => window.open(writeup.attachmentUrl!, '_blank')}
+                                      onClick={() =>
+                                        window.open(
+                                          writeup.attachmentUrl!,
+                                          '_blank'
+                                        )
+                                      }
                                       className="font-mono text-xs"
                                     >
                                       <Download className="h-3 w-3" />
@@ -360,7 +383,10 @@ const WriteupManagement: NextPageWithLayout = () => {
       <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-[var(--font-bebas)] text-2xl tracking-tight text-foreground" style={{ fontStyle: 'italic' }}>
+            <DialogTitle
+              className="font-[var(--font-bebas)] text-2xl tracking-tight text-foreground"
+              style={{ fontStyle: 'italic' }}
+            >
               Review Writeup
             </DialogTitle>
             <DialogDescription className="font-mono text-xs text-muted-foreground">
@@ -378,7 +404,9 @@ const WriteupManagement: NextPageWithLayout = () => {
                 </div>
               </div>
               <div>
-                <Label className="font-mono text-sm mb-2 block">Comment (optional)</Label>
+                <Label className="font-mono text-sm mb-2 block">
+                  Comment (optional)
+                </Label>
                 <Input
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}

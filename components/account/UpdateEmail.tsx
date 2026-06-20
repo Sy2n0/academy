@@ -67,7 +67,10 @@ const UpdateEmail = ({ user, allowEmailChange }: UpdateEmailProps) => {
         </div>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="email" className="font-mono text-xs uppercase tracking-wider">
+            <FieldLabel
+              htmlFor="email"
+              className="font-mono text-xs uppercase tracking-wider"
+            >
               {t('email-address')}
             </FieldLabel>
             <Input
@@ -78,8 +81,10 @@ const UpdateEmail = ({ user, allowEmailChange }: UpdateEmailProps) => {
               value={formik.values.email}
               onChange={formik.handleChange}
               className={cn(
-                "font-mono text-sm",
-                formik.touched.email && formik.errors.email && "border-destructive"
+                'font-mono text-sm',
+                formik.touched.email &&
+                  formik.errors.email &&
+                  'border-destructive'
               )}
               required
               disabled={!allowEmailChange}
@@ -94,10 +99,17 @@ const UpdateEmail = ({ user, allowEmailChange }: UpdateEmailProps) => {
         <div className="flex justify-end">
           <Button
             type="submit"
-            disabled={!formik.dirty || !formik.isValid || formik.isSubmitting || !allowEmailChange}
+            disabled={
+              !formik.dirty ||
+              !formik.isValid ||
+              formik.isSubmitting ||
+              !allowEmailChange
+            }
             className="font-mono text-xs uppercase tracking-wider"
           >
-            {formik.isSubmitting ? t('loading') || 'Loading...' : t('save-changes')}
+            {formik.isSubmitting
+              ? t('loading') || 'Loading...'
+              : t('save-changes')}
           </Button>
         </div>
       </div>

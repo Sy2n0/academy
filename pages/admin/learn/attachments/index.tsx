@@ -40,7 +40,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Plus, FileText, Trash2, Users, Calendar, Download, ChevronRight } from 'lucide-react';
+import {
+  ArrowLeft,
+  Plus,
+  FileText,
+  Trash2,
+  Users,
+  Calendar,
+  Download,
+  ChevronRight,
+} from 'lucide-react';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
 
@@ -61,7 +70,9 @@ const fetcher = async (url: string) => {
     throw new Error(message);
   }
   if (!isJson) {
-    throw new Error(`서버가 JSON이 아닌 응답을 반환했습니다 (${res.status}). 다시 로그인해 주세요.`);
+    throw new Error(
+      `서버가 JSON이 아닌 응답을 반환했습니다 (${res.status}). 다시 로그인해 주세요.`
+    );
   }
   return res.json();
 };
@@ -99,7 +110,12 @@ interface SubmissionItem {
   content: string | null;
   attachmentUrl: string | null;
   submittedAt: string;
-  user: { id: string; name: string | null; email: string; image: string | null };
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
 }
 
 const AdminAttachmentsPage: NextPageWithLayout = () => {
@@ -107,7 +123,8 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [submissionsOpen, setSubmissionsOpen] = useState(false);
-  const [submissionsAssignment, setSubmissionsAssignment] = useState<Assignment | null>(null);
+  const [submissionsAssignment, setSubmissionsAssignment] =
+    useState<Assignment | null>(null);
   const [submissionsList, setSubmissionsList] = useState<SubmissionItem[]>([]);
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
   const [submissionsSearch, setSubmissionsSearch] = useState('');
@@ -121,7 +138,10 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
     setSubmissionsLoading(true);
     setSubmissionsOpen(true);
     try {
-      const res = await fetch(`/api/admin/learn/assignments/${a.id}/submissions`, { credentials: 'include' });
+      const res = await fetch(
+        `/api/admin/learn/assignments/${a.id}/submissions`,
+        { credentials: 'include' }
+      );
       const json = await res.json();
       setSubmissionsList(json?.data?.submissions ?? []);
     } catch {
@@ -139,7 +159,10 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
       s.user.email.toLowerCase().includes(q)
     );
   });
-  const totalPages = Math.max(1, Math.ceil(filteredSubmissions.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredSubmissions.length / PAGE_SIZE)
+  );
   const pagedSubmissions = filteredSubmissions.slice(
     submissionsPage * PAGE_SIZE,
     submissionsPage * PAGE_SIZE + PAGE_SIZE
@@ -152,12 +175,18 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
     targetId: '',
   });
 
-  const { data, error, isLoading, mutate } = useSWR<{ data: Assignment[]; _warning?: string }>(
-    '/api/admin/learn/assignments',
+  const { data, error, isLoading, mutate } = useSWR<{
+    data: Assignment[];
+    _warning?: string;
+  }>('/api/admin/learn/assignments', fetcher);
+  const { data: tracksData } = useSWR<{ data: Track[] }>(
+    '/api/admin/learn/tracks',
     fetcher
   );
-  const { data: tracksData } = useSWR<{ data: Track[] }>('/api/admin/learn/tracks', fetcher);
-  const { data: modulesData } = useSWR<{ data: Module[] }>('/api/admin/learn/modules', fetcher);
+  const { data: modulesData } = useSWR<{ data: Module[] }>(
+    '/api/admin/learn/modules',
+    fetcher
+  );
 
   const assignments = data?.data ?? [];
   const schemaWarning = data?._warning;
@@ -175,7 +204,10 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
       toast.error('Please enter a title');
       return;
     }
-    if ((form.targetType === 'TRACK' || form.targetType === 'MODULE') && !form.targetId) {
+    if (
+      (form.targetType === 'TRACK' || form.targetType === 'MODULE') &&
+      !form.targetId
+    ) {
       toast.error('Please select who can submit');
       return;
     }
@@ -209,7 +241,13 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
       }
       toast.success('Assignment created');
       setCreateOpen(false);
-      setForm({ title: '', description: '', dueAt: '', targetType: 'ALL', targetId: '' });
+      setForm({
+        title: '',
+        description: '',
+        dueAt: '',
+        targetType: 'ALL',
+        targetId: '',
+      });
       mutate();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : '생성에 실패했습니다');
@@ -217,7 +255,8 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this assignment? All submissions will be removed.')) return;
+    if (!confirm('Delete this assignment? All submissions will be removed.'))
+      return;
     try {
       const res = await fetch(`/api/admin/learn/assignments/${id}`, {
         method: 'DELETE',
@@ -276,7 +315,10 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                   <Breadcrumb>
                     <BreadcrumbList>
                       <BreadcrumbItem>
-                        <BreadcrumbLink href="/admin/learn" className="font-mono text-xs uppercase tracking-wider">
+                        <BreadcrumbLink
+                          href="/admin/learn"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
                           Learn Management
                         </BreadcrumbLink>
                       </BreadcrumbItem>
@@ -302,12 +344,18 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href="/admin/learn">
-                      <Button variant="outline" className="font-mono text-xs uppercase tracking-wider">
+                      <Button
+                        variant="outline"
+                        className="font-mono text-xs uppercase tracking-wider"
+                      >
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Back
                       </Button>
                     </Link>
-                    <Button className="font-mono text-xs uppercase tracking-wider" onClick={() => setCreateOpen(true)}>
+                    <Button
+                      className="font-mono text-xs uppercase tracking-wider"
+                      onClick={() => setCreateOpen(true)}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       New Assignment
                     </Button>
@@ -320,21 +368,39 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-border/30">
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">Title</th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">Who can submit</th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">Due date</th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">Submissions</th>
-                            <th className="text-right py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">Actions</th>
+                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
+                              Title
+                            </th>
+                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
+                              Who can submit
+                            </th>
+                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
+                              Due date
+                            </th>
+                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
+                              Submissions
+                            </th>
+                            <th className="text-right py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
+                              Actions
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {isLoading ? (
                             <tr>
-                              <td colSpan={5} className="py-12 text-center font-mono text-sm text-muted-foreground">Loading...</td>
+                              <td
+                                colSpan={5}
+                                className="py-12 text-center font-mono text-sm text-muted-foreground"
+                              >
+                                Loading...
+                              </td>
                             </tr>
                           ) : error ? (
                             <tr>
-                              <td colSpan={5} className="py-12 text-center font-mono text-sm text-destructive">
+                              <td
+                                colSpan={5}
+                                className="py-12 text-center font-mono text-sm text-destructive"
+                              >
                                 목록을 불러오지 못했습니다: {error.message}
                               </td>
                             </tr>
@@ -345,11 +411,16 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                                   <div className="w-14 h-14 rounded-lg border border-border/30 bg-background/60 flex items-center justify-center">
                                     <FileText className="h-7 w-7 text-muted-foreground" />
                                   </div>
-                                  <p className="font-mono text-sm text-foreground">No assignments yet</p>
+                                  <p className="font-mono text-sm text-foreground">
+                                    No assignments yet
+                                  </p>
                                   <p className="font-mono text-xs text-muted-foreground max-w-sm">
                                     Create an assignment and set who can submit.
                                   </p>
-                                  <Button className="font-mono text-xs uppercase tracking-wider" onClick={() => setCreateOpen(true)}>
+                                  <Button
+                                    className="font-mono text-xs uppercase tracking-wider"
+                                    onClick={() => setCreateOpen(true)}
+                                  >
                                     <Plus className="h-4 w-4 mr-2" />
                                     New Assignment
                                   </Button>
@@ -358,11 +429,18 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                             </tr>
                           ) : (
                             assignments.map((a) => (
-                              <tr key={a.id} className="border-b border-border/20 hover:bg-background/60 transition-colors">
+                              <tr
+                                key={a.id}
+                                className="border-b border-border/20 hover:bg-background/60 transition-colors"
+                              >
                                 <td className="py-3 px-4">
-                                  <p className="font-mono text-sm text-foreground">{a.title}</p>
+                                  <p className="font-mono text-sm text-foreground">
+                                    {a.title}
+                                  </p>
                                   {a.description && (
-                                    <p className="font-mono text-xs text-muted-foreground truncate max-w-xs">{a.description}</p>
+                                    <p className="font-mono text-xs text-muted-foreground truncate max-w-xs">
+                                      {a.description}
+                                    </p>
                                   )}
                                 </td>
                                 <td className="py-3 px-4">
@@ -374,7 +452,16 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                                 <td className="py-3 px-4">
                                   <span className="font-mono text-xs text-muted-foreground flex items-center gap-1">
                                     <Calendar className="h-3 w-3" />
-                                    {a.dueAt ? new Date(a.dueAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
+                                    {a.dueAt
+                                      ? new Date(a.dueAt).toLocaleDateString(
+                                          'en-US',
+                                          {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                          }
+                                        )
+                                      : '-'}
                                   </span>
                                 </td>
                                 <td className="py-3 px-4">
@@ -387,7 +474,12 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                                   </button>
                                 </td>
                                 <td className="py-3 px-4 text-right">
-                                  <Button variant="ghost" size="sm" className="font-mono text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(a.id)}>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="font-mono text-xs text-destructive hover:text-destructive"
+                                    onClick={() => handleDelete(a.id)}
+                                  >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </td>
@@ -415,7 +507,8 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
             </DialogTitle>
             <DialogDescription className="font-mono text-xs text-muted-foreground mt-0.5">
               제출 현황 · 총 {submissionsList.length}명
-              {submissionsSearch && ` · 검색 결과 ${filteredSubmissions.length}명`}
+              {submissionsSearch &&
+                ` · 검색 결과 ${filteredSubmissions.length}명`}
             </DialogDescription>
           </div>
 
@@ -424,7 +517,10 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
             <Input
               placeholder="이름 또는 이메일로 검색..."
               value={submissionsSearch}
-              onChange={(e) => { setSubmissionsSearch(e.target.value); setSubmissionsPage(0); }}
+              onChange={(e) => {
+                setSubmissionsSearch(e.target.value);
+                setSubmissionsPage(0);
+              }}
               className="font-mono text-xs h-8"
             />
           </div>
@@ -432,17 +528,25 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
           {/* List */}
           <div className="divide-y divide-border/30 min-h-[200px]">
             {submissionsLoading ? (
-              <div className="py-12 text-center font-mono text-xs text-muted-foreground">Loading…</div>
+              <div className="py-12 text-center font-mono text-xs text-muted-foreground">
+                Loading…
+              </div>
             ) : filteredSubmissions.length === 0 ? (
               <div className="py-12 text-center font-mono text-xs text-muted-foreground">
-                {submissionsSearch ? '검색 결과가 없습니다.' : '아직 제출한 사람이 없습니다.'}
+                {submissionsSearch
+                  ? '검색 결과가 없습니다.'
+                  : '아직 제출한 사람이 없습니다.'}
               </div>
             ) : (
               pagedSubmissions.map((s) => (
                 <div key={s.id} className="px-6 py-4 flex gap-4">
                   <div className="h-9 w-9 rounded-full overflow-hidden bg-muted border border-border/40 shrink-0">
                     {s.user.image ? (
-                      <img src={s.user.image} alt={s.user.name ?? ''} className="h-full w-full object-cover" />
+                      <img
+                        src={s.user.image}
+                        alt={s.user.name ?? ''}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center">
                         <span className="font-mono text-xs text-muted-foreground uppercase">
@@ -454,11 +558,19 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                   <div className="flex-1 min-w-0 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <div>
-                        <p className="font-mono text-sm text-foreground leading-none">{s.user.name ?? '—'}</p>
-                        <p className="font-mono text-[10px] text-muted-foreground mt-0.5">{s.user.email}</p>
+                        <p className="font-mono text-sm text-foreground leading-none">
+                          {s.user.name ?? '—'}
+                        </p>
+                        <p className="font-mono text-[10px] text-muted-foreground mt-0.5">
+                          {s.user.email}
+                        </p>
                       </div>
                       <span className="font-mono text-[10px] text-muted-foreground shrink-0">
-                        {new Date(s.submittedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                        {new Date(s.submittedAt).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                        })}
                       </span>
                     </div>
                     {s.content && (
@@ -467,7 +579,12 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                       </p>
                     )}
                     {s.attachmentUrl && (
-                      <Button asChild size="sm" variant="outline" className="font-mono text-xs h-7">
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="font-mono text-xs h-7"
+                      >
                         <a
                           href={`/api/admin/learn/assignments/${submissionsAssignment?.id}/download?userId=${s.user.id}`}
                           target="_blank"
@@ -479,7 +596,9 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
                       </Button>
                     )}
                     {!s.content && !s.attachmentUrl && (
-                      <p className="font-mono text-[10px] text-muted-foreground">내용 없음</p>
+                      <p className="font-mono text-[10px] text-muted-foreground">
+                        내용 없음
+                      </p>
                     )}
                   </div>
                 </div>
@@ -524,27 +643,68 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="font-mono max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-mono text-lg uppercase tracking-wider">New Assignment</DialogTitle>
+            <DialogTitle className="font-mono text-lg uppercase tracking-wider">
+              New Assignment
+            </DialogTitle>
             <DialogDescription className="font-mono text-xs text-muted-foreground">
-              Set the title and who can submit. Only users matching the target can submit.
+              Set the title and who can submit. Only users matching the target
+              can submit.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">Title *</Label>
-              <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Assignment title" className="font-mono text-sm" />
+              <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                Title *
+              </Label>
+              <Input
+                value={form.title}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                }
+                placeholder="Assignment title"
+                className="font-mono text-sm"
+              />
             </div>
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">Description</Label>
-              <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Assignment description (optional)" className="font-mono text-sm min-h-[80px]" />
+              <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                Description
+              </Label>
+              <Textarea
+                value={form.description}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
+                placeholder="Assignment description (optional)"
+                className="font-mono text-sm min-h-[80px]"
+              />
             </div>
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">Due date (optional)</Label>
-              <Input type="datetime-local" value={form.dueAt} onChange={(e) => setForm((f) => ({ ...f, dueAt: e.target.value }))} className="font-mono text-sm" />
+              <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                Due date (optional)
+              </Label>
+              <Input
+                type="datetime-local"
+                value={form.dueAt}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, dueAt: e.target.value }))
+                }
+                className="font-mono text-sm"
+              />
             </div>
             <div>
-              <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">Who can submit *</Label>
-              <Select value={form.targetType} onValueChange={(v) => setForm((f) => ({ ...f, targetType: v as 'ALL' | 'TRACK' | 'MODULE', targetId: '' }))}>
+              <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                Who can submit *
+              </Label>
+              <Select
+                value={form.targetType}
+                onValueChange={(v) =>
+                  setForm((f) => ({
+                    ...f,
+                    targetType: v as 'ALL' | 'TRACK' | 'MODULE',
+                    targetId: '',
+                  }))
+                }
+              >
                 <SelectTrigger className="font-mono text-sm">
                   <SelectValue />
                 </SelectTrigger>
@@ -557,14 +717,21 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
             </div>
             {form.targetType === 'TRACK' && (
               <div>
-                <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">Select track</Label>
-                <Select value={form.targetId} onValueChange={(v) => setForm((f) => ({ ...f, targetId: v }))}>
+                <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                  Select track
+                </Label>
+                <Select
+                  value={form.targetId}
+                  onValueChange={(v) => setForm((f) => ({ ...f, targetId: v }))}
+                >
                   <SelectTrigger className="font-mono text-sm">
                     <SelectValue placeholder="Select track" />
                   </SelectTrigger>
                   <SelectContent>
                     {tracks.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -572,22 +739,40 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
             )}
             {form.targetType === 'MODULE' && (
               <div>
-                <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">Select module</Label>
-                <Select value={form.targetId} onValueChange={(v) => setForm((f) => ({ ...f, targetId: v }))}>
+                <Label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                  Select module
+                </Label>
+                <Select
+                  value={form.targetId}
+                  onValueChange={(v) => setForm((f) => ({ ...f, targetId: v }))}
+                >
                   <SelectTrigger className="font-mono text-sm">
                     <SelectValue placeholder="Select module" />
                   </SelectTrigger>
                   <SelectContent>
                     {modules.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
             <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" className="font-mono text-xs uppercase tracking-wider" onClick={() => setCreateOpen(false)}>Cancel</Button>
-              <Button className="font-mono text-xs uppercase tracking-wider" onClick={handleCreate}>Create</Button>
+              <Button
+                variant="outline"
+                className="font-mono text-xs uppercase tracking-wider"
+                onClick={() => setCreateOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="font-mono text-xs uppercase tracking-wider"
+                onClick={handleCreate}
+              >
+                Create
+              </Button>
             </div>
           </div>
         </DialogContent>
@@ -609,7 +794,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   return {
-    props: { ...(locale ? await serverSideTranslations(locale, ['common']) : {}) },
+    props: {
+      ...(locale ? await serverSideTranslations(locale, ['common']) : {}),
+    },
   };
 }
 

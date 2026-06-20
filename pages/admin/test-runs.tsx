@@ -52,18 +52,29 @@ interface TestRun {
 }
 
 function StatusBadge({ status }: { status: TestRun['status'] }) {
-  const map: Record<TestRun['status'], { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-    PENDING:  { label: '대기중',  variant: 'secondary' },
-    RUNNING:  { label: '실행중',  variant: 'outline' },
-    PASSED:   { label: '성공',    variant: 'default' },
-    FAILED:   { label: '실패',    variant: 'destructive' },
-    ERROR:    { label: '오류',    variant: 'destructive' },
+  const map: Record<
+    TestRun['status'],
+    {
+      label: string;
+      variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    }
+  > = {
+    PENDING: { label: '대기중', variant: 'secondary' },
+    RUNNING: { label: '실행중', variant: 'outline' },
+    PASSED: { label: '성공', variant: 'default' },
+    FAILED: { label: '실패', variant: 'destructive' },
+    ERROR: { label: '오류', variant: 'destructive' },
   };
-  const { label, variant } = map[status] ?? { label: status, variant: 'secondary' };
+  const { label, variant } = map[status] ?? {
+    label: status,
+    variant: 'secondary',
+  };
   return <Badge variant={variant}>{label}</Badge>;
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
   const { locale } = context;
   const session = await getSession(context.req, context.res);
   const user = await getUserBySession(session);
@@ -120,7 +131,11 @@ const TestRunsPage: NextPageWithLayout = () => {
   };
 
   const formatDuration = (sec: number | null) =>
-    sec == null ? '-' : sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m ${sec % 60}s`;
+    sec == null
+      ? '-'
+      : sec < 60
+        ? `${sec}s`
+        : `${Math.floor(sec / 60)}m ${sec % 60}s`;
 
   const detail = detailData?.data;
   const suites = detail?.results?.suites ?? [];
@@ -184,7 +199,10 @@ const TestRunsPage: NextPageWithLayout = () => {
                   <TableBody>
                     {runs.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell
+                          colSpan={7}
+                          className="text-center text-muted-foreground py-8"
+                        >
                           테스트 실행 기록이 없습니다.
                         </TableCell>
                       </TableRow>
@@ -193,10 +211,16 @@ const TestRunsPage: NextPageWithLayout = () => {
                         <TableRow
                           key={run.id}
                           className={`cursor-pointer ${selected === run.id ? 'bg-muted' : 'hover:bg-muted/50'}`}
-                          onClick={() => setSelected(selected === run.id ? null : run.id)}
+                          onClick={() =>
+                            setSelected(selected === run.id ? null : run.id)
+                          }
                         >
-                          <TableCell><StatusBadge status={run.status} /></TableCell>
-                          <TableCell className="capitalize">{run.trigger}</TableCell>
+                          <TableCell>
+                            <StatusBadge status={run.status} />
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {run.trigger}
+                          </TableCell>
                           <TableCell>
                             <div className="text-sm">{run.branch ?? '-'}</div>
                             {run.commit && (
@@ -206,10 +230,18 @@ const TestRunsPage: NextPageWithLayout = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-green-600 font-medium">{run.passedCount}</span>
+                            <span className="text-green-600 font-medium">
+                              {run.passedCount}
+                            </span>
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className={run.failedCount > 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'}>
+                            <span
+                              className={
+                                run.failedCount > 0
+                                  ? 'text-red-600 font-medium'
+                                  : 'text-muted-foreground'
+                              }
+                            >
                               {run.failedCount}
                             </span>
                           </TableCell>
@@ -231,28 +263,44 @@ const TestRunsPage: NextPageWithLayout = () => {
                     행을 클릭하면 상세 결과를 확인합니다.
                   </p>
                 ) : !detail ? (
-                  <p className="text-muted-foreground text-sm text-center mt-8">로딩 중...</p>
+                  <p className="text-muted-foreground text-sm text-center mt-8">
+                    로딩 중...
+                  </p>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <StatusBadge status={detail.status} />
-                      <span className="text-sm text-muted-foreground capitalize">{detail.trigger}</span>
+                      <span className="text-sm text-muted-foreground capitalize">
+                        {detail.trigger}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div className="rounded bg-green-50 dark:bg-green-950 p-2">
                         <CheckCircle className="h-4 w-4 text-green-600 mx-auto mb-1" />
-                        <div className="font-bold text-green-700">{detail.passedCount}</div>
-                        <div className="text-xs text-muted-foreground">통과</div>
+                        <div className="font-bold text-green-700">
+                          {detail.passedCount}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          통과
+                        </div>
                       </div>
                       <div className="rounded bg-red-50 dark:bg-red-950 p-2">
                         <XCircle className="h-4 w-4 text-red-600 mx-auto mb-1" />
-                        <div className="font-bold text-red-700">{detail.failedCount}</div>
-                        <div className="text-xs text-muted-foreground">실패</div>
+                        <div className="font-bold text-red-700">
+                          {detail.failedCount}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          실패
+                        </div>
                       </div>
                       <div className="rounded bg-muted p-2">
                         <Clock className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                        <div className="font-bold">{formatDuration(detail.duration)}</div>
-                        <div className="text-xs text-muted-foreground">시간</div>
+                        <div className="font-bold">
+                          {formatDuration(detail.duration)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          시간
+                        </div>
                       </div>
                     </div>
 
@@ -261,14 +309,22 @@ const TestRunsPage: NextPageWithLayout = () => {
                         <p className="text-sm font-medium mb-2">테스트 파일</p>
                         <div className="space-y-1 max-h-80 overflow-y-auto">
                           {suites.map((suite: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between text-xs rounded p-1 hover:bg-muted">
+                            <div
+                              key={i}
+                              className="flex items-center justify-between text-xs rounded p-1 hover:bg-muted"
+                            >
                               <span className="truncate font-mono text-muted-foreground max-w-[70%]">
-                                {suite.file?.split('/').slice(-2).join('/') ?? suite.file}
+                                {suite.file?.split('/').slice(-2).join('/') ??
+                                  suite.file}
                               </span>
                               <span>
-                                <span className="text-green-600">{suite.passed}✓</span>
+                                <span className="text-green-600">
+                                  {suite.passed}✓
+                                </span>
                                 {suite.failed > 0 && (
-                                  <span className="text-red-600 ml-1">{suite.failed}✗</span>
+                                  <span className="text-red-600 ml-1">
+                                    {suite.failed}✗
+                                  </span>
                                 )}
                               </span>
                             </div>

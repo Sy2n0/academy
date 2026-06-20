@@ -44,7 +44,10 @@ export function Navbar({ hideAuthButtons = false }: NavbarProps) {
       <div className="container mx-auto px-6 md:px-12">
         <div className="flex items-center justify-between h-16">
           {/* Left: HUB ACADEMY */}
-          <Link href="/" className="text-2xl font-bold tracking-tight text-foreground hover:text-accent transition-colors">
+          <Link
+            href="/"
+            className="text-2xl font-bold tracking-tight text-foreground hover:text-accent transition-colors"
+          >
             HUB ACADEMY
           </Link>
 
@@ -56,7 +59,10 @@ export function Navbar({ hideAuthButtons = false }: NavbarProps) {
                   <DropdownMenuTrigger asChild>
                     <button className="outline-none focus:outline-none">
                       <Avatar className="h-10 w-10 cursor-pointer">
-                        <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+                        <AvatarImage
+                          src={user.image || undefined}
+                          alt={user.name || 'User'}
+                        />
                         <AvatarFallback className="bg-muted text-foreground font-mono text-sm">
                           {getInitials(user.name)}
                         </AvatarFallback>
@@ -66,8 +72,12 @@ export function Navbar({ hideAuthButtons = false }: NavbarProps) {
                   <DropdownMenuContent align="end" className="w-56 border-0">
                     <DropdownMenuLabel className="font-mono text-xs">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{user.name || 'User'}</p>
-                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                        <p className="text-sm font-medium">
+                          {user.name || 'User'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.email}
+                        </p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuItem

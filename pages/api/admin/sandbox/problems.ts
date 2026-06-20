@@ -48,7 +48,9 @@ export default async function handler(
         return await handleDELETE(req, res);
       default:
         res.setHeader('Allow', 'GET, POST, PUT, DELETE');
-        return res.status(405).json({ error: { message: 'Method Not Allowed' } });
+        return res
+          .status(405)
+          .json({ error: { message: 'Method Not Allowed' } });
     }
   } catch (error: unknown) {
     const err = error as { status?: number; message?: string };
@@ -112,7 +114,10 @@ async function handlePUT(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handleDELETE(req: NextApiRequest, res: NextApiResponse) {
-  const id = typeof req.query.id === 'string' ? req.query.id : (req.body as { id?: string } | undefined)?.id;
+  const id =
+    typeof req.query.id === 'string'
+      ? req.query.id
+      : (req.body as { id?: string } | undefined)?.id;
   const { id: targetId } = deleteSchema.parse({ id: id ?? '' });
   await prisma.sandboxProblem.delete({ where: { id: targetId } });
   return res.json({ data: { id: targetId } });

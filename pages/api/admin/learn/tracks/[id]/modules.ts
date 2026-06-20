@@ -40,14 +40,22 @@ export default async function handler(
     }
   } catch (error: any) {
     if (error instanceof ApiError) {
-      return res.status(error.status).json({ error: { message: error.message } });
+      return res
+        .status(error.status)
+        .json({ error: { message: error.message } });
     }
     console.error('[API /admin/learn/tracks/[id]/modules] Error:', error);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }
 
-async function handleGET(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function handleGET(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
   const track = await prisma.skillPath.findUnique({
     where: { id },
     include: {
@@ -82,7 +90,11 @@ async function handleGET(req: NextApiRequest, res: NextApiResponse, id: string) 
   });
 }
 
-async function handlePOST(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function handlePOST(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
   const { moduleId, order } = req.body;
 
   if (!moduleId || typeof moduleId !== 'string') {
@@ -146,7 +158,11 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse, id: string)
   });
 }
 
-async function handleDELETE(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function handleDELETE(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
   const { moduleId } = req.query;
 
   if (!moduleId || typeof moduleId !== 'string') {

@@ -17,7 +17,9 @@ export default async function handler(
 
   const assignmentId = req.query.id as string;
   if (!assignmentId) {
-    return res.status(400).json({ error: { message: 'Assignment ID required' } });
+    return res
+      .status(400)
+      .json({ error: { message: 'Assignment ID required' } });
   }
 
   const session = await getSession(req, res);
@@ -33,7 +35,9 @@ export default async function handler(
   });
 
   if (!existing) {
-    return res.status(404).json({ error: { message: 'No submission to delete' } });
+    return res
+      .status(404)
+      .json({ error: { message: 'No submission to delete' } });
   }
 
   await prisma.learnAssignmentSubmission.delete({

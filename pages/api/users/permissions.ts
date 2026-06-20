@@ -1,7 +1,15 @@
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
-import { getUserPermissions, setUserPermission, deleteUserPermission } from 'models/userPermission';
-import { UserResource, UserAction, defaultUserPermissions } from '@/lib/user-permissions';
+import {
+  getUserPermissions,
+  setUserPermission,
+  deleteUserPermission,
+} from 'models/userPermission';
+import {
+  UserResource,
+  UserAction,
+  defaultUserPermissions,
+} from '@/lib/user-permissions';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ApiError } from '@/lib/errors';
 import { z } from 'zod';

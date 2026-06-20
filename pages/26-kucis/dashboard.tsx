@@ -1,6 +1,9 @@
 import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import type { NextPageWithLayout } from 'types';
-import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
+import type {
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -73,7 +76,10 @@ const PAGE_SIZE = 10;
 
 type DashboardProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
-const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage }) => {
+const KucisDashboard: NextPageWithLayout<DashboardProps> = ({
+  reports,
+  canManage,
+}) => {
   const router = useRouter();
   const [severityFilter, setSeverityFilter] = useState<'ALL' | Severity>('ALL');
   const [targetFilter, setTargetFilter] = useState<'ALL' | Target>('ALL');
@@ -106,14 +112,17 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
   const stats = useMemo(() => {
     const total = reports.length;
     const open = reports.filter((r) => r.status === 'OPEN').length;
-    const inFlight = reports.filter((r) => r.status === 'TRIAGED' || r.status === 'IN_REVIEW').length;
+    const inFlight = reports.filter(
+      (r) => r.status === 'TRIAGED' || r.status === 'IN_REVIEW'
+    ).length;
     const accepted = reports.filter((r) => r.status === 'ACCEPTED').length;
     return { total, open, inFlight, accepted };
   }, [reports]);
 
   const filteredReports = useMemo(() => {
     return reports.filter((r) => {
-      if (severityFilter !== 'ALL' && r.severity !== severityFilter) return false;
+      if (severityFilter !== 'ALL' && r.severity !== severityFilter)
+        return false;
       if (targetFilter !== 'ALL' && r.target !== targetFilter) return false;
       return true;
     });
@@ -132,7 +141,14 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
   ];
 
   const resetForm = () => {
-    setForm({ title: '', team: '', target: 'cFS', reportedTo: '', severity: 'MEDIUM', status: 'OPEN' });
+    setForm({
+      title: '',
+      team: '',
+      target: 'cFS',
+      reportedTo: '',
+      severity: 'MEDIUM',
+      status: 'OPEN',
+    });
     setFormError(null);
     setEditingId(null);
   };
@@ -169,13 +185,19 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
     setSubmitting(true);
     try {
       const isEdit = editingId !== null;
-      const url = isEdit ? `/api/26-kucis/reports/${editingId}` : '/api/26-kucis/reports';
+      const url = isEdit
+        ? `/api/26-kucis/reports/${editingId}`
+        : '/api/26-kucis/reports';
       const method = isEdit ? 'PATCH' : 'POST';
       const body: Record<string, unknown> = {
         title: form.title.trim(),
         team: form.team.trim(),
         target: form.target,
-        reportedTo: form.reportedTo.trim() ? form.reportedTo.trim() : isEdit ? null : undefined,
+        reportedTo: form.reportedTo.trim()
+          ? form.reportedTo.trim()
+          : isEdit
+            ? null
+            : undefined,
         severity: form.severity,
       };
       if (isEdit) body.status = form.status;
@@ -208,7 +230,9 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
     setSubmitting(true);
     setFormError(null);
     try {
-      const res = await fetch(`/api/26-kucis/reports/${editingId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/26-kucis/reports/${editingId}`, {
+        method: 'DELETE',
+      });
       if (!res.ok && res.status !== 204) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error?.message || 'Failed to delete report');
@@ -290,7 +314,9 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                           <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                             {card.label}
                           </p>
-                          <p className="font-mono text-2xl text-foreground mt-2">{card.value}</p>
+                          <p className="font-mono text-2xl text-foreground mt-2">
+                            {card.value}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -310,7 +336,8 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                       <div className="flex flex-wrap items-center gap-1.5">
                         {(['ALL', ...SEVERITIES] as const).map((s) => {
                           const isActive = severityFilter === s;
-                          const color = s !== 'ALL' ? SEVERITY_COLOR[s] : undefined;
+                          const color =
+                            s !== 'ALL' ? SEVERITY_COLOR[s] : undefined;
                           return (
                             <button
                               key={s}
@@ -326,7 +353,10 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                             </button>
                           );
                         })}
-                        <Separator orientation="vertical" className="h-4 mx-1.5" />
+                        <Separator
+                          orientation="vertical"
+                          className="h-4 mx-1.5"
+                        />
                         {(['ALL', ...TARGETS] as const).map((t) => (
                           <button
                             key={t}
@@ -387,14 +417,20 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                               pageReports.map((r) => (
                                 <tr
                                   key={r.id}
-                                  onClick={canManage ? () => openEdit(r) : undefined}
+                                  onClick={
+                                    canManage ? () => openEdit(r) : undefined
+                                  }
                                   className={`border-b border-border/20 last:border-0 hover:bg-background/40 transition-colors ${canManage ? 'cursor-pointer' : ''}`}
                                 >
                                   <td
                                     className="px-4 md:px-6 py-2.5 font-mono text-[11px] text-foreground/90 max-w-md truncate"
                                     title={canManage ? r.title : undefined}
                                   >
-                                    <span className={canManage ? '' : 'blur-sm select-none'}>
+                                    <span
+                                      className={
+                                        canManage ? '' : 'blur-sm select-none'
+                                      }
+                                    >
                                       {r.title}
                                     </span>
                                   </td>
@@ -402,7 +438,11 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                                     {r.team}
                                   </td>
                                   <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
-                                    <span className={canManage ? '' : 'blur-sm select-none'}>
+                                    <span
+                                      className={
+                                        canManage ? '' : 'blur-sm select-none'
+                                      }
+                                    >
                                       {r.target}
                                     </span>
                                   </td>
@@ -414,7 +454,9 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                                   </td>
                                   <td
                                     className="px-3 py-2.5 font-mono text-[10px] uppercase tracking-wider whitespace-nowrap"
-                                    style={{ color: SEVERITY_COLOR[r.severity] }}
+                                    style={{
+                                      color: SEVERITY_COLOR[r.severity],
+                                    }}
                                   >
                                     {r.severity}
                                   </td>
@@ -434,7 +476,12 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                       {filteredReports.length > 0 && (
                         <div className="flex items-center justify-between pt-2">
                           <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                            {pageStart + 1}–{Math.min(pageStart + PAGE_SIZE, filteredReports.length)} of {filteredReports.length}
+                            {pageStart + 1}–
+                            {Math.min(
+                              pageStart + PAGE_SIZE,
+                              filteredReports.length
+                            )}{' '}
+                            of {filteredReports.length}
                           </p>
                           {totalPages > 1 && (
                             <div className="flex items-center gap-2">
@@ -442,7 +489,9 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                                 variant="outline"
                                 size="sm"
                                 disabled={currentPage === 1}
-                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                onClick={() =>
+                                  setPage((p) => Math.max(1, p - 1))
+                                }
                                 className="font-mono text-[10px] uppercase tracking-wider"
                               >
                                 Previous
@@ -454,7 +503,9 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
                                 variant="outline"
                                 size="sm"
                                 disabled={currentPage === totalPages}
-                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                onClick={() =>
+                                  setPage((p) => Math.min(totalPages, p + 1))
+                                }
                                 className="font-mono text-[10px] uppercase tracking-wider"
                               >
                                 Next
@@ -482,10 +533,14 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
 
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">제목</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider">
+                제목
+              </Label>
               <Input
                 value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                }
                 placeholder="e.g. Stack overflow in CFDP PDU parser..."
                 maxLength={300}
                 className="font-mono text-xs"
@@ -493,10 +548,14 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
             </div>
 
             <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">제보자</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider">
+                제보자
+              </Label>
               <Input
                 value={form.team}
-                onChange={(e) => setForm((f) => ({ ...f, team: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, team: e.target.value }))
+                }
                 placeholder="e.g. Jiyong Yang"
                 maxLength={120}
                 className="font-mono text-xs"
@@ -505,11 +564,16 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
 
             <div className="space-y-2">
               <Label className="font-mono text-xs uppercase tracking-wider">
-                제보처 <span className="normal-case text-muted-foreground">(optional)</span>
+                제보처{' '}
+                <span className="normal-case text-muted-foreground">
+                  (optional)
+                </span>
               </Label>
               <Input
                 value={form.reportedTo}
-                onChange={(e) => setForm((f) => ({ ...f, reportedTo: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, reportedTo: e.target.value }))
+                }
                 placeholder="e.g. NASA cFS GitHub Issues, MITRE, vendor email..."
                 maxLength={300}
                 className="font-mono text-xs"
@@ -518,17 +582,25 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider">Target</Label>
+                <Label className="font-mono text-xs uppercase tracking-wider">
+                  Target
+                </Label>
                 <Select
                   value={form.target}
-                  onValueChange={(v) => setForm((f) => ({ ...f, target: v as Target }))}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, target: v as Target }))
+                  }
                 >
                   <SelectTrigger className="font-mono text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {TARGETS.map((t) => (
-                      <SelectItem key={t} value={t} className="font-mono text-xs">
+                      <SelectItem
+                        key={t}
+                        value={t}
+                        className="font-mono text-xs"
+                      >
                         {t}
                       </SelectItem>
                     ))}
@@ -537,17 +609,25 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
               </div>
 
               <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider">Severity</Label>
+                <Label className="font-mono text-xs uppercase tracking-wider">
+                  Severity
+                </Label>
                 <Select
                   value={form.severity}
-                  onValueChange={(v) => setForm((f) => ({ ...f, severity: v as Severity }))}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, severity: v as Severity }))
+                  }
                 >
                   <SelectTrigger className="font-mono text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {SEVERITIES.map((s) => (
-                      <SelectItem key={s} value={s} className="font-mono text-xs">
+                      <SelectItem
+                        key={s}
+                        value={s}
+                        className="font-mono text-xs"
+                      >
                         {s}
                       </SelectItem>
                     ))}
@@ -558,17 +638,33 @@ const KucisDashboard: NextPageWithLayout<DashboardProps> = ({ reports, canManage
 
             {editingId && (
               <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider">Status</Label>
+                <Label className="font-mono text-xs uppercase tracking-wider">
+                  Status
+                </Label>
                 <Select
                   value={form.status}
-                  onValueChange={(v) => setForm((f) => ({ ...f, status: v as Status }))}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, status: v as Status }))
+                  }
                 >
                   <SelectTrigger className="font-mono text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(['OPEN', 'TRIAGED', 'IN_REVIEW', 'ACCEPTED', 'CLOSED'] as Status[]).map((s) => (
-                      <SelectItem key={s} value={s} className="font-mono text-xs">
+                    {(
+                      [
+                        'OPEN',
+                        'TRIAGED',
+                        'IN_REVIEW',
+                        'ACCEPTED',
+                        'CLOSED',
+                      ] as Status[]
+                    ).map((s) => (
+                      <SelectItem
+                        key={s}
+                        value={s}
+                        className="font-mono text-xs"
+                      >
                         {s.replace('_', ' ')}
                       </SelectItem>
                     ))}
@@ -654,7 +750,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const LOREM =
     'Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat';
-  const redact = (original: string) => LOREM.slice(0, Math.max(original.length, 4));
+  const redact = (original: string) =>
+    LOREM.slice(0, Math.max(original.length, 4));
 
   const reports: Report[] = dbReports.map((r) => ({
     id: r.id,

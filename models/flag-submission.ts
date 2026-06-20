@@ -47,12 +47,15 @@ export async function submitFlag(
   });
 
   // 최대 시도 횟수 확인
-  if (machine.maxAttempts !== null && previousSubmissions.length >= machine.maxAttempts) {
+  if (
+    machine.maxAttempts !== null &&
+    previousSubmissions.length >= machine.maxAttempts
+  ) {
     throw new Error('Maximum attempts exceeded');
   }
 
   // 이미 정답을 맞춘 경우
-  const correctSubmission = previousSubmissions.find(s => s.isCorrect);
+  const correctSubmission = previousSubmissions.find((s) => s.isCorrect);
   if (correctSubmission) {
     return {
       success: false,
@@ -70,7 +73,10 @@ export async function submitFlag(
   let matchedFlag: { id: string; flag: string } | null = null;
 
   // Machine 타입에 따라 플래그 검증 방식이 다름
-  if (machine.type === MachineType.STATIC_ATTACHMENT || machine.type === MachineType.STATIC_CONTAINER) {
+  if (
+    machine.type === MachineType.STATIC_ATTACHMENT ||
+    machine.type === MachineType.STATIC_CONTAINER
+  ) {
     // 정적 플래그: staticFlags 배열에서 검색
     if (machine.staticFlags.includes(submittedFlag)) {
       isCorrect = true;
@@ -184,7 +190,10 @@ export async function submitFlag(
       }
 
       const newTotalPoints = currentUser.totalPoints + earnedPoints;
-      const newRank = calculateLimitedRank(currentUser.currentRank, newTotalPoints);
+      const newRank = calculateLimitedRank(
+        currentUser.currentRank,
+        newTotalPoints
+      );
 
       await tx.user.update({
         where: { id: userId },
@@ -224,7 +233,13 @@ export async function submitFlag(
     }
 
     if (user) {
-      await notifyFlagSubmission(machineId, userId, true, machine.title, user.name);
+      await notifyFlagSubmission(
+        machineId,
+        userId,
+        true,
+        machine.title,
+        user.name
+      );
     }
   } else {
     // 오답인 경우에도 기록

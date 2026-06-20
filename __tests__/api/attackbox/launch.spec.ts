@@ -23,9 +23,14 @@ jest.mock('child_process', () => ({
   exec: jest.fn(),
 }));
 jest.mock('util', () => ({
-  promisify: (fn: (...args: unknown[]) => void) =>
+  promisify:
+    (fn: (...args: unknown[]) => void) =>
     (...args: unknown[]) =>
-      new Promise((resolve, reject) => fn(...args, (err: unknown, val: unknown) => (err ? reject(err) : resolve(val)))),
+      new Promise((resolve, reject) =>
+        fn(...args, (err: unknown, val: unknown) =>
+          err ? reject(err) : resolve(val)
+        )
+      ),
 }));
 
 import handler from '../../../pages/api/attackbox/launch';
@@ -34,19 +39,31 @@ import { getUserBySession } from 'models/user';
 import { prisma } from '@/lib/prisma';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
-const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
+const mockGetUserBySession = getUserBySession as jest.MockedFunction<
+  typeof getUserBySession
+>;
 
 const mockUser = { id: 'user-1', email: 'test@example.com' };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'POST', headers: { host: 'localhost' }, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'POST',
+    headers: { host: 'localhost' },
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {
@@ -55,7 +72,11 @@ beforeEach(() => {
   mockGetUserBySession.mockResolvedValue(mockUser as any);
 
   // 기존 세션 없는 상태로 초기화
-  (prisma as any).attackBoxSession = { findUnique: jest.fn().mockResolvedValue(null), deleteMany: jest.fn(), upsert: jest.fn() };
+  (prisma as any).attackBoxSession = {
+    findUnique: jest.fn().mockResolvedValue(null),
+    deleteMany: jest.fn(),
+    upsert: jest.fn(),
+  };
 });
 
 describe('POST /api/attackbox/launch - 405', () => {
@@ -70,7 +91,10 @@ describe('POST /api/attackbox/launch - 401', () => {
   it('비로그인 요청은 401을 반환한다', async () => {
     mockGetUserBySession.mockResolvedValue(null);
     const { res, json, status } = makeRes();
-    await handler(makeReq({ body: { image: '@PLATFORM/HUB-ATTACKBOX/kali-rolling' } }), res);
+    await handler(
+      makeReq({ body: { image: '@PLATFORM/HUB-ATTACKBOX/kali-rolling' } }),
+      res
+    );
     expect(status).toHaveBeenCalledWith(401);
     expect(json).toHaveBeenCalledWith({ error: { message: 'Unauthorized' } });
   });
@@ -87,7 +111,9 @@ describe('POST /api/attackbox/launch - image 유효성', () => {
     const { res, json, status } = makeRes();
     await handler(makeReq({ body: { image: 'unknown/image:latest' } }), res);
     expect(status).toHaveBeenCalledWith(400);
-    expect(json).toHaveBeenCalledWith({ error: { message: 'Unsupported image' } });
+    expect(json).toHaveBeenCalledWith({
+      error: { message: 'Unsupported image' },
+    });
   });
 });
 

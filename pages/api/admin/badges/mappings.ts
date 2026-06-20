@@ -13,13 +13,17 @@ const upsertSchema = z.object({
   badgeId: z.string().min(1),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const session = await getSession(req, res);
     const currentUser = await getUserBySession(session);
 
     if (!currentUser) throw new ApiError(401, 'Unauthorized');
-    if (!isAdmin(currentUser.role)) throw new ApiError(403, 'Only admins can manage badge mappings');
+    if (!isAdmin(currentUser.role))
+      throw new ApiError(403, 'Only admins can manage badge mappings');
 
     await ensureBadgeInfrastructure();
 
@@ -35,7 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
       default:
         res.setHeader('Allow', 'GET, POST, DELETE');
-        res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+        res
+          .status(405)
+          .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
   } catch (error: any) {
     const message = error.message || 'Something went wrong';
@@ -45,17 +51,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 const handleGET = async (res: NextApiResponse) => {
-  const playgrounds = await prisma.$queryRaw<Array<{ codeName: string; name: string; updatedAt: Date }>>`
+  const playgrounds = await prisma.$queryRaw<
+    Array<{ codeName: string; name: string; updatedAt: Date }>
+  >`
     SELECT DISTINCT ON ("codeName") "codeName", "name", "updatedAt"
     FROM "PlaygroundSettings"
     ORDER BY "codeName", "updatedAt" DESC
   `;
 
-  const mappings = await prisma.$queryRaw<Array<{
-    playgroundCodeName: string;
-    badgeId: string;
-    badgeName: string;
-  }>>`
+  const mappings = await prisma.$queryRaw<
+    Array<{
+      playgroundCodeName: string;
+      badgeId: string;
+      badgeName: string;
+    }>
+  >`
     SELECT pbm."playgroundCodeName", pbm."badgeId", bc."name" AS "badgeName"
     FROM "PlaygroundBadgeMapping" pbm
     JOIN "BadgeCatalog" bc ON bc."id" = pbm."badgeId"
@@ -87,12 +97,14 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
-  const playgroundCodeName =
-    (typeof req.query.playgroundCodeName === 'string' ? req.query.playgroundCodeName : req.body?.playgroundCodeName) as
-      | string
-      | undefined;
+  const playgroundCodeName = (
+    typeof req.query.playgroundCodeName === 'string'
+      ? req.query.playgroundCodeName
+      : req.body?.playgroundCodeName
+  ) as string | undefined;
 
-  if (!playgroundCodeName) throw new ApiError(400, 'playgroundCodeName is required');
+  if (!playgroundCodeName)
+    throw new ApiError(400, 'playgroundCodeName is required');
 
   await prisma.$executeRaw`
     DELETE FROM "PlaygroundBadgeMapping"

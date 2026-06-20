@@ -6,7 +6,10 @@ import { isAdmin } from '@/lib/user-roles';
 import { getFileUrl } from '@/lib/storage';
 import { ApiError } from '@/lib/errors';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: { message: 'Method not allowed' } });
   }
@@ -27,14 +30,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!submission?.attachmentUrl) {
-      return res.status(404).json({ error: { message: 'No attachment found' } });
+      return res
+        .status(404)
+        .json({ error: { message: 'No attachment found' } });
     }
 
     const { attachmentUrl } = submission;
 
     if (attachmentUrl.startsWith('/api/storage/')) {
-      const base = process.env.NEXT_PUBLIC_APP_URL || `http://${req.headers.host}`;
-      return res.redirect(302, `${base}${attachmentUrl}${attachmentUrl.includes('?') ? '&' : '?'}download=1`);
+      const base =
+        process.env.NEXT_PUBLIC_APP_URL || `http://${req.headers.host}`;
+      return res.redirect(
+        302,
+        `${base}${attachmentUrl}${attachmentUrl.includes('?') ? '&' : '?'}download=1`
+      );
     }
 
     const u = new URL(attachmentUrl);
@@ -45,7 +54,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const bucket = parts[0];
     const key = parts.slice(1).join('/');
     const filename = key.split('/').pop() || 'attachment';
-    const downloadUrl = await getFileUrl(bucket, key, { downloadFilename: filename });
+    const downloadUrl = await getFileUrl(bucket, key, {
+      downloadFilename: filename,
+    });
 
     return res.redirect(302, downloadUrl);
   } catch (e: unknown) {
@@ -53,6 +64,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(e.status).json({ error: { message: e.message } });
     }
     console.error('[API /admin/learn/assignments/[id]/download]', e);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }

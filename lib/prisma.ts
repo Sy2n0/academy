@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL) {
 
 declare global {
   // allow global `var` declarations
-  // eslint-disable-next-line no-var, @typescript-eslint/no-var-requires
+
   var prisma: PrismaClient | undefined;
 }
 

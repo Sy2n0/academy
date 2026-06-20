@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   BadgeCheck,
@@ -8,18 +8,14 @@ import {
   Settings,
   Sparkles,
   Shield,
-} from "lucide-react"
-import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/router"
-import useSWR from "swr"
-import { UserRole } from "@prisma/client"
-import { isAdmin } from "@/lib/user-roles"
+} from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import useSWR from 'swr';
+import { UserRole } from '@prisma/client';
+import { isAdmin } from '@/lib/user-roles';
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,13 +24,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 // 사용자 이름의 이니셜 생성
 const getInitials = (name?: string | null) => {
@@ -49,32 +45,40 @@ const getInitials = (name?: string | null) => {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function NavUser() {
-  const { isMobile } = useSidebar()
-  const { data: session } = useSession()
-  const router = useRouter()
+  const { isMobile } = useSidebar();
+  const { data: session } = useSession();
+  const router = useRouter();
 
-  const user = session?.user
-  const userName = user?.name || 'User'
-  const userEmail = user?.email || ''
-  const userAvatar = user?.image || undefined
+  const user = session?.user;
+  const userName = user?.name || 'User';
+  const userEmail = user?.email || '';
+  const userAvatar = user?.image || undefined;
 
   // Fetch user role
-  const { data: userData, error: userError } = useSWR<{ data: { role: UserRole } }>(
-    session?.user?.id ? '/api/users/me' : null,
-    fetcher
-  )
+  const { data: userData, error: userError } = useSWR<{
+    data: { role: UserRole };
+  }>(session?.user?.id ? '/api/users/me' : null, fetcher);
 
-  const userRole = userData?.data?.role
-  const isUserAdmin = userRole ? isAdmin(userRole) : false
+  const userRole = userData?.data?.role;
+  const isUserAdmin = userRole ? isAdmin(userRole) : false;
 
   // Debug logging (remove in production if needed)
   if (process.env.NODE_ENV === 'development') {
-    console.log('NavUser - userRole:', userRole, 'isUserAdmin:', isUserAdmin, 'userData:', userData, 'userEmail:', userEmail)
+    console.log(
+      'NavUser - userRole:',
+      userRole,
+      'isUserAdmin:',
+      isUserAdmin,
+      'userData:',
+      userData,
+      'userEmail:',
+      userEmail
+    );
   }
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' })
-  }
+    await signOut({ callbackUrl: '/' });
+  };
 
   return (
     <SidebarMenu>
@@ -87,7 +91,9 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={userAvatar} alt={userName} />
-                <AvatarFallback className="rounded-lg">{getInitials(userName)}</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  {getInitials(userName)}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{userName}</span>
@@ -98,7 +104,7 @@ export function NavUser() {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
@@ -106,7 +112,9 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={userAvatar} alt={userName} />
-                  <AvatarFallback className="rounded-lg">{getInitials(userName)}</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    {getInitials(userName)}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{userName}</span>
@@ -116,7 +124,9 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push('/settings/account')}>
+              <DropdownMenuItem
+                onClick={() => router.push('/settings/account')}
+              >
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
@@ -130,7 +140,9 @@ export function NavUser() {
               </DropdownMenuItem>
               {isUserAdmin && (
                 <>
-                  <DropdownMenuItem onClick={() => router.push('/admin/dashboard')}>
+                  <DropdownMenuItem
+                    onClick={() => router.push('/admin/dashboard')}
+                  >
                     <Shield />
                     Admin
                   </DropdownMenuItem>
@@ -150,5 +162,5 @@ export function NavUser() {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

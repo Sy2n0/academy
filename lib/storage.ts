@@ -42,7 +42,10 @@ function getS3Client(): S3Client | null {
 
 const createdBuckets = new Set<string>();
 
-async function ensureBucketExists(client: S3Client, bucket: string): Promise<void> {
+async function ensureBucketExists(
+  client: S3Client,
+  bucket: string
+): Promise<void> {
   if (createdBuckets.has(bucket)) return;
   try {
     await client.send(new HeadBucketCommand({ Bucket: bucket }));
@@ -50,7 +53,11 @@ async function ensureBucketExists(client: S3Client, bucket: string): Promise<voi
     try {
       await client.send(new CreateBucketCommand({ Bucket: bucket }));
     } catch (e: any) {
-      if (e?.name !== 'BucketAlreadyExists' && e?.Code !== 'BucketAlreadyOwnedByYou') throw e;
+      if (
+        e?.name !== 'BucketAlreadyExists' &&
+        e?.Code !== 'BucketAlreadyOwnedByYou'
+      )
+        throw e;
     }
   }
   createdBuckets.add(bucket);
@@ -74,9 +81,8 @@ export async function uploadFile(
 
   await ensureBucketExists(client, bucket);
 
-  const fileBuffer = typeof filePath === 'string' 
-    ? await fs.readFile(filePath)
-    : filePath;
+  const fileBuffer =
+    typeof filePath === 'string' ? await fs.readFile(filePath) : filePath;
 
   const command = new PutObjectCommand({
     Bucket: bucket,
@@ -118,7 +124,8 @@ async function uploadToLocalDisk(
 function getSigningClient(): S3Client | null {
   const accessKeyId = process.env.S3_ACCESS_KEY_ID;
   const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
-  const publicEndpoint = process.env.S3_PUBLIC_ENDPOINT || process.env.S3_ENDPOINT;
+  const publicEndpoint =
+    process.env.S3_PUBLIC_ENDPOINT || process.env.S3_ENDPOINT;
   const region = process.env.S3_REGION || 'us-east-1';
   if (!accessKeyId || !secretAccessKey || !publicEndpoint) return null;
   return new S3Client({
@@ -144,7 +151,10 @@ export async function getFileUrl(
   key: string,
   options: number | GetFileUrlOptions = 3600
 ): Promise<string> {
-  const opts = typeof options === 'number' ? { expiresIn: options } : { expiresIn: 3600, ...options };
+  const opts =
+    typeof options === 'number'
+      ? { expiresIn: options }
+      : { expiresIn: 3600, ...options };
   const client = getS3Client();
 
   if (!client) {
@@ -160,7 +170,9 @@ export async function getFileUrl(
   });
 
   const signingClient = getSigningClient() ?? client;
-  const url = await getSignedUrl(signingClient, command, { expiresIn: opts.expiresIn });
+  const url = await getSignedUrl(signingClient, command, {
+    expiresIn: opts.expiresIn,
+  });
   return url;
 }
 
@@ -170,7 +182,9 @@ const toBuffer = async (body: any): Promise<Buffer> => {
   if (body instanceof Uint8Array) return Buffer.from(body);
 
   const chunks: Buffer[] = [];
-  for await (const chunk of body as AsyncIterable<Uint8Array | Buffer | string>) {
+  for await (const chunk of body as AsyncIterable<
+    Uint8Array | Buffer | string
+  >) {
     if (typeof chunk === 'string') {
       chunks.push(Buffer.from(chunk));
       continue;
@@ -180,7 +194,10 @@ const toBuffer = async (body: any): Promise<Buffer> => {
   return Buffer.concat(chunks);
 };
 
-export async function downloadFile(bucket: string, key: string): Promise<Buffer> {
+export async function downloadFile(
+  bucket: string,
+  key: string
+): Promise<Buffer> {
   const client = getS3Client();
 
   if (!client) {
@@ -233,7 +250,7 @@ export async function uploadMachineAttachment(
 ): Promise<string> {
   const key = `machines/${machineId}/attachments/${fileName}`;
   const bucket = process.env.S3_BUCKET || 'hub-academy';
-  
+
   return await uploadFile(bucket, key, filePath, contentType);
 }
 
@@ -257,10 +274,16 @@ export async function uploadAssignmentSubmissionFile(
   fileName: string,
   contentType?: string
 ): Promise<string> {
-  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200) || 'file';
+  const safeName =
+    fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200) || 'file';
   const key = `assignments/submissions/${assignmentId}/${userId}/${Date.now()}-${safeName}`;
   const bucket = process.env.S3_BUCKET || 'hub-academy';
-  await uploadFile(bucket, key, filePath, contentType ?? 'application/octet-stream');
+  await uploadFile(
+    bucket,
+    key,
+    filePath,
+    contentType ?? 'application/octet-stream'
+  );
   if (!getS3Client()) return `/api/storage/${key}`;
   return await getFileUrl(bucket, key, { downloadFilename: safeName });
 }

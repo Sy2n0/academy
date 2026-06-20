@@ -14,7 +14,9 @@ test.describe('프로필/설정 페이지', () => {
     await page.goto(`/teams/${team.slug}/settings`);
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText(
+      'Internal Server Error'
+    );
     await expect(page.locator('body')).not.toContainText('404');
   });
 
@@ -27,14 +29,18 @@ test.describe('프로필/설정 페이지', () => {
     await expect(teamNameInput).toBeVisible({ timeout: 8000 });
   });
 
-  test('팀명을 50자 초과로 입력하면 저장 버튼이 비활성화된다', async ({ page }) => {
+  test('팀명을 50자 초과로 입력하면 저장 버튼이 비활성화된다', async ({
+    page,
+  }) => {
     await page.goto(`/teams/${team.slug}/settings`);
     await page.waitForLoadState('networkidle');
 
     const nameInput = page.getByRole('textbox').first();
     await nameInput.fill('a'.repeat(51));
 
-    const saveButton = page.getByRole('button', { name: /save|update|저장/i }).first();
+    const saveButton = page
+      .getByRole('button', { name: /save|update|저장/i })
+      .first();
     await expect(saveButton).toBeDisabled({ timeout: 5000 });
   });
 
@@ -42,8 +48,8 @@ test.describe('프로필/설정 페이지', () => {
     await page.context().clearCookies();
     await page.goto(`/teams/${team.slug}/settings`);
 
-    await page.waitForURL((url) =>
-      url.pathname.includes('/auth/login') || url.pathname === '/'
+    await page.waitForURL(
+      (url) => url.pathname.includes('/auth/login') || url.pathname === '/'
     );
   });
 });

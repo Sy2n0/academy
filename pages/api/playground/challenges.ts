@@ -1,7 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 
-const normalize = (value: string) => value.trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+const normalize = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[-_\s]+/g, ' ');
 const normalizeCodeName = (value: string) => value.trim().toLowerCase();
 
 type PublicAttachment = {
@@ -62,7 +66,10 @@ export default async function handler(
   }
 
   try {
-    const seasonParam = typeof req.query.season === 'string' ? decodeURIComponent(req.query.season).trim() : '';
+    const seasonParam =
+      typeof req.query.season === 'string'
+        ? decodeURIComponent(req.query.season).trim()
+        : '';
 
     if (!seasonParam) {
       res.json({ data: [] });
@@ -79,7 +86,9 @@ export default async function handler(
     const matchedSettings = allSettings.find((item) => {
       const codeName = normalize(item.codeName || '');
       const season = normalize(item.season || '');
-      return codeName === normalizedSeasonParam || season === normalizedSeasonParam;
+      return (
+        codeName === normalizedSeasonParam || season === normalizedSeasonParam
+      );
     });
 
     if (!matchedSettings?.codeName) {
@@ -96,10 +105,7 @@ export default async function handler(
         playgroundCodeName: normalizeCodeName(targetCodeName),
         isActive: true,
       },
-      orderBy: [
-        { value: 'asc' },
-        { createdAt: 'desc' },
-      ],
+      orderBy: [{ value: 'asc' }, { createdAt: 'desc' }],
     });
 
     const sanitizedChallenges = challenges.map((challenge) => ({

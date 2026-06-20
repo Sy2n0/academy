@@ -29,7 +29,16 @@ export default async function handler(
       return;
     }
 
-    const { type, userId, teamId, machineId, limit, offset, startDate, endDate } = req.query;
+    const {
+      type,
+      userId,
+      teamId,
+      machineId,
+      limit,
+      offset,
+      startDate,
+      endDate,
+    } = req.query;
 
     const where: any = {};
 

@@ -39,15 +39,23 @@ export default async function handler(
     }
   } catch (error: unknown) {
     if (error instanceof ApiError) {
-      return res.status(error.status).json({ error: { message: error.message } });
+      return res
+        .status(error.status)
+        .json({ error: { message: error.message } });
     }
     console.error('[API /admin/learn/assignments/[id]] Error:', error);
     res.setHeader('Content-Type', 'application/json');
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }
 
-async function handleGET(_req: NextApiRequest, res: NextApiResponse, id: string) {
+async function handleGET(
+  _req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
   const assignment = await prisma.learnAssignment.findUnique({
     where: { id },
     include: { _count: { select: { submissions: true } } },
@@ -60,14 +68,31 @@ async function handleGET(_req: NextApiRequest, res: NextApiResponse, id: string)
   res.status(200).json({ data: assignment });
 }
 
-async function handlePATCH(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function handlePATCH(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
   const body = req.body;
   const title = typeof body.title === 'string' ? body.title.trim() : undefined;
-  const description = typeof body.description === 'string' ? body.description.trim() : undefined;
-  const dueAt = body.dueAt !== undefined ? (body.dueAt ? new Date(body.dueAt) : null) : undefined;
-  const targetType = typeof body.targetType === 'string' ? body.targetType : undefined;
-  const targetId = body.targetId !== undefined ? (typeof body.targetId === 'string' ? body.targetId.trim() || null : null) : undefined;
-  const isActive = typeof body.isActive === 'boolean' ? body.isActive : undefined;
+  const description =
+    typeof body.description === 'string' ? body.description.trim() : undefined;
+  const dueAt =
+    body.dueAt !== undefined
+      ? body.dueAt
+        ? new Date(body.dueAt)
+        : null
+      : undefined;
+  const targetType =
+    typeof body.targetType === 'string' ? body.targetType : undefined;
+  const targetId =
+    body.targetId !== undefined
+      ? typeof body.targetId === 'string'
+        ? body.targetId.trim() || null
+        : null
+      : undefined;
+  const isActive =
+    typeof body.isActive === 'boolean' ? body.isActive : undefined;
 
   if (title !== undefined && !title) {
     throw new ApiError(400, 'Title cannot be empty');

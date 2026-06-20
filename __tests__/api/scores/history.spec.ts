@@ -14,19 +14,31 @@ import { getSession } from '@/lib/session';
 import { getUserScoreHistory } from 'models/score';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
-const mockGetHistory = getUserScoreHistory as jest.MockedFunction<typeof getUserScoreHistory>;
+const mockGetHistory = getUserScoreHistory as jest.MockedFunction<
+  typeof getUserScoreHistory
+>;
 
 const mockSession = { user: { id: 'user-1' } };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'GET', headers: {}, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'GET',
+    headers: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {

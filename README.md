@@ -25,6 +25,7 @@ Next.js 기반 플랫폼으로 Machine, Track, 시즌별 CTF 대회, 실시간 �
 ## 플랫폼 주요 기능
 
 ### MACHINES
+
 - Docker 기반 챌린지 컨테이너 (Static / Dynamic 타입)
 - AttackBox — 사용자별 브라우저 공격 환경 (포트 범위: 20000~30000 랜덤 할당)
 - 퍼스트 블러드 보너스가 포함된 플래그 제출 및 채점
@@ -33,37 +34,44 @@ Next.js 기반 플랫폼으로 Machine, Track, 시즌별 CTF 대회, 실시간 �
 - 트래픽 캡처 옵션 (`enableTrafficCapture`)
 
 ### PLAYGROUND
+
 - 시즌별 CTF 이벤트 및 참가 등록
 - 챌린지별 카테고리 및 난이도 구분
 - 시즌별 배지 및 보상 시스템
 - 실시간 플래그 제출 추적
 
 ### SANDBOX
+
 - Docker 기반 인스턴스가 연결된 문제 맵 (좌표 기반 `positionX`, `positionY`)
 - 사용자별 격리된 컨테이너 세션
 - 풀이 기록 및 리더보드
 
 ### CLOUD IDE
+
 - 컨테이너 기반 사용자별 브라우저 IDE
 - 비밀번호 보호 접근
 
 ### TRACK
+
 - 카테고리, 난이도, 티어별 학습 모듈
 - 스킬 패스 (모듈 커리큘럼 묶음)
 - 수강 등록, 진도 추적, 모듈별 노트
 - 과제 및 제출 지원
 
 ### RANKING & SCORE
+
 - 전체 리더보드 및 점수 기록
 - 점수 유형: Machine, Track, Playground
 - 퍼스트 블러드 보너스
 
 ### TEAM
+
 - 팀 생성, 초대, 역할 관리 (Owner / Admin / Member)
 - 팀 단위 플래그 제출 및 점수 집계
 - 팀별 API 키 관리
 
 ### ETC
+
 - 라이트업 제출 및 관리자 검토 플로우
 - CyberChef 도구 통합 (`/cyber-chef`)
 - 아레나 모드 (`/arena`)
@@ -82,12 +90,12 @@ Next.js 기반 플랫폼으로 Machine, Track, 시즌별 CTF 대회, 실시간 �
 F(S, R, D, X) = ⌊S × [R + (1 - R) × exp(1 - X / D)]⌋
 ```
 
-| 파라미터 | 설명 |
-|---|---|
-| `S` | 기본 점수 (Base Score) |
-| `R` | 최소 점수 비율 (0~1, 예: 0.2 = 20%) |
-| `D` | 난이도 계수 (Difficulty Factor) |
-| `X` | 누적 풀이 수 |
+| 파라미터 | 설명                                |
+| -------- | ----------------------------------- |
+| `S`      | 기본 점수 (Base Score)              |
+| `R`      | 최소 점수 비율 (0~1, 예: 0.2 = 20%) |
+| `D`      | 난이도 계수 (Difficulty Factor)     |
+| `X`      | 누적 풀이 수                        |
 
 구현 위치: [lib/scoring.ts](lib/scoring.ts)
 
@@ -95,11 +103,11 @@ F(S, R, D, X) = ⌊S × [R + (1 - R) × exp(1 - X / D)]⌋
 
 상위 3명의 정답자에게 추가 보너스를 지급합니다.
 
-| 순위 | 보너스 비율 |
-|---|---|
-| 1st Blood | +5% |
-| 2nd Blood | +3% |
-| 3rd Blood | +1% |
+| 순위      | 보너스 비율 |
+| --------- | ----------- |
+| 1st Blood | +5%         |
+| 2nd Blood | +3%         |
+| 3rd Blood | +1%         |
 
 ## 권한 시스템
 
@@ -107,21 +115,21 @@ F(S, R, D, X) = ⌊S × [R + (1 - R) × exp(1 - X / D)]⌋
 
 전역 권한으로, 플랫폼 전체 접근 수준을 결정합니다.
 
-| 역할 | 설명 |
-|---|---|
-| `USER` | 일반 사용자 |
-| `LAB` | 연구실 사용자 (Lab 전용 콘텐츠 접근) |
-| `ADMIN` | 관리자 (전체 권한) |
+| 역할    | 설명                                 |
+| ------- | ------------------------------------ |
+| `USER`  | 일반 사용자                          |
+| `LAB`   | 연구실 사용자 (Lab 전용 콘텐츠 접근) |
+| `ADMIN` | 관리자 (전체 권한)                   |
 
 ### 팀 역할 (Role)
 
 팀 내 권한으로, 팀 단위 작업의 접근 수준을 결정합니다.
 
-| 역할 | 설명 |
-|---|---|
-| `OWNER` | 팀 오너 (팀 삭제 포함 전체 권한) |
-| `ADMIN` | 팀 관리자 (멤버 관리 가능, Owner 변경 불가) |
-| `MEMBER` | 일반 팀원 |
+| 역할     | 설명                                        |
+| -------- | ------------------------------------------- |
+| `OWNER`  | 팀 오너 (팀 삭제 포함 전체 권한)            |
+| `ADMIN`  | 팀 관리자 (멤버 관리 가능, Owner 변경 불가) |
+| `MEMBER` | 일반 팀원                                   |
 
 구현 위치: [lib/rbac.ts](lib/rbac.ts), [lib/user-roles.ts](lib/user-roles.ts)
 
@@ -140,12 +148,12 @@ F(S, R, D, X) = ⌊S × [R + (1 - R) × exp(1 - X / D)]⌋
 
 **Machine 타입:**
 
-| 타입 | 설명 |
-|---|---|
-| `STATIC_ATTACHMENT` | 정적 첨부파일 챌린지 |
+| 타입                 | 설명                        |
+| -------------------- | --------------------------- |
+| `STATIC_ATTACHMENT`  | 정적 첨부파일 챌린지        |
 | `DYNAMIC_ATTACHMENT` | 사용자별 동적 첨부파일 생성 |
-| `STATIC_CONTAINER` | 공유 컨테이너 |
-| `DYNAMIC_CONTAINER` | 사용자/팀별 독립 컨테이너 |
+| `STATIC_CONTAINER`   | 공유 컨테이너               |
+| `DYNAMIC_CONTAINER`  | 사용자/팀별 독립 컨테이너   |
 
 구현 위치: [lib/docker.ts](lib/docker.ts)
 
@@ -163,11 +171,11 @@ Socket.io를 사용하여 실시간 이벤트를 처리합니다.
 
 `next.config.js`에서 모든 응답에 보안 헤더를 적용합니다.
 
-| 헤더 | 값 |
-|---|---|
+| 헤더                        | 값                                    |
+| --------------------------- | ------------------------------------- |
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
-| `X-Frame-Options` | `SAMEORIGIN` |
-| `X-Content-Type-Options` | `nosniff` |
+| `X-Frame-Options`           | `SAMEORIGIN`                          |
+| `X-Content-Type-Options`    | `nosniff`                             |
 
 인증 흐름: NextAuth.js + Prisma Adapter, SAML SSO (BoxyHQ Jackson), 이메일 매직 링크, Google / GitHub OAuth
 
@@ -259,20 +267,20 @@ pnpm sync-stripe
 
 `.env` 파일에서 설정이 필요한 주요 변수:
 
-| 변수명 | 설명 |
-|---|---|
-| `DATABASE_URL` | PostgreSQL 연결 문자열 |
-| `NEXTAUTH_SECRET` | NextAuth.js 시크릿 (`openssl rand -base64 32` 으로 생성) |
-| `NEXTAUTH_URL` | 앱 베이스 URL |
-| `SMTP_*` | 이메일 설정 (host, port, user, password, from) |
-| `STRIPE_SECRET_KEY` | Stripe API 시크릿 키 |
-| `STRIPE_WEBHOOK_SECRET` | Stripe 웹훅 서명 시크릿 |
-| `SVIX_API_KEY` | Svix 웹훅 API 키 |
-| `SENTRY_DSN` | Sentry 에러 모니터링 DSN |
-| `RECAPTCHA_SITE_KEY` / `RECAPTCHA_SECRET_KEY` | Google reCAPTCHA 키 |
-| `MIXPANEL_TOKEN` | Mixpanel 분석 토큰 |
-| `ATTACKBOX_HOST` | AttackBox 컨테이너 호스트 주소 |
-| `REDIS_URL` | Redis 연결 문자열 |
+| 변수명                                        | 설명                                                     |
+| --------------------------------------------- | -------------------------------------------------------- |
+| `DATABASE_URL`                                | PostgreSQL 연결 문자열                                   |
+| `NEXTAUTH_SECRET`                             | NextAuth.js 시크릿 (`openssl rand -base64 32` 으로 생성) |
+| `NEXTAUTH_URL`                                | 앱 베이스 URL                                            |
+| `SMTP_*`                                      | 이메일 설정 (host, port, user, password, from)           |
+| `STRIPE_SECRET_KEY`                           | Stripe API 시크릿 키                                     |
+| `STRIPE_WEBHOOK_SECRET`                       | Stripe 웹훅 서명 시크릿                                  |
+| `SVIX_API_KEY`                                | Svix 웹훅 API 키                                         |
+| `SENTRY_DSN`                                  | Sentry 에러 모니터링 DSN                                 |
+| `RECAPTCHA_SITE_KEY` / `RECAPTCHA_SECRET_KEY` | Google reCAPTCHA 키                                      |
+| `MIXPANEL_TOKEN`                              | Mixpanel 분석 토큰                                       |
+| `ATTACKBOX_HOST`                              | AttackBox 컨테이너 호스트 주소                           |
+| `REDIS_URL`                                   | Redis 연결 문자열                                        |
 
 ## 스크립트
 

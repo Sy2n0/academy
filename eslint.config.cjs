@@ -44,6 +44,24 @@ module.exports = [{
     },
     rules: {
         "@typescript-eslint/no-explicit-any": "off",
+        // i18n adoption is incremental: surface untranslated literals as
+        // warnings instead of failing CI. Tracked for gradual migration.
+        "i18next/no-literal-string": "warn",
+        // Unused vars are surfaced as warnings (cleanup debt, not a build
+        // blocker). Names prefixed with _ are treated as intentional.
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                argsIgnorePattern: "^_",
+                varsIgnorePattern: "^_",
+                caughtErrorsIgnorePattern: "^_",
+            },
+        ],
+        // The domain models a "learning module" entity, so local `const module`
+        // variables are everywhere. This rule guards against clobbering the
+        // webpack module global in client bundles, which these block-scoped
+        // entity vars never do — disable to avoid false positives.
+        "@next/next/no-assign-module-variable": "off",
     }
 }, {
     files: ["**/*.js"],

@@ -47,12 +47,12 @@ const Signup: NextPageWithLayout<
       <main className="relative min-h-screen bg-background">
         <AnimatedNoise opacity={0.03} />
         <div className="grid-bg fixed inset-0 opacity-30" aria-hidden="true" />
-        
+
         <div className="relative z-10">
           <div className="w-full pt-4">
             <Navbar hideAuthButtons />
           </div>
-          
+
           <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center px-6 py-12 md:px-12">
             <div className="w-full max-w-md space-y-6">
               {authProviders.credentials && (

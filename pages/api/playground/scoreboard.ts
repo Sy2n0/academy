@@ -2,7 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { ScoreType, UserRole } from '@prisma/client';
 
-const normalize = (value: string) => value.trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+const normalize = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[-_\s]+/g, ' ');
 const normalizeCodeName = (value: string) => value.trim().toLowerCase();
 
 type ScoreboardItem = {
@@ -17,14 +21,22 @@ type ScoreboardItem = {
   firstBloodChallengeIds: string[];
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+    return res
+      .status(405)
+      .json({ error: { message: `Method ${req.method} Not Allowed` } });
   }
 
   try {
-    const seasonParam = typeof req.query.season === 'string' ? decodeURIComponent(req.query.season).trim() : '';
+    const seasonParam =
+      typeof req.query.season === 'string'
+        ? decodeURIComponent(req.query.season).trim()
+        : '';
     if (!seasonParam) {
       return res.json({ data: [] as ScoreboardItem[] });
     }
@@ -39,14 +51,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const matchedSettings = allSettings.find((item) => {
       const codeName = normalize(item.codeName || '');
       const season = normalize(item.season || '');
-      return codeName === normalizedSeasonParam || season === normalizedSeasonParam;
+      return (
+        codeName === normalizedSeasonParam || season === normalizedSeasonParam
+      );
     });
 
-    const targetCodeName = normalizeCodeName(matchedSettings?.codeName || seasonParam);
+    const targetCodeName = normalizeCodeName(
+      matchedSettings?.codeName || seasonParam
+    );
 
     const targetPlayground = matchedSettings
       ? matchedSettings
-      : allSettings.find((item) => normalizeCodeName(item.codeName || '') === targetCodeName) || null;
+      : allSettings.find(
+          (item) => normalizeCodeName(item.codeName || '') === targetCodeName
+        ) || null;
 
     const enrollmentRows = targetPlayground
       ? await prisma.playgroundEnrollment.findMany({
@@ -75,12 +93,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       take: 50000,
     });
 
-    const byUser = new Map<string, { points: number; solvedSet: Set<string>; firstBloodSet: Set<string> }>();
-    const firstBloodByChallenge = new Map<string, { userId: string; createdAtMs: number }>();
+    const byUser = new Map<
+      string,
+      { points: number; solvedSet: Set<string>; firstBloodSet: Set<string> }
+    >();
+    const firstBloodByChallenge = new Map<
+      string,
+      { userId: string; createdAtMs: number }
+    >();
 
     for (const enrollment of enrollmentRows) {
       if (!byUser.has(enrollment.userId)) {
-        byUser.set(enrollment.userId, { points: 0, solvedSet: new Set<string>(), firstBloodSet: new Set<string>() });
+        byUser.set(enrollment.userId, {
+          points: 0,
+          solvedSet: new Set<string>(),
+          firstBloodSet: new Set<string>(),
+        });
       }
     }
 
@@ -88,16 +116,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!row.metadata || typeof row.metadata !== 'object') continue;
       const metadata = row.metadata as Record<string, unknown>;
 
-      const metadataCodeName = typeof metadata.playgroundCodeName === 'string'
-        ? normalizeCodeName(metadata.playgroundCodeName)
-        : '';
+      const metadataCodeName =
+        typeof metadata.playgroundCodeName === 'string'
+          ? normalizeCodeName(metadata.playgroundCodeName)
+          : '';
 
       if (metadataCodeName !== targetCodeName) continue;
 
-      const current = byUser.get(row.userId) || { points: 0, solvedSet: new Set<string>(), firstBloodSet: new Set<string>() };
+      const current = byUser.get(row.userId) || {
+        points: 0,
+        solvedSet: new Set<string>(),
+        firstBloodSet: new Set<string>(),
+      };
       current.points += row.earnedPoints || 0;
 
-      const challengeId = typeof metadata.challengeId === 'string' ? metadata.challengeId : '';
+      const challengeId =
+        typeof metadata.challengeId === 'string' ? metadata.challengeId : '';
       if (challengeId) current.solvedSet.add(challengeId);
 
       if (challengeId && (row.earnedPoints || 0) > 0) {
@@ -172,6 +206,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.json({ data: ranked });
   } catch (error) {
     console.error('Error fetching playground scoreboard:', error);
-    return res.status(500).json({ error: { message: 'Failed to fetch playground scoreboard' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Failed to fetch playground scoreboard' } });
   }
 }

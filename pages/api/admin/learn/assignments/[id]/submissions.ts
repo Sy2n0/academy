@@ -55,6 +55,8 @@ export default async function handler(
       return res.status(e.status).json({ error: { message: e.message } });
     }
     console.error('[API /admin/learn/assignments/[id]/submissions]', e);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }

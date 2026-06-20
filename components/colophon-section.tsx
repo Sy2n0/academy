@@ -1,18 +1,18 @@
 /* eslint-disable i18next/no-literal-string */
-import { useRef, useEffect } from "react"
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useRef, useEffect } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger);
 
 export function ColophonSection() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const gridRef = useRef<HTMLDivElement>(null)
-  const footerRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!sectionRef.current) return
+    if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
       // Header slide in
@@ -21,30 +21,30 @@ export function ColophonSection() {
           x: -60,
           opacity: 0,
           duration: 1,
-          ease: "power3.out",
+          ease: 'power3.out',
           scrollTrigger: {
             trigger: headerRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
+            start: 'top 85%',
+            toggleActions: 'play none none reverse',
           },
-        })
+        });
       }
 
       // Grid columns fade up with stagger
       if (gridRef.current) {
-        const columns = gridRef.current.querySelectorAll(":scope > div")
+        const columns = gridRef.current.querySelectorAll(':scope > div');
         gsap.from(columns, {
           y: 40,
           opacity: 0,
           duration: 0.8,
           stagger: 0.1,
-          ease: "power3.out",
+          ease: 'power3.out',
           scrollTrigger: {
             trigger: gridRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
+            start: 'top 85%',
+            toggleActions: 'play none none reverse',
           },
-        })
+        });
       }
 
       // Footer fade in
@@ -53,18 +53,18 @@ export function ColophonSection() {
           y: 20,
           opacity: 0,
           duration: 0.8,
-          ease: "power3.out",
+          ease: 'power3.out',
           scrollTrigger: {
             trigger: footerRef.current,
-            start: "top 95%",
-            toggleActions: "play none none reverse",
+            start: 'top 95%',
+            toggleActions: 'play none none reverse',
           },
-        })
+        });
       }
-    }, sectionRef)
+    }, sectionRef);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   return (
     <section
@@ -74,18 +74,31 @@ export function ColophonSection() {
     >
       {/* Section header */}
       <div ref={headerRef} className="mb-16">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">02 / Contact</span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">GET IN TOUCH</h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">
+          02 / Contact
+        </span>
+        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">
+          GET IN TOUCH
+        </h2>
       </div>
 
       {/* Multi-column layout */}
-      <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 md:gap-12">
+      <div
+        ref={gridRef}
+        className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 md:gap-12"
+      >
         {/* Programs */}
         <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Other Contents</h4>
+          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">
+            Other Contents
+          </h4>
           <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">Recruiting CTF</li>
-            <li className="font-mono text-xs text-foreground/80">HUB Conference</li>
+            <li className="font-mono text-xs text-foreground/80">
+              Recruiting CTF
+            </li>
+            <li className="font-mono text-xs text-foreground/80">
+              HUB Conference
+            </li>
           </ul>
         </div>
 
@@ -111,16 +124,24 @@ export function ColophonSection() {
 
         {/* Location */}
         <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Location</h4>
+          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">
+            Location
+          </h4>
           <ul className="space-y-2">
-            <li className="font-mono text-xs text-foreground/80">Cheonan, Korea</li>
-            <li className="font-mono text-xs text-foreground/80">Baekseok University</li>
+            <li className="font-mono text-xs text-foreground/80">
+              Cheonan, Korea
+            </li>
+            <li className="font-mono text-xs text-foreground/80">
+              Baekseok University
+            </li>
           </ul>
         </div>
 
         {/* Contact */}
         <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Contact</h4>
+          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">
+            Contact
+          </h4>
           <ul className="space-y-2">
             <li>
               <a
@@ -143,10 +164,14 @@ export function ColophonSection() {
 
         {/* Year */}
         <div className="col-span-1">
-          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Established</h4>
+          <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">
+            Established
+          </h4>
           <ul className="space-y-2">
             <li className="font-mono text-xs text-foreground/80">2026</li>
-            <li className="font-mono text-xs text-foreground/80">HUB ACADEMY</li>
+            <li className="font-mono text-xs text-foreground/80">
+              HUB ACADEMY
+            </li>
           </ul>
         </div>
       </div>
@@ -162,5 +187,5 @@ export function ColophonSection() {
         {/* <p className="font-mono text-[10px] text-muted-foreground">HUB ACADEMY - Excellence in Education</p> */}
       </div>
     </section>
-  )
+  );
 }

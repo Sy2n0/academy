@@ -11,7 +11,10 @@ const DOCKER_IMAGE = 'cloud-ide:latest';
 const PORT_MIN = 20000;
 const PORT_MAX = 30000;
 
-async function waitForCloudIdeReady(port: number, timeoutMs = 20000): Promise<boolean> {
+async function waitForCloudIdeReady(
+  port: number,
+  timeoutMs = 20000
+): Promise<boolean> {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
@@ -67,34 +70,43 @@ export default async function handler(
       }
     | undefined;
   if (existingModel?.findUnique) {
-    const existing = await existingModel.findUnique({ where: { userId: user.id } });
+    const existing = await existingModel.findUnique({
+      where: { userId: user.id },
+    });
     if (existing) {
       const inspect = await execAsync(
         `docker ps --filter name=^/${existing.containerName}$ --format "{{.Names}}"`
       ).catch(() => ({ stdout: '' }));
-      const isRunning = typeof inspect.stdout === 'string' && inspect.stdout.trim() === existing.containerName;
+      const isRunning =
+        typeof inspect.stdout === 'string' &&
+        inspect.stdout.trim() === existing.containerName;
 
       if (isRunning) {
         const isReady = await waitForCloudIdeReady(existing.port, 12000);
         if (!isReady) {
-          console.warn('[cloud-ide/launch] existing container running but not ready, recreating', {
-            userId: user.id,
-            containerName: existing.containerName,
-            port: existing.port,
-          });
+          console.warn(
+            '[cloud-ide/launch] existing container running but not ready, recreating',
+            {
+              userId: user.id,
+              containerName: existing.containerName,
+              port: existing.port,
+            }
+          );
         } else {
-        return res.status(200).json({
-          success: true,
-          host: existing.host,
-          port: existing.port,
-          password: existing.password,
-          containerName: existing.containerName,
-          launched: false,
-        });
+          return res.status(200).json({
+            success: true,
+            host: existing.host,
+            port: existing.port,
+            password: existing.password,
+            containerName: existing.containerName,
+            launched: false,
+          });
         }
       }
 
-      const deleteModel = existingModel as { deleteMany?: (args: { where: { userId: string } }) => Promise<unknown> };
+      const deleteModel = existingModel as {
+        deleteMany?: (args: { where: { userId: string } }) => Promise<unknown>;
+      };
       if (deleteModel.deleteMany) {
         await deleteModel.deleteMany({ where: { userId: user.id } });
       }
@@ -102,13 +114,17 @@ export default async function handler(
   }
 
   const portFromBody =
-    typeof req.body?.port === 'number' && Number.isInteger(req.body.port) && req.body.port >= PORT_MIN && req.body.port <= PORT_MAX
+    typeof req.body?.port === 'number' &&
+    Number.isInteger(req.body.port) &&
+    req.body.port >= PORT_MIN &&
+    req.body.port <= PORT_MAX
       ? req.body.port
       : null;
   const isAutoPort = portFromBody === null;
-  const password = typeof req.body?.password === 'string' && req.body.password.trim()
-    ? req.body.password.trim()
-    : `ide-${Date.now().toString(36)}`;
+  const password =
+    typeof req.body?.password === 'string' && req.body.password.trim()
+      ? req.body.password.trim()
+      : `ide-${Date.now().toString(36)}`;
 
   const failedPorts = new Set<number>();
   const maxAttempts = 50;
@@ -130,7 +146,10 @@ export default async function handler(
       }
       if (attackBoxModel?.findMany) {
         const rows = await attackBoxModel.findMany();
-        rows.forEach((r) => { used.add(r.port); used.add(r.port8080); });
+        rows.forEach((r) => {
+          used.add(r.port);
+          used.add(r.port8080);
+        });
       }
       failedPorts.forEach((p) => used.add(p));
       let found: number | null = null;
@@ -141,7 +160,12 @@ export default async function handler(
         }
       }
       if (found === null) {
-        return res.status(503).json({ error: { message: 'No available port in range 20000–30000 (all in use or failed)' } });
+        return res.status(503).json({
+          error: {
+            message:
+              'No available port in range 20000–30000 (all in use or failed)',
+          },
+        });
       }
       port = found;
     } else {
@@ -163,11 +187,17 @@ export default async function handler(
     }
 
     const dockerCmd = [
-      'docker', 'run', '-d',
-      '--name', containerName,
-      '-e', `PASSWORD=${password}`,
-      '-p', `${port}:8080`,
-      '-v', `${volumePath}:/workspace`,
+      'docker',
+      'run',
+      '-d',
+      '--name',
+      containerName,
+      '-e',
+      `PASSWORD=${password}`,
+      '-p',
+      `${port}:8080`,
+      '-v',
+      `${volumePath}:/workspace`,
       DOCKER_IMAGE,
     ].join(' ');
 
@@ -176,10 +206,15 @@ export default async function handler(
 
       const isReady = await waitForCloudIdeReady(port, 20000);
       if (!isReady) {
-        throw new Error(`Cloud IDE did not become ready on port ${port} within timeout`);
+        throw new Error(
+          `Cloud IDE did not become ready on port ${port} within timeout`
+        );
       }
 
-      const host = process.env.CLOUDIDE_HOST || (req.headers?.host && req.headers.host.split(':')[0]) || 'localhost';
+      const host =
+        process.env.CLOUDIDE_HOST ||
+        (req.headers?.host && req.headers.host.split(':')[0]) ||
+        'localhost';
 
       const sessionModel = prismaAny.cloudIDESession as
         | { upsert?: (args: unknown) => Promise<unknown> }
@@ -202,10 +237,16 @@ export default async function handler(
           },
         });
       } else {
-        console.warn('[cloud-ide/launch] prisma.cloudIDESession not found — run: npx prisma generate');
+        console.warn(
+          '[cloud-ide/launch] prisma.cloudIDESession not found — run: npx prisma generate'
+        );
       }
 
-      console.log('[cloud-ide/launch]', { userId: user.id, port, containerName });
+      console.log('[cloud-ide/launch]', {
+        userId: user.id,
+        port,
+        containerName,
+      });
       return res.status(200).json({
         success: true,
         host,
@@ -217,11 +258,14 @@ export default async function handler(
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       const execErr = err as { stderr?: string; stdout?: string };
-      const stderr = typeof execErr?.stderr === 'string' ? execErr.stderr.trim() : '';
-      const stdout = typeof execErr?.stdout === 'string' ? execErr.stdout.trim() : '';
+      const stderr =
+        typeof execErr?.stderr === 'string' ? execErr.stderr.trim() : '';
+      const stdout =
+        typeof execErr?.stdout === 'string' ? execErr.stdout.trim() : '';
       const detail = stderr || stdout || msg;
       const isAddressInUse =
-        /address already in use|bind|port.*already/i.test(detail) || /address already in use|bind|port.*already/i.test(msg);
+        /address already in use|bind|port.*already/i.test(detail) ||
+        /address already in use|bind|port.*already/i.test(msg);
 
       if (isAutoPort && isAddressInUse) {
         failedPorts.add(port);
@@ -230,11 +274,20 @@ export default async function handler(
         } catch (e) {
           // ignore
         }
-        console.warn('[cloud-ide/launch] port in use, retrying', { port, attempt: attempt + 1 });
+        console.warn('[cloud-ide/launch] port in use, retrying', {
+          port,
+          attempt: attempt + 1,
+        });
         continue;
       }
 
-      console.error('[cloud-ide/launch]', { userId: user.id, port, error: msg, stderr, stdout });
+      console.error('[cloud-ide/launch]', {
+        userId: user.id,
+        port,
+        error: msg,
+        stderr,
+        stdout,
+      });
       return res.status(500).json({
         error: { message: 'Docker run failed', detail: detail || msg },
       });
@@ -242,6 +295,10 @@ export default async function handler(
   }
 
   return res.status(503).json({
-    error: { message: 'Docker run failed', detail: 'Could not find a free port after retries (address already in use)' },
+    error: {
+      message: 'Docker run failed',
+      detail:
+        'Could not find a free port after retries (address already in use)',
+    },
   });
 }

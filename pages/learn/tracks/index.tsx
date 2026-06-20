@@ -55,9 +55,13 @@ const fetcher = async (url: string) => {
 
 const TracksPage: NextPageWithLayout = () => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'all' | 'offensive' | 'defensive'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'offensive' | 'defensive'>(
+    'all'
+  );
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'latest' | 'difficulty' | 'modules'>('latest');
+  const [sortBy, setSortBy] = useState<'latest' | 'difficulty' | 'modules'>(
+    'latest'
+  );
 
   const apiUrl =
     activeTab === 'all'
@@ -101,7 +105,10 @@ const TracksPage: NextPageWithLayout = () => {
         return b.moduleCount - a.moduleCount;
       }
       if (sortBy === 'difficulty') {
-        return (difficultyScore[b.difficulty] ?? -1) - (difficultyScore[a.difficulty] ?? -1);
+        return (
+          (difficultyScore[b.difficulty] ?? -1) -
+          (difficultyScore[a.difficulty] ?? -1)
+        );
       }
       return 0;
     });
@@ -111,8 +118,12 @@ const TracksPage: NextPageWithLayout = () => {
 
   const enrolledCount = tracks.filter((track) => track.isEnrolled).length;
   const completedCount = tracks.filter((track) => track.isCompleted).length;
-  const offensiveCount = tracks.filter((track) => track.type === 'OFFENSIVE').length;
-  const defensiveCount = tracks.filter((track) => track.type === 'DEFENSIVE').length;
+  const offensiveCount = tracks.filter(
+    (track) => track.type === 'OFFENSIVE'
+  ).length;
+  const defensiveCount = tracks.filter(
+    (track) => track.type === 'DEFENSIVE'
+  ).length;
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -165,10 +176,15 @@ const TracksPage: NextPageWithLayout = () => {
               <div className="relative space-y-5">
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Learn Tracks</p>
-                    <h1 className="font-mono text-2xl md:text-3xl uppercase text-foreground">Track Paths</h1>
+                    <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                      Learn Tracks
+                    </p>
+                    <h1 className="font-mono text-2xl md:text-3xl uppercase text-foreground">
+                      Track Paths
+                    </h1>
                     <p className="font-mono text-xs text-muted-foreground mt-2 max-w-2xl">
-                      Curated offensive and defensive journeys. Pick a path, stay enrolled, and complete every module in sequence.
+                      Curated offensive and defensive journeys. Pick a path,
+                      stay enrolled, and complete every module in sequence.
                     </p>
                   </div>
 
@@ -178,7 +194,9 @@ const TracksPage: NextPageWithLayout = () => {
                       variant="outline"
                       size="sm"
                       className={`font-mono text-xs uppercase ${
-                        activeTab === 'all' ? 'border-accent/60 bg-accent/20 text-foreground' : ''
+                        activeTab === 'all'
+                          ? 'border-accent/60 bg-accent/20 text-foreground'
+                          : ''
                       }`}
                       onClick={() => setActiveTab('all')}
                     >
@@ -215,27 +233,45 @@ const TracksPage: NextPageWithLayout = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">Total</p>
-                    <p className="font-mono text-xl text-foreground">{tracks.length}</p>
+                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                      Total
+                    </p>
+                    <p className="font-mono text-xl text-foreground">
+                      {tracks.length}
+                    </p>
                   </div>
                   <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">Enrolled</p>
-                    <p className="font-mono text-xl text-foreground">{enrolledCount}</p>
+                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                      Enrolled
+                    </p>
+                    <p className="font-mono text-xl text-foreground">
+                      {enrolledCount}
+                    </p>
                   </div>
                   <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">Completed</p>
-                    <p className="font-mono text-xl text-foreground">{completedCount}</p>
+                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                      Completed
+                    </p>
+                    <p className="font-mono text-xl text-foreground">
+                      {completedCount}
+                    </p>
                   </div>
                   <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">Off/Def</p>
-                    <p className="font-mono text-xl text-foreground">{offensiveCount}/{defensiveCount}</p>
+                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                      Off/Def
+                    </p>
+                    <p className="font-mono text-xl text-foreground">
+                      {offensiveCount}/{defensiveCount}
+                    </p>
                   </div>
                 </div>
               </div>
             </section>
 
             <section className="rounded-xl border border-border/40 bg-card/70 p-4 md:p-5 space-y-3">
-              <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Filter Control</p>
+              <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                Filter Control
+              </p>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="relative w-full md:max-w-md">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -264,7 +300,9 @@ const TracksPage: NextPageWithLayout = () => {
                     variant="outline"
                     size="sm"
                     className={`font-mono text-xs uppercase ${
-                      sortBy === 'difficulty' ? 'bg-accent/20 border-accent/50' : ''
+                      sortBy === 'difficulty'
+                        ? 'bg-accent/20 border-accent/50'
+                        : ''
                     }`}
                     onClick={() => setSortBy('difficulty')}
                   >
@@ -275,7 +313,9 @@ const TracksPage: NextPageWithLayout = () => {
                     variant="outline"
                     size="sm"
                     className={`font-mono text-xs uppercase ${
-                      sortBy === 'modules' ? 'bg-accent/20 border-accent/50' : ''
+                      sortBy === 'modules'
+                        ? 'bg-accent/20 border-accent/50'
+                        : ''
                     }`}
                     onClick={() => setSortBy('modules')}
                   >
@@ -287,19 +327,25 @@ const TracksPage: NextPageWithLayout = () => {
 
             {isLoading && (
               <div className="rounded-xl border border-border/30 bg-card/60 text-center py-12">
-                <p className="font-mono text-sm text-muted-foreground">Loading tracks...</p>
+                <p className="font-mono text-sm text-muted-foreground">
+                  Loading tracks...
+                </p>
               </div>
             )}
 
             {error && (
               <div className="rounded-xl border border-border/30 bg-card/60 text-center py-12">
-                <p className="font-mono text-sm text-destructive">트랙 목록을 불러오지 못했습니다</p>
+                <p className="font-mono text-sm text-destructive">
+                  트랙 목록을 불러오지 못했습니다
+                </p>
               </div>
             )}
 
             {!isLoading && !error && processedTracks.length === 0 && (
               <div className="rounded-xl border border-border/30 bg-card/60 text-center py-12">
-                <p className="font-mono text-sm text-muted-foreground">No tracks found</p>
+                <p className="font-mono text-sm text-muted-foreground">
+                  No tracks found
+                </p>
               </div>
             )}
 
@@ -311,7 +357,8 @@ const TracksPage: NextPageWithLayout = () => {
                     onClick={() => router.push(`/learn/tracks/${track.id}`)}
                     className="group relative overflow-hidden rounded-xl border border-border/35 bg-card/80 hover:border-accent/50 transition-colors cursor-pointer"
                     style={{
-                      backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)',
+                      backgroundImage:
+                        'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)',
                       backgroundSize: '16px 16px',
                     }}
                   >
@@ -321,7 +368,11 @@ const TracksPage: NextPageWithLayout = () => {
                         <span
                           className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-wide backdrop-blur-sm ${getTypeBadge(track.type)}`}
                         >
-                          {track.type === 'OFFENSIVE' ? <Target className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
+                          {track.type === 'OFFENSIVE' ? (
+                            <Target className="h-3 w-3" />
+                          ) : (
+                            <Shield className="h-3 w-3" />
+                          )}
                           {track.type}
                         </span>
                         <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-black/50 backdrop-blur-sm px-2 py-1 font-mono text-[10px] uppercase text-white/90">
@@ -358,16 +409,22 @@ const TracksPage: NextPageWithLayout = () => {
 
                     <div className="p-4 space-y-3">
                       <div className="flex items-start justify-between gap-3">
-                        <h3 className="font-mono text-base md:text-lg text-foreground leading-snug">{track.title}</h3>
+                        <h3 className="font-mono text-base md:text-lg text-foreground leading-snug">
+                          {track.title}
+                        </h3>
                         <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors mt-1 shrink-0" />
                       </div>
 
                       {track.description && (
-                        <p className="font-mono text-xs text-muted-foreground line-clamp-3 leading-relaxed">{track.description}</p>
+                        <p className="font-mono text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                          {track.description}
+                        </p>
                       )}
 
                       <div className="flex items-center flex-wrap gap-3 font-mono text-[11px] text-muted-foreground pt-1">
-                        <span className={`inline-flex items-center gap-1 ${getDifficultyColor(track.difficulty)}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 ${getDifficultyColor(track.difficulty)}`}
+                        >
                           <Trophy className="h-3.5 w-3.5" />
                           {track.difficulty}
                         </span>

@@ -161,7 +161,9 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
           const error = await response.json();
           throw new Error(error.error?.message || '모듈 수정에 실패했습니다');
         } else {
-          throw new Error(`모듈 수정에 실패했습니다: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `모듈 수정에 실패했습니다: ${response.status} ${response.statusText}`
+          );
         }
       }
 
@@ -185,7 +187,9 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
   if (error || !data?.data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="font-mono text-sm text-destructive">모듈을 불러오지 못했습니다</p>
+        <p className="font-mono text-sm text-destructive">
+          모듈을 불러오지 못했습니다
+        </p>
       </div>
     );
   }
@@ -240,7 +244,10 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                   <div className="max-w-7xl mx-auto space-y-6">
                     {/* Header */}
                     <div className="flex items-center justify-between">
-                      <h1 className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground" style={{ fontStyle: 'italic' }}>
+                      <h1
+                        className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground"
+                        style={{ fontStyle: 'italic' }}
+                      >
                         # {formData.title || 'Untitled Module'}
                       </h1>
                       <div className="flex items-center gap-3">
@@ -276,42 +283,61 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                           </h2>
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="title" className="font-mono text-sm font-semibold">
-                                Title <span className="text-destructive">*</span>
+                              <Label
+                                htmlFor="title"
+                                className="font-mono text-sm font-semibold"
+                              >
+                                Title{' '}
+                                <span className="text-destructive">*</span>
                               </Label>
                               <Input
                                 id="title"
                                 value={formData.title}
                                 onChange={(e) =>
-                                  setFormData({ ...formData, title: e.target.value })
+                                  setFormData({
+                                    ...formData,
+                                    title: e.target.value,
+                                  })
                                 }
                                 className="font-mono text-sm mt-1"
                                 placeholder="Module title"
                               />
                             </div>
                             <div>
-                              <Label htmlFor="description" className="font-mono text-sm font-semibold">
+                              <Label
+                                htmlFor="description"
+                                className="font-mono text-sm font-semibold"
+                              >
                                 Description
                               </Label>
                               <Textarea
                                 id="description"
                                 value={formData.description}
                                 onChange={(e) =>
-                                  setFormData({ ...formData, description: e.target.value })
+                                  setFormData({
+                                    ...formData,
+                                    description: e.target.value,
+                                  })
                                 }
                                 className="font-mono text-sm mt-1 min-h-[100px]"
                                 placeholder="Module description"
                               />
                             </div>
                             <div>
-                              <Label htmlFor="imageUrl" className="font-mono text-sm font-semibold">
+                              <Label
+                                htmlFor="imageUrl"
+                                className="font-mono text-sm font-semibold"
+                              >
                                 Image URL
                               </Label>
                               <Input
                                 id="imageUrl"
                                 value={formData.imageUrl}
                                 onChange={(e) =>
-                                  setFormData({ ...formData, imageUrl: e.target.value })
+                                  setFormData({
+                                    ...formData,
+                                    imageUrl: e.target.value,
+                                  })
                                 }
                                 className="font-mono text-sm mt-1"
                                 placeholder="https://example.com/image.jpg"
@@ -327,7 +353,10 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                           </h2>
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="category" className="font-mono text-sm font-semibold">
+                              <Label
+                                htmlFor="category"
+                                className="font-mono text-sm font-semibold"
+                              >
                                 Category
                               </Label>
                               <Select
@@ -340,27 +369,41 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="GENERAL">GENERAL</SelectItem>
-                                  <SelectItem value="OFFENSIVE">OFFENSIVE</SelectItem>
-                                  <SelectItem value="DEFENSIVE">DEFENSIVE</SelectItem>
+                                  <SelectItem value="GENERAL">
+                                    GENERAL
+                                  </SelectItem>
+                                  <SelectItem value="OFFENSIVE">
+                                    OFFENSIVE
+                                  </SelectItem>
+                                  <SelectItem value="DEFENSIVE">
+                                    DEFENSIVE
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div>
-                              <Label htmlFor="difficulty" className="font-mono text-sm font-semibold">
+                              <Label
+                                htmlFor="difficulty"
+                                className="font-mono text-sm font-semibold"
+                              >
                                 Difficulty
                               </Label>
                               <Select
                                 value={formData.difficulty}
                                 onValueChange={(value) =>
-                                  setFormData({ ...formData, difficulty: value })
+                                  setFormData({
+                                    ...formData,
+                                    difficulty: value,
+                                  })
                                 }
                               >
                                 <SelectTrigger className="font-mono text-sm mt-1">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Fundamental">Fundamental</SelectItem>
+                                  <SelectItem value="Fundamental">
+                                    Fundamental
+                                  </SelectItem>
                                   <SelectItem value="Easy">Easy</SelectItem>
                                   <SelectItem value="Medium">Medium</SelectItem>
                                   <SelectItem value="Hard">Hard</SelectItem>
@@ -368,7 +411,10 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                               </Select>
                             </div>
                             <div>
-                              <Label htmlFor="tier" className="font-mono text-sm font-semibold">
+                              <Label
+                                htmlFor="tier"
+                                className="font-mono text-sm font-semibold"
+                              >
                                 Tier
                               </Label>
                               <Select
@@ -383,12 +429,17 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                                 <SelectContent>
                                   <SelectItem value="Tier 0">Tier 0</SelectItem>
                                   <SelectItem value="Tier I">Tier I</SelectItem>
-                                  <SelectItem value="Tier II">Tier II</SelectItem>
+                                  <SelectItem value="Tier II">
+                                    Tier II
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div>
-                              <Label htmlFor="type" className="font-mono text-sm font-semibold">
+                              <Label
+                                htmlFor="type"
+                                className="font-mono text-sm font-semibold"
+                              >
                                 Type
                               </Label>
                               <Select
@@ -401,34 +452,50 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="REGULAR">REGULAR</SelectItem>
-                                  <SelectItem value="PREMIUM">PREMIUM</SelectItem>
+                                  <SelectItem value="REGULAR">
+                                    REGULAR
+                                  </SelectItem>
+                                  <SelectItem value="PREMIUM">
+                                    PREMIUM
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div>
-                              <Label htmlFor="duration" className="font-mono text-sm font-semibold">
+                              <Label
+                                htmlFor="duration"
+                                className="font-mono text-sm font-semibold"
+                              >
                                 Duration
                               </Label>
                               <Input
                                 id="duration"
                                 value={formData.duration}
                                 onChange={(e) =>
-                                  setFormData({ ...formData, duration: e.target.value })
+                                  setFormData({
+                                    ...formData,
+                                    duration: e.target.value,
+                                  })
                                 }
                                 className="font-mono text-sm mt-1"
                                 placeholder="e.g., 3h, 6h"
                               />
                             </div>
                             <div className="flex items-center justify-between">
-                              <Label htmlFor="isActive" className="font-mono text-sm font-semibold">
+                              <Label
+                                htmlFor="isActive"
+                                className="font-mono text-sm font-semibold"
+                              >
                                 Active
                               </Label>
                               <Switch
                                 id="isActive"
                                 checked={formData.isActive}
                                 onCheckedChange={(checked) =>
-                                  setFormData({ ...formData, isActive: checked })
+                                  setFormData({
+                                    ...formData,
+                                    isActive: checked,
+                                  })
                                 }
                               />
                             </div>
@@ -447,7 +514,11 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                               강의 내용은 별도 페이지에서 작성할 수 있습니다.
                             </p>
                             <Button
-                              onClick={() => router.push(`/admin/learn/modules/${id}/content`)}
+                              onClick={() =>
+                                router.push(
+                                  `/admin/learn/modules/${id}/content`
+                                )
+                              }
                               className="font-mono text-xs bg-accent hover:bg-accent/90 text-foreground w-full"
                             >
                               {hasContent ? 'Edit Content' : 'Create Content'}
@@ -455,7 +526,8 @@ const AdminModuleEditPage: NextPageWithLayout = () => {
                             {hasContent && (
                               <div className="mt-4 p-4 bg-background/40 border border-border/30 rounded-lg">
                                 <p className="font-mono text-xs text-muted-foreground mb-2">
-                                  Content exists. Click "Edit Content" to view and edit.
+                                  Content exists. Click &quot;Edit Content&quot;
+                                  to view and edit.
                                 </p>
                               </div>
                             )}

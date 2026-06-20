@@ -6,9 +6,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Check, X, Download, Play } from 'lucide-react';
 
 // 퀴즈 블록 (객관식)
-export const QuizBlock = ({ question, options, answer }: { 
-  question: string; 
-  options: string[]; 
+export const QuizBlock = ({
+  question,
+  options,
+  answer,
+}: {
+  question: string;
+  options: string[];
   answer: number;
 }) => {
   const [selected, setSelected] = useState<number | null>(null);
@@ -33,11 +37,11 @@ export const QuizBlock = ({ question, options, answer }: {
                 ? index === answer
                   ? 'bg-green-500/20 border-green-500'
                   : selected === index && index !== answer
-                  ? 'bg-red-500/20 border-red-500'
-                  : 'bg-background/60 border-border/30'
+                    ? 'bg-red-500/20 border-red-500'
+                    : 'bg-background/60 border-border/30'
                 : selected === index
-                ? 'bg-accent border-accent/50'
-                : 'bg-background/60 border-border/30 hover:bg-background/80'
+                  ? 'bg-accent border-accent/50'
+                  : 'bg-background/60 border-border/30 hover:bg-background/80'
             }`}
           >
             {index + 1}. {option}
@@ -63,7 +67,9 @@ export const QuizBlock = ({ question, options, answer }: {
           {selected === answer ? (
             <span className="text-green-500">✓ Correct!</span>
           ) : (
-            <span className="text-red-500">✗ Wrong. Correct answer is option {answer + 1}</span>
+            <span className="text-red-500">
+              ✗ Wrong. Correct answer is option {answer + 1}
+            </span>
           )}
         </div>
       )}
@@ -77,7 +83,11 @@ export const TerminalBlock = ({ commands }: { commands?: string }) => {
   const [output, setOutput] = useState<string[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [showRealTerminal, setShowRealTerminal] = useState(false);
-  const [terminalInfo, setTerminalInfo] = useState<{ sessionId: string; port: number; containerName: string } | null>(null);
+  const [terminalInfo, setTerminalInfo] = useState<{
+    sessionId: string;
+    port: number;
+    containerName: string;
+  } | null>(null);
   const [loadingTerminal, setLoadingTerminal] = useState(false);
 
   const runCommand = async () => {
@@ -144,7 +154,9 @@ export const TerminalBlock = ({ commands }: { commands?: string }) => {
     <div className="my-4 border border-border/30 rounded-lg overflow-hidden bg-background/40">
       <div className="p-3 bg-background/60 border-b border-border/30">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-mono text-sm font-semibold text-foreground">Terminal</h3>
+          <h3 className="font-mono text-sm font-semibold text-foreground">
+            Terminal
+          </h3>
           {!showRealTerminal && (
             <Button
               variant="outline"
@@ -190,7 +202,8 @@ export const TerminalBlock = ({ commands }: { commands?: string }) => {
           <div className="my-2">
             {/* 실제 터미널 iframe/컴포넌트 자리 (추후 구현) */}
             <div className="border border-dashed border-blue-400 rounded p-4 text-center text-blue-500 bg-background/60">
-              Ubuntu 터미널 세션이 여기에 표시됩니다.<br />
+              Ubuntu 터미널 세션이 여기에 표시됩니다.
+              <br />
               세션: {terminalInfo.sessionId} / 포트: {terminalInfo.port}
             </div>
           </div>
@@ -200,17 +213,31 @@ export const TerminalBlock = ({ commands }: { commands?: string }) => {
         {output.length === 0 && commands && (
           <div className="text-muted-foreground">
             {commands.split('\n').map((cmd, i) => (
-              <div key={i} className="text-blue-400">$ {cmd}</div>
+              <div key={i} className="text-blue-400">
+                $ {cmd}
+              </div>
             ))}
           </div>
         )}
         {output.map((line, i) => {
           if (line.startsWith('$')) {
-            return <div key={i} className="text-blue-400">{line}</div>;
+            return (
+              <div key={i} className="text-blue-400">
+                {line}
+              </div>
+            );
           } else if (line.startsWith('Error:')) {
-            return <div key={i} className="text-red-400">{line}</div>;
+            return (
+              <div key={i} className="text-red-400">
+                {line}
+              </div>
+            );
           } else {
-            return <div key={i} className="text-green-400">{line}</div>;
+            return (
+              <div key={i} className="text-green-400">
+                {line}
+              </div>
+            );
           }
         })}
       </div>
@@ -249,19 +276,28 @@ export const JsonFormatter = ({ data }: { data?: string }) => {
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">JSON Formatter</h3>
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          JSON Formatter
+        </h3>
         <div className="flex gap-2">
           <Button onClick={formatJson} size="sm" className="font-mono text-xs">
             Format
           </Button>
-          <Button onClick={minifyJson} size="sm" variant="outline" className="font-mono text-xs">
+          <Button
+            onClick={minifyJson}
+            size="sm"
+            variant="outline"
+            className="font-mono text-xs"
+          >
             Minify
           </Button>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Input</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Input
+          </label>
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -270,7 +306,9 @@ export const JsonFormatter = ({ data }: { data?: string }) => {
           />
         </div>
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Output</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Output
+          </label>
           <Textarea
             value={formatted}
             readOnly
@@ -287,8 +325,12 @@ export const JsonFormatter = ({ data }: { data?: string }) => {
 };
 
 // 파일 다운로드 블록
-export const FileDownloadBlock = ({ filename, content, mimetype }: { 
-  filename: string; 
+export const FileDownloadBlock = ({
+  filename,
+  content,
+  mimetype,
+}: {
+  filename: string;
   content: string;
   mimetype?: string;
 }) => {
@@ -306,7 +348,9 @@ export const FileDownloadBlock = ({ filename, content, mimetype }: {
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-mono text-sm font-semibold text-foreground">{filename}</h3>
+          <h3 className="font-mono text-sm font-semibold text-foreground">
+            {filename}
+          </h3>
           <p className="font-mono text-xs text-muted-foreground mt-1">
             {content.length} bytes
           </p>
@@ -327,7 +371,9 @@ export const FileDownloadBlock = ({ filename, content, mimetype }: {
 
 // 체크리스트 블록
 export const ChecklistBlock = ({ items }: { items: string[] }) => {
-  const [checked, setChecked] = useState<boolean[]>(new Array(items.length).fill(false));
+  const [checked, setChecked] = useState<boolean[]>(
+    new Array(items.length).fill(false)
+  );
 
   const toggleCheck = (index: number) => {
     const newChecked = [...checked];
@@ -340,7 +386,9 @@ export const ChecklistBlock = ({ items }: { items: string[] }) => {
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">Checklist</h3>
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          Checklist
+        </h3>
         <span className="font-mono text-xs text-muted-foreground">
           {checked.filter(Boolean).length} / {items.length}
         </span>
@@ -363,7 +411,9 @@ export const ChecklistBlock = ({ items }: { items: string[] }) => {
               onChange={() => toggleCheck(index)}
               className="w-4 h-4"
             />
-            <span className={`font-mono text-xs ${checked[index] ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+            <span
+              className={`font-mono text-xs ${checked[index] ? 'line-through text-muted-foreground' : 'text-foreground'}`}
+            >
               {item}
             </span>
           </label>
@@ -374,7 +424,12 @@ export const ChecklistBlock = ({ items }: { items: string[] }) => {
 };
 
 // API 테스트 블록
-export const ApiTestBlock = ({ endpoint, method, headers, body }: {
+export const ApiTestBlock = ({
+  endpoint,
+  method,
+  headers,
+  body,
+}: {
   endpoint: string;
   method?: string;
   headers?: Record<string, string>;
@@ -416,18 +471,31 @@ export const ApiTestBlock = ({ endpoint, method, headers, body }: {
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">API Test</h3>
-        <Button onClick={testApi} disabled={isLoading} size="sm" className="font-mono text-xs">
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          API Test
+        </h3>
+        <Button
+          onClick={testApi}
+          disabled={isLoading}
+          size="sm"
+          className="font-mono text-xs"
+        >
           {isLoading ? 'Testing...' : 'Test API'}
         </Button>
       </div>
       <div className="space-y-2 mb-3">
         <div>
-          <span className="font-mono text-xs text-muted-foreground">Method: </span>
-          <span className="font-mono text-xs text-foreground">{method || 'GET'}</span>
+          <span className="font-mono text-xs text-muted-foreground">
+            Method:{' '}
+          </span>
+          <span className="font-mono text-xs text-foreground">
+            {method || 'GET'}
+          </span>
         </div>
         <div>
-          <span className="font-mono text-xs text-muted-foreground">Endpoint: </span>
+          <span className="font-mono text-xs text-muted-foreground">
+            Endpoint:{' '}
+          </span>
           <span className="font-mono text-xs text-foreground">{endpoint}</span>
         </div>
       </div>

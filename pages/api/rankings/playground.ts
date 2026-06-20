@@ -42,7 +42,10 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
 
   let userRanking: number | null = null;
   if (session?.user?.id) {
-    const rank = await getUserRankingByType(session.user.id, ScoreType.PLAYGROUND);
+    const rank = await getUserRankingByType(
+      session.user.id,
+      ScoreType.PLAYGROUND
+    );
     userRanking = rank;
   }
 

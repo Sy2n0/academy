@@ -261,5 +261,17 @@
   "create": "Create",
   "starting": "Starting...",
   "checking": "Checking...",
-  "submit-flag": "Submit Flag"
+  "submit-flag": "Submit Flag",
+  "Dashboard": "Dashboard",
+  "loading": "Loading...",
+  "sign-out": "Sign out",
+  "successfully-logged-in": "Successfully logged in",
+  "password-must-be-at-least": "Password must be at least",
+  "characters-long": "characters long",
+  "token": "Token",
+  "token-placeholder": "Enter your token",
+  "token-valid": "Token is valid",
+  "token-invalid": "Token is invalid",
+  "token-validation-error": "Token validation failed",
+  "validating-token": "Validating token..."
 }

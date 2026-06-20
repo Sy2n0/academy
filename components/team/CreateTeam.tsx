@@ -80,7 +80,9 @@ const CreateTeam = ({ visible, setVisible }: CreateTeamProps) => {
             disabled={!formik.dirty || !formik.isValid || formik.isSubmitting}
             size="md"
           >
-            {formik.isSubmitting ? t('loading') || 'Loading...' : t('create-team')}
+            {formik.isSubmitting
+              ? t('loading') || 'Loading...'
+              : t('create-team')}
           </Button>
         </Modal.Footer>
       </form>

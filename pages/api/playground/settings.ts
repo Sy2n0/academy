@@ -27,8 +27,14 @@ export default async function handler(
     await ensureBadgeColumns();
 
     const seasonParam =
-      typeof req.query.season === 'string' ? decodeURIComponent(req.query.season).trim() : '';
-    const normalize = (value: string) => value.toLowerCase().replace(/[-_\s]+/g, ' ').trim();
+      typeof req.query.season === 'string'
+        ? decodeURIComponent(req.query.season).trim()
+        : '';
+    const normalize = (value: string) =>
+      value
+        .toLowerCase()
+        .replace(/[-_\s]+/g, ' ')
+        .trim();
 
     if (seasonParam) {
       const allSettings = await prisma.playgroundSettings.findMany({
@@ -41,7 +47,9 @@ export default async function handler(
       const seasonMatch = allSettings.find((item) => {
         const season = normalize(item.season || '');
         const codeName = normalize(item.codeName || '');
-        return season === normalizedSeasonParam || codeName === normalizedSeasonParam;
+        return (
+          season === normalizedSeasonParam || codeName === normalizedSeasonParam
+        );
       });
 
       if (seasonMatch) {
@@ -64,18 +72,20 @@ export default async function handler(
     }
 
     // 활성 설정을 가져오기 (없으면 가장 최근 설정)
-    const settings = await prisma.playgroundSettings.findFirst({
-      where: {
-        isActive: true,
-      },
-      orderBy: {
-        updatedAt: 'desc',
-      },
-    }) || await prisma.playgroundSettings.findFirst({
-      orderBy: {
-        updatedAt: 'desc',
-      },
-    });
+    const settings =
+      (await prisma.playgroundSettings.findFirst({
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+      })) ||
+      (await prisma.playgroundSettings.findFirst({
+        orderBy: {
+          updatedAt: 'desc',
+        },
+      }));
 
     if (!settings) {
       // 설정이 없으면 기본값 반환

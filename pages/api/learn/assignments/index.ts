@@ -30,7 +30,12 @@ export default async function handler(
       include: {
         submissions: {
           where: { userId: user.id },
-          select: { id: true, submittedAt: true, attachmentUrl: true, content: true },
+          select: {
+            id: true,
+            submittedAt: true,
+            attachmentUrl: true,
+            content: true,
+          },
         },
       },
     });
@@ -52,8 +57,10 @@ export default async function handler(
 
     const eligible = allActive.filter((a) => {
       if (a.targetType === 'ALL') return true;
-      if (a.targetType === 'TRACK' && a.targetId) return enrolledTrackIds.includes(a.targetId);
-      if (a.targetType === 'MODULE' && a.targetId) return completedModuleIds.includes(a.targetId);
+      if (a.targetType === 'TRACK' && a.targetId)
+        return enrolledTrackIds.includes(a.targetId);
+      if (a.targetType === 'MODULE' && a.targetId)
+        return completedModuleIds.includes(a.targetId);
       return false;
     });
 
@@ -72,6 +79,8 @@ export default async function handler(
     return res.status(200).json({ data });
   } catch (e) {
     console.error('[API /learn/assignments]', e);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }

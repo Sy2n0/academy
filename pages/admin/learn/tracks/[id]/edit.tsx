@@ -66,7 +66,9 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
   const { locale } = context;
   const session = await getSession(context.req, context.res);
   const user = await getUserBySession(session);
@@ -109,10 +111,9 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
     fetcher
   );
 
-  const { data: modulesData } = useSWR<{ data: Array<{ id: string; title: string }> }>(
-    '/api/admin/learn/modules',
-    fetcher
-  );
+  const { data: modulesData } = useSWR<{
+    data: Array<{ id: string; title: string }>;
+  }>('/api/admin/learn/modules', fetcher);
 
   const allModules = modulesData?.data || [];
 
@@ -129,7 +130,9 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
         isActive: track.isActive ?? true,
       });
       // 기존 연결된 모듈 순서대로
-      const sorted = [...(track.modules || [])].sort((a, b) => a.order - b.order);
+      const sorted = [...(track.modules || [])].sort(
+        (a, b) => a.order - b.order
+      );
       setModuleIds(sorted.map((tm) => tm.moduleId));
     }
   }, [data]);
@@ -164,14 +167,19 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
       }
 
       // 2. 모듈 연결 업데이트: 기존 전부 삭제 후 재등록
-      const existingModuleIds = (data?.data?.modules || []).map((tm) => tm.moduleId);
+      const existingModuleIds = (data?.data?.modules || []).map(
+        (tm) => tm.moduleId
+      );
 
       // 기존 모듈 전부 삭제
       for (const existingId of existingModuleIds) {
-        await fetch(`/api/admin/learn/tracks/${id}/modules?moduleId=${encodeURIComponent(existingId)}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
+        await fetch(
+          `/api/admin/learn/tracks/${id}/modules?moduleId=${encodeURIComponent(existingId)}`,
+          {
+            method: 'DELETE',
+            credentials: 'include',
+          }
+        );
       }
 
       // 새 순서대로 전부 등록
@@ -204,7 +212,9 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
   if (error || !data?.data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="font-mono text-sm text-destructive">트랙을 불러오지 못했습니다</p>
+        <p className="font-mono text-sm text-destructive">
+          트랙을 불러오지 못했습니다
+        </p>
       </div>
     );
   }
@@ -224,13 +234,19 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href="/admin/learn" className="font-mono text-xs uppercase tracking-wider">
+                    <BreadcrumbLink
+                      href="/admin/learn"
+                      className="font-mono text-xs uppercase tracking-wider"
+                    >
                       Learn
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbLink href="/admin/learn/tracks" className="font-mono text-xs uppercase tracking-wider">
+                    <BreadcrumbLink
+                      href="/admin/learn/tracks"
+                      className="font-mono text-xs uppercase tracking-wider"
+                    >
                       Tracks
                     </BreadcrumbLink>
                   </BreadcrumbItem>
@@ -278,47 +294,77 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
                 {/* Left: Basic Info */}
                 <div className="space-y-6">
                   <div className="border border-border/50 rounded-xl bg-card/60 p-6 space-y-4">
-                    <h2 className="font-mono text-sm font-bold uppercase tracking-wider">Basic Information</h2>
+                    <h2 className="font-mono text-sm font-bold uppercase tracking-wider">
+                      Basic Information
+                    </h2>
                     <div>
-                      <Label className="font-mono text-sm font-semibold">Title <span className="text-destructive">*</span></Label>
+                      <Label className="font-mono text-sm font-semibold">
+                        Title <span className="text-destructive">*</span>
+                      </Label>
                       <Input
                         value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, title: e.target.value })
+                        }
                         className="font-mono text-sm mt-1"
                         placeholder="Track title"
                       />
                     </div>
                     <div>
-                      <Label className="font-mono text-sm font-semibold">Description</Label>
+                      <Label className="font-mono text-sm font-semibold">
+                        Description
+                      </Label>
                       <Textarea
                         value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            description: e.target.value,
+                          })
+                        }
                         className="font-mono text-sm mt-1 min-h-[100px]"
                         placeholder="Track description"
                       />
                     </div>
                     <div>
-                      <Label className="font-mono text-sm font-semibold">Image URL</Label>
+                      <Label className="font-mono text-sm font-semibold">
+                        Image URL
+                      </Label>
                       <Input
                         value={formData.imageUrl}
-                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, imageUrl: e.target.value })
+                        }
                         className="font-mono text-sm mt-1"
                         placeholder="https://..."
                       />
                       {formData.imageUrl && (
                         <div className="mt-2 border border-border/30 rounded-md overflow-hidden">
-                          <img src={formData.imageUrl} alt="Preview" className="w-full h-36 object-cover" />
+                          <img
+                            src={formData.imageUrl}
+                            alt="Preview"
+                            className="w-full h-36 object-cover"
+                          />
                         </div>
                       )}
                     </div>
                   </div>
 
                   <div className="border border-border/50 rounded-xl bg-card/60 p-6 space-y-4">
-                    <h2 className="font-mono text-sm font-bold uppercase tracking-wider">Settings</h2>
+                    <h2 className="font-mono text-sm font-bold uppercase tracking-wider">
+                      Settings
+                    </h2>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="font-mono text-sm font-semibold">Type</Label>
-                        <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
+                        <Label className="font-mono text-sm font-semibold">
+                          Type
+                        </Label>
+                        <Select
+                          value={formData.type}
+                          onValueChange={(v) =>
+                            setFormData({ ...formData, type: v })
+                          }
+                        >
                           <SelectTrigger className="font-mono text-sm mt-1">
                             <SelectValue />
                           </SelectTrigger>
@@ -329,13 +375,22 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
                         </Select>
                       </div>
                       <div>
-                        <Label className="font-mono text-sm font-semibold">Difficulty</Label>
-                        <Select value={formData.difficulty} onValueChange={(v) => setFormData({ ...formData, difficulty: v })}>
+                        <Label className="font-mono text-sm font-semibold">
+                          Difficulty
+                        </Label>
+                        <Select
+                          value={formData.difficulty}
+                          onValueChange={(v) =>
+                            setFormData({ ...formData, difficulty: v })
+                          }
+                        >
                           <SelectTrigger className="font-mono text-sm mt-1">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Fundamental">Fundamental</SelectItem>
+                            <SelectItem value="Fundamental">
+                              Fundamental
+                            </SelectItem>
                             <SelectItem value="Easy">Easy</SelectItem>
                             <SelectItem value="Medium">Medium</SelectItem>
                             <SelectItem value="Hard">Hard</SelectItem>
@@ -344,19 +399,27 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
                       </div>
                     </div>
                     <div>
-                      <Label className="font-mono text-sm font-semibold">Duration</Label>
+                      <Label className="font-mono text-sm font-semibold">
+                        Duration
+                      </Label>
                       <Input
                         value={formData.duration}
-                        onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, duration: e.target.value })
+                        }
                         className="font-mono text-sm mt-1"
                         placeholder="e.g., 6d 2h"
                       />
                     </div>
                     <div className="flex items-center justify-between">
-                      <Label className="font-mono text-sm font-semibold">Active</Label>
+                      <Label className="font-mono text-sm font-semibold">
+                        Active
+                      </Label>
                       <Switch
                         checked={formData.isActive}
-                        onCheckedChange={(v) => setFormData({ ...formData, isActive: v })}
+                        onCheckedChange={(v) =>
+                          setFormData({ ...formData, isActive: v })
+                        }
                       />
                     </div>
                   </div>
@@ -371,7 +434,9 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
                   {/* Selected modules (draggable) */}
                   {selectedModules.length > 0 && (
                     <div>
-                      <Label className="font-mono text-xs text-muted-foreground mb-2 block">Selected (drag to reorder)</Label>
+                      <Label className="font-mono text-xs text-muted-foreground mb-2 block">
+                        Selected (drag to reorder)
+                      </Label>
                       <div className="border border-border/30 rounded-md p-2 space-y-1.5 max-h-52 overflow-y-auto">
                         {selectedModules.map((mod, index) => (
                           <div
@@ -381,8 +446,13 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => {
                               e.preventDefault();
-                              if (!draggedModuleId || draggedModuleId === mod.id) return;
-                              const fromIdx = moduleIds.indexOf(draggedModuleId);
+                              if (
+                                !draggedModuleId ||
+                                draggedModuleId === mod.id
+                              )
+                                return;
+                              const fromIdx =
+                                moduleIds.indexOf(draggedModuleId);
                               const toIdx = index;
                               if (fromIdx === -1) return;
                               const next = [...moduleIds];
@@ -402,7 +472,11 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
                             </span>
                             <button
                               type="button"
-                              onClick={() => setModuleIds(moduleIds.filter((mid) => mid !== mod.id))}
+                              onClick={() =>
+                                setModuleIds(
+                                  moduleIds.filter((mid) => mid !== mod.id)
+                                )
+                              }
                               className="text-muted-foreground hover:text-destructive transition-colors"
                             >
                               <X className="h-3.5 w-3.5" />
@@ -415,7 +489,9 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
 
                   {/* Search + available */}
                   <div>
-                    <Label className="font-mono text-xs text-muted-foreground mb-2 block">Add Modules</Label>
+                    <Label className="font-mono text-xs text-muted-foreground mb-2 block">
+                      Add Modules
+                    </Label>
                     <div className="relative mb-2">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -428,7 +504,9 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
                     <div className="border border-border/30 rounded-md p-2 max-h-52 overflow-y-auto">
                       {filteredAvailable.length === 0 ? (
                         <p className="font-mono text-xs text-muted-foreground text-center py-4">
-                          {moduleSearchQuery ? 'No modules found' : 'All modules already added'}
+                          {moduleSearchQuery
+                            ? 'No modules found'
+                            : 'All modules already added'}
                         </p>
                       ) : (
                         <div className="space-y-1">
@@ -442,8 +520,12 @@ const AdminTrackEditPage: NextPageWithLayout = () => {
                               }}
                               className="w-full flex items-center gap-2 p-2 rounded hover:bg-accent/10 text-left transition-colors"
                             >
-                              <span className="font-mono text-sm text-foreground flex-1 truncate">{mod.title}</span>
-                              <span className="text-xs text-muted-foreground shrink-0">+ Add</span>
+                              <span className="font-mono text-sm text-foreground flex-1 truncate">
+                                {mod.title}
+                              </span>
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                + Add
+                              </span>
                             </button>
                           ))}
                         </div>

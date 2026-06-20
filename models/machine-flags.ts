@@ -155,7 +155,10 @@ export async function generateUserDynamicFlags(
 /**
  * Machine의 플래그 목록 가져오기 (관리자용 - 사용자/팀 정보 포함)
  */
-export async function getMachineFlags(machineId: string, includeUserInfo: boolean = false): Promise<
+export async function getMachineFlags(
+  machineId: string,
+  includeUserInfo: boolean = false
+): Promise<
   Array<{
     id: string;
     flag: string;
@@ -263,8 +266,11 @@ export async function detectFlagSharing(
     },
   });
 
-  const uniqueUsers = new Map<string, { userId: string; userName: string; submittedAt: Date }>();
-  submissions.forEach(sub => {
+  const uniqueUsers = new Map<
+    string,
+    { userId: string; userName: string; submittedAt: Date }
+  >();
+  submissions.forEach((sub) => {
     if (!uniqueUsers.has(sub.userId)) {
       uniqueUsers.set(sub.userId, {
         userId: sub.userId,

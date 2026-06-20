@@ -143,11 +143,16 @@ const AdminPlayground: NextPageWithLayout = () => {
   const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [settingsHistory, setSettingsHistory] = useState<SettingsHistoryItem[]>([]);
-  const [selectedSetting, setSelectedSetting] = useState<SettingsHistoryItem | null>(null);
+  const [settingsHistory, setSettingsHistory] = useState<SettingsHistoryItem[]>(
+    []
+  );
+  const [selectedSetting, setSelectedSetting] =
+    useState<SettingsHistoryItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [editingSettingId, setEditingSettingId] = useState<string | null>(null);
-  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'schedule' | 'badge'>('basic');
+  const [activeFormTab, setActiveFormTab] = useState<
+    'basic' | 'schedule' | 'badge'
+  >('basic');
   const [formData, setFormData] = useState({
     name: '',
     codeName: '',
@@ -167,7 +172,12 @@ const AdminPlayground: NextPageWithLayout = () => {
 
     try {
       // 필수 필드 검증
-      if (!formData.name || !formData.codeName || !formData.season || !formData.type) {
+      if (
+        !formData.name ||
+        !formData.codeName ||
+        !formData.season ||
+        !formData.type
+      ) {
         toast.error('필수 항목을 모두 입력해주세요');
         setLoading(false);
         return;
@@ -187,7 +197,9 @@ const AdminPlayground: NextPageWithLayout = () => {
       if (!response.ok) {
         const errorMessage =
           result?.error?.message ||
-          (typeof result?.rawText === 'string' && result.rawText.trim() ? '설정 저장 중 서버 응답이 올바르지 않습니다.' : '') ||
+          (typeof result?.rawText === 'string' && result.rawText.trim()
+            ? '설정 저장 중 서버 응답이 올바르지 않습니다.'
+            : '') ||
           `설정 저장에 실패했습니다 (${response.status})`;
         throw new Error(errorMessage);
       }
@@ -207,9 +219,13 @@ const AdminPlayground: NextPageWithLayout = () => {
         });
       }
 
-      toast.success(editingSettingId ? 'Playground settings updated successfully' : 'Playground settings saved successfully');
+      toast.success(
+        editingSettingId
+          ? 'Playground settings updated successfully'
+          : 'Playground settings saved successfully'
+      );
       setEditingSettingId(result?.data?.id || null);
-      
+
       // 설정 리스트 새로고침
       loadSettingsHistory();
     } catch (error: any) {
@@ -258,16 +274,18 @@ const AdminPlayground: NextPageWithLayout = () => {
       if (!response.ok) {
         const errorMessage =
           result?.error?.message ||
-          (typeof result?.rawText === 'string' && result.rawText.trim() ? '활성 설정 변경 중 서버 응답이 올바르지 않습니다.' : '') ||
+          (typeof result?.rawText === 'string' && result.rawText.trim()
+            ? '활성 설정 변경 중 서버 응답이 올바르지 않습니다.'
+            : '') ||
           `활성 설정 변경에 실패했습니다 (${response.status})`;
         throw new Error(errorMessage);
       }
 
       toast.success('Settings activated successfully');
-      
+
       // 설정 리스트 및 현재 설정 새로고침
       loadSettingsHistory();
-      
+
       // 현재 활성 설정도 업데이트
       const currentResponse = await fetch('/api/admin/playground/settings');
       if (currentResponse.ok) {
@@ -281,7 +299,10 @@ const AdminPlayground: NextPageWithLayout = () => {
             badgeDescription: currentData.data.badgeDescription || '',
             season: currentData.data.season || '',
             type: currentData.data.type || '',
-            startDate: toDateTimeLocalInput(currentData.data.startDate, '00:00:00'),
+            startDate: toDateTimeLocalInput(
+              currentData.data.startDate,
+              '00:00:00'
+            ),
             endDate: toDateTimeLocalInput(currentData.data.endDate, '23:59:59'),
             description: currentData.data.description || '',
           });
@@ -324,7 +345,7 @@ const AdminPlayground: NextPageWithLayout = () => {
   }, []);
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -383,7 +404,10 @@ const AdminPlayground: NextPageWithLayout = () => {
                 {/* Hero Section */}
                 <section className="relative px-6 md:px-12 pt-4 md:pt-6 pb-4">
                   <div className="max-w-7xl mx-auto">
-                    <h1 className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground mb-0.5" style={{ fontStyle: 'italic' }}>
+                    <h1
+                      className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground mb-0.5"
+                      style={{ fontStyle: 'italic' }}
+                    >
                       PLAYGROUND SETTINGS
                     </h1>
                     <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
@@ -399,7 +423,10 @@ const AdminPlayground: NextPageWithLayout = () => {
                       {/* Left Column: Settings History */}
                       <div className="space-y-4">
                         <div>
-                          <h2 className="font-[var(--font-bebas)] text-xl tracking-tight text-foreground mb-1" style={{ fontStyle: 'italic' }}>
+                          <h2
+                            className="font-[var(--font-bebas)] text-xl tracking-tight text-foreground mb-1"
+                            style={{ fontStyle: 'italic' }}
+                          >
                             SETTINGS HISTORY
                           </h2>
                           <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
@@ -410,7 +437,8 @@ const AdminPlayground: NextPageWithLayout = () => {
                         {settingsHistory.length === 0 ? (
                           <div className="border border-border/30 rounded-lg backdrop-blur-sm bg-background/40 p-6 text-center">
                             <p className="font-mono text-sm text-muted-foreground">
-                              No saved settings yet. Save your first configuration to see it here.
+                              No saved settings yet. Save your first
+                              configuration to see it here.
                             </p>
                           </div>
                         ) : (
@@ -419,8 +447,8 @@ const AdminPlayground: NextPageWithLayout = () => {
                               <div
                                 key={setting.id}
                                 className={`w-full border rounded-lg backdrop-blur-sm bg-background/40 p-4 transition-all duration-200 group ${
-                                  setting.isActive 
-                                    ? 'border-accent/50 bg-accent/5' 
+                                  setting.isActive
+                                    ? 'border-accent/50 bg-accent/5'
                                     : 'border-border/30 hover:border-accent/50 hover:bg-background/60'
                                 }`}
                               >
@@ -448,13 +476,19 @@ const AdminPlayground: NextPageWithLayout = () => {
                                       </span>
                                       {setting.startDate && setting.endDate && (
                                         <span className="font-mono">
-                                          {new Date(setting.startDate).toLocaleDateString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric'
-                                          })} - {new Date(setting.endDate).toLocaleDateString('en-US', {
+                                          {new Date(
+                                            setting.startDate
+                                          ).toLocaleDateString('en-US', {
                                             month: 'short',
                                             day: 'numeric',
-                                            year: 'numeric'
+                                          })}{' '}
+                                          -{' '}
+                                          {new Date(
+                                            setting.endDate
+                                          ).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
                                           })}
                                         </span>
                                       )}
@@ -465,16 +499,20 @@ const AdminPlayground: NextPageWithLayout = () => {
                                       Saved
                                     </p>
                                     <p className="font-mono text-xs text-foreground">
-                                      {new Date(setting.updatedAt).toLocaleDateString('en-US', {
+                                      {new Date(
+                                        setting.updatedAt
+                                      ).toLocaleDateString('en-US', {
                                         month: 'short',
                                         day: 'numeric',
-                                        year: 'numeric'
+                                        year: 'numeric',
                                       })}
                                     </p>
                                     <p className="font-mono text-[9px] text-muted-foreground">
-                                      {new Date(setting.updatedAt).toLocaleTimeString('en-US', {
+                                      {new Date(
+                                        setting.updatedAt
+                                      ).toLocaleTimeString('en-US', {
                                         hour: '2-digit',
-                                        minute: '2-digit'
+                                        minute: '2-digit',
                                       })}
                                     </p>
                                   </div>
@@ -520,59 +558,107 @@ const AdminPlayground: NextPageWithLayout = () => {
                       {/* Right Column: Settings Form */}
                       <div className="space-y-4">
                         <div>
-                          <h2 className="font-[var(--font-bebas)] text-xl tracking-tight text-foreground mb-1" style={{ fontStyle: 'italic' }}>
-                            {editingSettingId ? 'EDIT SETTINGS' : 'CONFIGURE SETTINGS'}
+                          <h2
+                            className="font-[var(--font-bebas)] text-xl tracking-tight text-foreground mb-1"
+                            style={{ fontStyle: 'italic' }}
+                          >
+                            {editingSettingId
+                              ? 'EDIT SETTINGS'
+                              : 'CONFIGURE SETTINGS'}
                           </h2>
                           <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
-                            {editingSettingId ? 'Update Existing Playground Configuration' : 'Create or Update Playground Configuration'}
+                            {editingSettingId
+                              ? 'Update Existing Playground Configuration'
+                              : 'Create or Update Playground Configuration'}
                           </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                          <Tabs value={activeFormTab} onValueChange={(value) => setActiveFormTab(value as 'basic' | 'schedule' | 'badge')} className="w-full">
+                          <Tabs
+                            value={activeFormTab}
+                            onValueChange={(value) =>
+                              setActiveFormTab(
+                                value as 'basic' | 'schedule' | 'badge'
+                              )
+                            }
+                            className="w-full"
+                          >
                             <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-background/40 border border-border/30 p-1 gap-0 w-auto">
-                              <TabsTrigger value="basic" className="font-mono text-[10px] uppercase tracking-wider">Basic</TabsTrigger>
-                              <TabsTrigger value="schedule" className="font-mono text-[10px] uppercase tracking-wider">Schedule</TabsTrigger>
-                              <TabsTrigger value="badge" className="font-mono text-[10px] uppercase tracking-wider">Badge</TabsTrigger>
+                              <TabsTrigger
+                                value="basic"
+                                className="font-mono text-[10px] uppercase tracking-wider"
+                              >
+                                Basic
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="schedule"
+                                className="font-mono text-[10px] uppercase tracking-wider"
+                              >
+                                Schedule
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="badge"
+                                className="font-mono text-[10px] uppercase tracking-wider"
+                              >
+                                Badge
+                              </TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="basic" className="mt-4 space-y-4">
+                            <TabsContent
+                              value="basic"
+                              className="mt-4 space-y-4"
+                            >
                               <div className="space-y-2">
-                                <Label htmlFor="name" className="font-mono text-xs uppercase tracking-wider">
+                                <Label
+                                  htmlFor="name"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   Playground Name
                                 </Label>
                                 <Input
                                   id="name"
                                   type="text"
                                   value={formData.name}
-                                  onChange={(e) => handleChange('name', e.target.value)}
+                                  onChange={(e) =>
+                                    handleChange('name', e.target.value)
+                                  }
                                   placeholder="e.g., Recruiting Playground"
                                   className="font-mono text-sm"
                                 />
                               </div>
 
                               <div className="space-y-2">
-                                <Label htmlFor="codeName" className="font-mono text-xs uppercase tracking-wider">
+                                <Label
+                                  htmlFor="codeName"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   Code Name
                                 </Label>
                                 <Input
                                   id="codeName"
                                   type="text"
                                   value={formData.codeName}
-                                  onChange={(e) => handleChange('codeName', e.target.value)}
+                                  onChange={(e) =>
+                                    handleChange('codeName', e.target.value)
+                                  }
                                   placeholder="e.g., BREEZY"
                                   className="font-mono text-sm"
                                 />
                               </div>
 
                               <div className="space-y-2">
-                                <Label htmlFor="description" className="font-mono text-xs uppercase tracking-wider">
+                                <Label
+                                  htmlFor="description"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   Description
                                 </Label>
                                 <textarea
                                   id="description"
                                   value={formData.description}
-                                  onChange={(e) => handleChange('description', e.target.value)}
+                                  onChange={(e) =>
+                                    handleChange('description', e.target.value)
+                                  }
                                   placeholder="Playground description..."
                                   rows={4}
                                   className="w-full px-3 py-2 border border-border/30 rounded-lg backdrop-blur-sm bg-background/40 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-colors"
@@ -580,41 +666,66 @@ const AdminPlayground: NextPageWithLayout = () => {
                               </div>
                             </TabsContent>
 
-                            <TabsContent value="schedule" className="mt-4 space-y-4">
+                            <TabsContent
+                              value="schedule"
+                              className="mt-4 space-y-4"
+                            >
                               <div className="space-y-2">
-                                <Label htmlFor="season" className="font-mono text-xs uppercase tracking-wider">
+                                <Label
+                                  htmlFor="season"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   Season
                                 </Label>
                                 <Input
                                   id="season"
                                   type="text"
                                   value={formData.season}
-                                  onChange={(e) => handleChange('season', e.target.value)}
+                                  onChange={(e) =>
+                                    handleChange('season', e.target.value)
+                                  }
                                   placeholder="e.g., MAR-JUN 2026, Season 1"
                                   className="font-mono text-sm"
                                 />
                               </div>
 
                               <div className="space-y-2">
-                                <Label htmlFor="type" className="font-mono text-xs uppercase tracking-wider">
+                                <Label
+                                  htmlFor="type"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   Playground Type
                                 </Label>
-                                <Select value={formData.type} onValueChange={(value) => handleChange('type', value)}>
+                                <Select
+                                  value={formData.type}
+                                  onValueChange={(value) =>
+                                    handleChange('type', value)
+                                  }
+                                >
                                   <SelectTrigger className="font-mono text-sm">
                                     <SelectValue placeholder="Select playground type" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="beta">Beta</SelectItem>
-                                    <SelectItem value="recruiting">Recruiting</SelectItem>
-                                    <SelectItem value="regular">Regular</SelectItem>
-                                    <SelectItem value="special">Special</SelectItem>
+                                    <SelectItem value="recruiting">
+                                      Recruiting
+                                    </SelectItem>
+                                    <SelectItem value="regular">
+                                      Regular
+                                    </SelectItem>
+                                    <SelectItem value="special">
+                                      Special
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label htmlFor="startDate" className="font-mono text-xs uppercase tracking-wider">
+                                  <Label
+                                    htmlFor="startDate"
+                                    className="font-mono text-xs uppercase tracking-wider"
+                                  >
                                     Start DateTime
                                   </Label>
                                   <Input
@@ -622,12 +733,17 @@ const AdminPlayground: NextPageWithLayout = () => {
                                     type="datetime-local"
                                     step={1}
                                     value={formData.startDate}
-                                    onChange={(e) => handleChange('startDate', e.target.value)}
+                                    onChange={(e) =>
+                                      handleChange('startDate', e.target.value)
+                                    }
                                     className="font-mono text-sm"
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label htmlFor="endDate" className="font-mono text-xs uppercase tracking-wider">
+                                  <Label
+                                    htmlFor="endDate"
+                                    className="font-mono text-xs uppercase tracking-wider"
+                                  >
                                     End DateTime
                                   </Label>
                                   <Input
@@ -635,50 +751,73 @@ const AdminPlayground: NextPageWithLayout = () => {
                                     type="datetime-local"
                                     step={1}
                                     value={formData.endDate}
-                                    onChange={(e) => handleChange('endDate', e.target.value)}
+                                    onChange={(e) =>
+                                      handleChange('endDate', e.target.value)
+                                    }
                                     className="font-mono text-sm"
                                   />
                                 </div>
                               </div>
                             </TabsContent>
 
-                            <TabsContent value="badge" className="mt-4 space-y-4">
+                            <TabsContent
+                              value="badge"
+                              className="mt-4 space-y-4"
+                            >
                               <div className="space-y-2">
-                                <Label htmlFor="badgeName" className="font-mono text-xs uppercase tracking-wider">
+                                <Label
+                                  htmlFor="badgeName"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   Badge Name (linked by CODENAME)
                                 </Label>
                                 <Input
                                   id="badgeName"
                                   type="text"
                                   value={formData.badgeName}
-                                  onChange={(e) => handleChange('badgeName', e.target.value)}
+                                  onChange={(e) =>
+                                    handleChange('badgeName', e.target.value)
+                                  }
                                   placeholder="e.g., Recruiting CTF"
                                   className="font-mono text-sm"
                                 />
                               </div>
 
                               <div className="space-y-2">
-                                <Label htmlFor="badgeImage" className="font-mono text-xs uppercase tracking-wider">
+                                <Label
+                                  htmlFor="badgeImage"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   Badge Image URL
                                 </Label>
                                 <Input
                                   id="badgeImage"
                                   type="text"
                                   value={formData.badgeImage}
-                                  onChange={(e) => handleChange('badgeImage', e.target.value)}
+                                  onChange={(e) =>
+                                    handleChange('badgeImage', e.target.value)
+                                  }
                                   placeholder="https://.../recruiting-ctf.png"
                                   className="font-mono text-sm"
                                 />
                               </div>
 
                               <div className="space-y-2">
-                                <Label htmlFor="badgeDescription" className="font-mono text-xs uppercase tracking-wider">
+                                <Label
+                                  htmlFor="badgeDescription"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   Badge Description
                                 </Label>
                                 <textarea
                                   id="badgeDescription"
                                   value={formData.badgeDescription}
-                                  onChange={(e) => handleChange('badgeDescription', e.target.value)}
+                                  onChange={(e) =>
+                                    handleChange(
+                                      'badgeDescription',
+                                      e.target.value
+                                    )
+                                  }
                                   placeholder="Badge description shown on the badge page..."
                                   rows={3}
                                   className="w-full px-3 py-2 border border-border/30 rounded-lg backdrop-blur-sm bg-background/40 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-colors"
@@ -694,7 +833,11 @@ const AdminPlayground: NextPageWithLayout = () => {
                               disabled={loading}
                               className="font-mono text-xs uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground"
                             >
-                              {loading ? 'Saving...' : editingSettingId ? 'Update Settings' : 'Save Settings'}
+                              {loading
+                                ? 'Saving...'
+                                : editingSettingId
+                                  ? 'Update Settings'
+                                  : 'Save Settings'}
                             </Button>
                             {editingSettingId && (
                               <Button
@@ -736,7 +879,10 @@ const AdminPlayground: NextPageWithLayout = () => {
             </DialogTitle>
             <DialogDescription className="font-mono text-xs text-muted-foreground">
               {selectedSetting && (
-                <>Saved on {new Date(selectedSetting.updatedAt).toLocaleString('en-US')}</>
+                <>
+                  Saved on{' '}
+                  {new Date(selectedSetting.updatedAt).toLocaleString('en-US')}
+                </>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -781,11 +927,14 @@ const AdminPlayground: NextPageWithLayout = () => {
                       Start Date
                     </p>
                     <p className="font-mono text-sm text-foreground">
-                      {new Date(selectedSetting.startDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {new Date(selectedSetting.startDate).toLocaleDateString(
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        }
+                      )}
                     </p>
                   </div>
                 )}
@@ -795,11 +944,14 @@ const AdminPlayground: NextPageWithLayout = () => {
                       End Date
                     </p>
                     <p className="font-mono text-sm text-foreground">
-                      {new Date(selectedSetting.endDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {new Date(selectedSetting.endDate).toLocaleDateString(
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        }
+                      )}
                     </p>
                   </div>
                 )}
@@ -814,19 +966,27 @@ const AdminPlayground: NextPageWithLayout = () => {
                   </p>
                 </div>
               )}
-              {(selectedSetting.badgeName || selectedSetting.badgeImage || selectedSetting.badgeDescription) && (
+              {(selectedSetting.badgeName ||
+                selectedSetting.badgeImage ||
+                selectedSetting.badgeDescription) && (
                 <div className="space-y-2 pt-2 border-t border-border/20">
                   <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
                     Badge Mapping
                   </p>
                   {selectedSetting.badgeName && (
-                    <p className="font-mono text-xs text-foreground/90">Name: {selectedSetting.badgeName}</p>
+                    <p className="font-mono text-xs text-foreground/90">
+                      Name: {selectedSetting.badgeName}
+                    </p>
                   )}
                   {selectedSetting.badgeImage && (
-                    <p className="font-mono text-xs text-foreground/90 break-all">Image: {selectedSetting.badgeImage}</p>
+                    <p className="font-mono text-xs text-foreground/90 break-all">
+                      Image: {selectedSetting.badgeImage}
+                    </p>
                   )}
                   {selectedSetting.badgeDescription && (
-                    <p className="font-mono text-xs text-foreground/80 whitespace-pre-wrap">{selectedSetting.badgeDescription}</p>
+                    <p className="font-mono text-xs text-foreground/80 whitespace-pre-wrap">
+                      {selectedSetting.badgeDescription}
+                    </p>
                   )}
                 </div>
               )}

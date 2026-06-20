@@ -5,12 +5,21 @@ import { isAdmin } from '@/lib/user-roles';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 
-const normalize = (value: string) => value.trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+const normalize = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[-_\s]+/g, ' ');
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+    return res
+      .status(405)
+      .json({ error: { message: `Method ${req.method} Not Allowed` } });
   }
 
   try {
@@ -22,11 +31,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!isAdmin(currentUser.role)) {
-      return res.status(403).json({ error: { message: 'Only admins can view playground flag submissions' } });
+      return res.status(403).json({
+        error: {
+          message: 'Only admins can view playground flag submissions',
+        },
+      });
     }
 
-    const seasonParam = typeof req.query.season === 'string' ? decodeURIComponent(req.query.season).trim() : '';
-    const challengeIdParam = typeof req.query.challengeId === 'string' ? req.query.challengeId.trim() : 'all';
+    const seasonParam =
+      typeof req.query.season === 'string'
+        ? decodeURIComponent(req.query.season).trim()
+        : '';
+    const challengeIdParam =
+      typeof req.query.challengeId === 'string'
+        ? req.query.challengeId.trim()
+        : 'all';
 
     if (!seasonParam) {
       return res.status(400).json({ error: { message: 'season is required' } });
@@ -42,30 +61,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const matchedSettings = allSettings.find((item) => {
       const codeName = normalize(item.codeName || '');
       const season = normalize(item.season || '');
-      return codeName === normalizedSeasonParam || season === normalizedSeasonParam;
+      return (
+        codeName === normalizedSeasonParam || season === normalizedSeasonParam
+      );
     });
 
     if (!matchedSettings?.codeName) {
-      return res.status(400).json({ error: { message: 'Invalid playground season/codeName' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'Invalid playground season/codeName' } });
     }
 
     const baseCodeName = matchedSettings.codeName.toLowerCase();
 
-    const rows = await prisma.$queryRaw<Array<{
-      id: string;
-      challengeId: string;
-      challengeTitle: string;
-      category: string | null;
-      difficulty: string | null;
-      userId: string;
-      userName: string | null;
-      userEmail: string | null;
-      submittedFlag: string;
-      isCorrect: boolean;
-      submissionMethod: string;
-      attemptNumber: number;
-      createdAt: Date;
-    }>>(
+    const rows = await prisma.$queryRaw<
+      Array<{
+        id: string;
+        challengeId: string;
+        challengeTitle: string;
+        category: string | null;
+        difficulty: string | null;
+        userId: string;
+        userName: string | null;
+        userEmail: string | null;
+        submittedFlag: string;
+        isCorrect: boolean;
+        submissionMethod: string;
+        attemptNumber: number;
+        createdAt: Date;
+      }>
+    >(
       challengeIdParam && challengeIdParam !== 'all'
         ? Prisma.sql`
           SELECT
@@ -133,6 +158,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     console.error('Error fetching playground flag submissions:', error);
-    return res.status(500).json({ error: { message: 'Failed to fetch playground flag submissions' } });
+    return res.status(500).json({
+      error: { message: 'Failed to fetch playground flag submissions' },
+    });
   }
 }

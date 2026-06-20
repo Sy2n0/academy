@@ -262,7 +262,10 @@ const FlagManagement: NextPageWithLayout = () => {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <h1 className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2" style={{ fontStyle: 'italic' }}>
+                        <h1
+                          className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2"
+                          style={{ fontStyle: 'italic' }}
+                        >
                           FLAG MANAGEMENT
                         </h1>
                         <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
@@ -317,7 +320,7 @@ const FlagManagement: NextPageWithLayout = () => {
                             Static Flags
                           </p>
                           <p className="font-mono text-lg font-bold text-accent">
-                            {flags.filter(f => f.isStatic).length}
+                            {flags.filter((f) => f.isStatic).length}
                           </p>
                         </div>
                         <div className="border border-border/30 rounded-lg backdrop-blur-sm bg-background/40 p-3">
@@ -325,7 +328,7 @@ const FlagManagement: NextPageWithLayout = () => {
                             Dynamic Flags
                           </p>
                           <p className="font-mono text-lg font-bold text-purple-500">
-                            {flags.filter(f => !f.isStatic).length}
+                            {flags.filter((f) => !f.isStatic).length}
                           </p>
                         </div>
                         <div className="border border-border/30 rounded-lg backdrop-blur-sm bg-background/40 p-3">
@@ -333,7 +336,14 @@ const FlagManagement: NextPageWithLayout = () => {
                             Active Users/Teams
                           </p>
                           <p className="font-mono text-lg font-bold text-cyan-500">
-                            {new Set(flags.filter(f => !f.isStatic).map(f => f.userId || f.teamId).filter(Boolean)).size}
+                            {
+                              new Set(
+                                flags
+                                  .filter((f) => !f.isStatic)
+                                  .map((f) => f.userId || f.teamId)
+                                  .filter(Boolean)
+                              ).size
+                            }
                           </p>
                         </div>
                       </div>
@@ -353,20 +363,40 @@ const FlagManagement: NextPageWithLayout = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
-                                  const staticFlags = flags.filter(f => f.isStatic);
-                                  const dynamicFlags = flags.filter(f => !f.isStatic);
+                                  const staticFlags = flags.filter(
+                                    (f) => f.isStatic
+                                  );
+                                  const dynamicFlags = flags.filter(
+                                    (f) => !f.isStatic
+                                  );
                                   const csv = [
-                                    ['Type', 'Flag', 'User/Team', 'Email', 'Created At'],
-                                    ...staticFlags.map(f => ['STATIC', f.flag, 'N/A', 'N/A', new Date(f.createdAt).toLocaleString()]),
-                                    ...dynamicFlags.map(f => [
+                                    [
+                                      'Type',
+                                      'Flag',
+                                      'User/Team',
+                                      'Email',
+                                      'Created At',
+                                    ],
+                                    ...staticFlags.map((f) => [
+                                      'STATIC',
+                                      f.flag,
+                                      'N/A',
+                                      'N/A',
+                                      new Date(f.createdAt).toLocaleString(),
+                                    ]),
+                                    ...dynamicFlags.map((f) => [
                                       'DYNAMIC',
                                       f.flag,
                                       f.team?.name || f.user?.name || 'N/A',
                                       f.user?.email || 'N/A',
-                                      new Date(f.createdAt).toLocaleString()
-                                    ])
-                                  ].map(row => row.join(',')).join('\n');
-                                  const blob = new Blob([csv], { type: 'text/csv' });
+                                      new Date(f.createdAt).toLocaleString(),
+                                    ]),
+                                  ]
+                                    .map((row) => row.join(','))
+                                    .join('\n');
+                                  const blob = new Blob([csv], {
+                                    type: 'text/csv',
+                                  });
                                   const url = URL.createObjectURL(blob);
                                   const a = document.createElement('a');
                                   a.href = url;
@@ -420,7 +450,10 @@ const FlagManagement: NextPageWithLayout = () => {
                                   </div>
                                   <div className="flex items-center gap-3 mt-1 flex-wrap">
                                     <p className="font-mono text-[10px] text-muted-foreground">
-                                      Created: {new Date(flag.createdAt).toLocaleString()}
+                                      Created:{' '}
+                                      {new Date(
+                                        flag.createdAt
+                                      ).toLocaleString()}
                                     </p>
                                     {flag.user && (
                                       <p className="font-mono text-[10px] text-muted-foreground">
@@ -455,7 +488,10 @@ const FlagManagement: NextPageWithLayout = () => {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-[var(--font-bebas)] text-2xl tracking-tight text-foreground" style={{ fontStyle: 'italic' }}>
+            <DialogTitle
+              className="font-[var(--font-bebas)] text-2xl tracking-tight text-foreground"
+              style={{ fontStyle: 'italic' }}
+            >
               Add Flags
             </DialogTitle>
             <DialogDescription className="font-mono text-xs text-muted-foreground">

@@ -24,9 +24,18 @@ async function waitForPort(port: number, timeoutMs = 8000): Promise<void> {
   while (Date.now() - start < timeoutMs) {
     const connected = await new Promise<boolean>((resolve) => {
       const sock = net.createConnection({ port, host: '127.0.0.1' });
-      sock.once('connect', () => { sock.destroy(); resolve(true); });
-      sock.once('error', () => { sock.destroy(); resolve(false); });
-      sock.setTimeout(500, () => { sock.destroy(); resolve(false); });
+      sock.once('connect', () => {
+        sock.destroy();
+        resolve(true);
+      });
+      sock.once('error', () => {
+        sock.destroy();
+        resolve(false);
+      });
+      sock.setTimeout(500, () => {
+        sock.destroy();
+        resolve(false);
+      });
     });
     if (connected) return;
     await new Promise((r) => setTimeout(r, 300));
@@ -47,7 +56,10 @@ async function getUsedPorts(): Promise<Set<number>> {
     | undefined;
   if (abs?.findMany) {
     const rows = await abs.findMany();
-    rows.forEach((r) => { used.add(r.port); used.add(r.port8080); });
+    rows.forEach((r) => {
+      used.add(r.port);
+      used.add(r.port8080);
+    });
   }
   if (cide?.findMany) {
     const rows = await cide.findMany();
@@ -90,7 +102,8 @@ export default async function handler(
     return res.status(401).json({ error: { message: 'Unauthorized' } });
   }
 
-  const image = typeof req.body?.image === 'string' ? req.body.image.trim() : null;
+  const image =
+    typeof req.body?.image === 'string' ? req.body.image.trim() : null;
   if (!image) {
     return res.status(400).json({ error: { message: 'image is required' } });
   }
@@ -114,7 +127,9 @@ export default async function handler(
       }
     | undefined;
   if (existingModel?.findUnique) {
-    const existing = await existingModel.findUnique({ where: { userId: user.id } });
+    const existing = await existingModel.findUnique({
+      where: { userId: user.id },
+    });
     if (existing) {
       const running = await isContainerRunning(existing.containerName);
       if (running) {
@@ -130,26 +145,39 @@ export default async function handler(
         });
       }
       // 컨테이너가 죽어있으면 스테일 세션 삭제 후 새로 실행
-      await prisma.attackBoxSession.deleteMany({ where: { userId: user.id } }).catch(() => {});
+      await prisma.attackBoxSession
+        .deleteMany({ where: { userId: user.id } })
+        .catch(() => {});
     }
   }
 
   const portRaw = req.body?.port;
-  const isAutoPort =
-    !(typeof portRaw === 'number' && Number.isInteger(portRaw) && portRaw >= PORT_MIN && portRaw <= PORT_MAX);
+  const isAutoPort = !(
+    typeof portRaw === 'number' &&
+    Number.isInteger(portRaw) &&
+    portRaw >= PORT_MIN &&
+    portRaw <= PORT_MAX
+  );
 
   const webPortRaw = req.body?.webPort;
   // Track/Module에서 호출 시(포트 미지정) 사용자명 HUB 고정, 그 외에는 필수
   let username: string;
-  const usernameRaw = typeof req.body?.username === 'string' ? req.body.username.trim() : null;
+  const usernameRaw =
+    typeof req.body?.username === 'string' ? req.body.username.trim() : null;
   if (isAutoPort) {
     username = 'HUB';
   } else {
     if (!usernameRaw) {
-      return res.status(400).json({ error: { message: 'username is required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'username is required' } });
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(usernameRaw)) {
-      return res.status(400).json({ error: { message: 'username: letters, numbers, underscore, hyphen only' } });
+      return res.status(400).json({
+        error: {
+          message: 'username: letters, numbers, underscore, hyphen only',
+        },
+      });
     }
     username = usernameRaw;
   }
@@ -176,18 +204,28 @@ export default async function handler(
         }
       }
       if (found === null) {
-        return res.status(503).json({ error: { message: 'No available port in range 20000–25000 (all in use or failed)' } });
+        return res.status(503).json({
+          error: {
+            message:
+              'No available port in range 20000–25000 (all in use or failed)',
+          },
+        });
       }
       port = found;
       port8080 = port + 1 <= PORT_MAX ? port + 1 : port - 1;
     } else {
       port = portRaw as number;
       const wp =
-        typeof webPortRaw === 'number' && Number.isInteger(webPortRaw) && webPortRaw >= PORT_MIN && webPortRaw <= PORT_MAX
+        typeof webPortRaw === 'number' &&
+        Number.isInteger(webPortRaw) &&
+        webPortRaw >= PORT_MIN &&
+        webPortRaw <= PORT_MAX
           ? webPortRaw
           : null;
       if (wp !== null && wp === port) {
-        return res.status(400).json({ error: { message: 'SSH port and Web port must be different' } });
+        return res.status(400).json({
+          error: { message: 'SSH port and Web port must be different' },
+        });
       }
       port8080 = wp ?? (port + 1 <= PORT_MAX ? port + 1 : port - 1);
     }
@@ -209,14 +247,22 @@ export default async function handler(
     }
 
     const dockerCmd = [
-      '/usr/bin/docker', 'run', '-d',
-      '--name', containerName,
+      '/usr/bin/docker',
+      'run',
+      '-d',
+      '--name',
+      containerName,
       '--privileged',
-      '-v', '/var/run/docker.sock:/var/run/docker.sock',
-      '-e', `USERNAME=${username}`,
-      '-p', `${port}:22`,
-      '-p', `${port8080}:8080`,
-      '-v', `${volumePath}:/data`,
+      '-v',
+      '/var/run/docker.sock:/var/run/docker.sock',
+      '-e',
+      `USERNAME=${username}`,
+      '-p',
+      `${port}:22`,
+      '-p',
+      `${port8080}:8080`,
+      '-v',
+      `${volumePath}:/data`,
       dockerImage,
     ].join(' ');
 
@@ -224,7 +270,10 @@ export default async function handler(
       const { stdout, stderr } = await execAsync(dockerCmd);
       // ttyd가 포트를 열 때까지 대기 (최대 8초)
       await waitForPort(port8080);
-      const host = process.env.ATTACKBOX_HOST || (req.headers?.host && req.headers.host.split(':')[0]) || 'localhost';
+      const host =
+        process.env.ATTACKBOX_HOST ||
+        (req.headers?.host && req.headers.host.split(':')[0]) ||
+        'localhost';
       const boxName = imageToBoxName(image);
 
       await prisma.attackBoxSession.upsert({
@@ -248,7 +297,16 @@ export default async function handler(
         },
       });
 
-      console.log('[attackbox/launch]', { userId: user.id, image, port, port8080, username, containerName, stdout: stdout?.trim(), stderr: stderr?.trim() });
+      console.log('[attackbox/launch]', {
+        userId: user.id,
+        image,
+        port,
+        port8080,
+        username,
+        containerName,
+        stdout: stdout?.trim(),
+        stderr: stderr?.trim(),
+      });
       return res.status(200).json({
         success: true,
         image,
@@ -262,11 +320,14 @@ export default async function handler(
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       const execErr = err as { stderr?: string; stdout?: string };
-      const stderr = typeof execErr?.stderr === 'string' ? execErr.stderr.trim() : '';
-      const stdout = typeof execErr?.stdout === 'string' ? execErr.stdout.trim() : '';
+      const stderr =
+        typeof execErr?.stderr === 'string' ? execErr.stderr.trim() : '';
+      const stdout =
+        typeof execErr?.stdout === 'string' ? execErr.stdout.trim() : '';
       const detail = stderr || stdout || msg;
       const isAddressInUse =
-        /address already in use|bind|port.*already/i.test(detail) || /address already in use|bind|port.*already/i.test(msg);
+        /address already in use|bind|port.*already/i.test(detail) ||
+        /address already in use|bind|port.*already/i.test(msg);
 
       if (isAutoPort && isAddressInUse) {
         failedPorts.add(port);
@@ -276,11 +337,23 @@ export default async function handler(
         } catch (e) {
           // ignore
         }
-        console.warn('[attackbox/launch] port in use, retrying', { port, port8080, attempt: attempt + 1 });
+        console.warn('[attackbox/launch] port in use, retrying', {
+          port,
+          port8080,
+          attempt: attempt + 1,
+        });
         continue;
       }
 
-      console.error('[attackbox/launch]', { userId: user.id, image, port, username, error: msg, stderr, stdout });
+      console.error('[attackbox/launch]', {
+        userId: user.id,
+        image,
+        port,
+        username,
+        error: msg,
+        stderr,
+        stdout,
+      });
       return res.status(500).json({
         error: { message: 'Docker run failed', detail: detail || msg },
       });
@@ -288,6 +361,10 @@ export default async function handler(
   }
 
   return res.status(503).json({
-    error: { message: 'Docker run failed', detail: 'Could not find a free port after retries (address already in use)' },
+    error: {
+      message: 'Docker run failed',
+      detail:
+        'Could not find a free port after retries (address already in use)',
+    },
   });
 }

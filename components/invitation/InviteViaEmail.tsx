@@ -88,7 +88,9 @@ const InviteViaEmail = ({ setVisible, team }: InviteViaEmailProps) => {
           disabled={!formik.isValid || !formik.dirty || formik.isSubmitting}
           className="flex-grow"
         >
-          {formik.isSubmitting ? t('loading') || 'Loading...' : t('send-invite')}
+          {formik.isSubmitting
+            ? t('loading') || 'Loading...'
+            : t('send-invite')}
         </Button>
       </div>
     </form>

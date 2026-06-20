@@ -95,7 +95,11 @@ const handlePOST = async (
     await createStaticFlags(machineId, validatedFlags.flags);
 
     // flagTemplate도 함께 업데이트 (제공된 경우)
-    if (flagTemplate && typeof flagTemplate === 'string' && flagTemplate.trim()) {
+    if (
+      flagTemplate &&
+      typeof flagTemplate === 'string' &&
+      flagTemplate.trim()
+    ) {
       await prisma.machine.update({
         where: { id: machineId },
         data: { flagTemplate: flagTemplate.trim() },
@@ -141,10 +145,16 @@ const handlePOST = async (
   }
 
   if (action === 'generate-dynamic') {
-    const { teamIds, userIds, flagTemplate } = generateDynamicFlagsSchema.parse(req.body);
+    const { teamIds, userIds, flagTemplate } = generateDynamicFlagsSchema.parse(
+      req.body
+    );
 
     if (teamIds && teamIds.length > 0) {
-      const generated = await generateDynamicFlags(machineId, teamIds, flagTemplate);
+      const generated = await generateDynamicFlags(
+        machineId,
+        teamIds,
+        flagTemplate
+      );
       res.json({
         data: {
           message: 'Dynamic flags generated for teams successfully',
@@ -153,7 +163,11 @@ const handlePOST = async (
       });
       return;
     } else if (userIds && userIds.length > 0) {
-      const generated = await generateUserDynamicFlags(machineId, userIds, flagTemplate);
+      const generated = await generateUserDynamicFlags(
+        machineId,
+        userIds,
+        flagTemplate
+      );
       res.json({
         data: {
           message: 'Dynamic flags generated for users successfully',
@@ -200,10 +214,10 @@ const handleDELETE = async (
     if (parts.length < 3) {
       throw new ApiError(400, 'Invalid static flag ID format');
     }
-    
+
     // 마지막 부분이 index
     const index = parseInt(parts[parts.length - 1], 10);
-    
+
     if (isNaN(index) || index < 0 || index >= machine.staticFlags.length) {
       throw new ApiError(400, 'Invalid flag index');
     }

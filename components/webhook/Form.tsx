@@ -104,7 +104,11 @@ const Form = ({
             disabled={!formik.dirty || formik.isSubmitting}
             size="md"
           >
-            {formik.isSubmitting ? t('loading') || 'Loading...' : (editMode ? t('update-webhook') : t('create-webhook'))}
+            {formik.isSubmitting
+              ? t('loading') || 'Loading...'
+              : editMode
+                ? t('update-webhook')
+                : t('create-webhook')}
           </Button>
         </Modal.Footer>
       </form>

@@ -13,11 +13,17 @@ const createTeamSchema = z.object({
     .string()
     .min(1, 'Slug is required')
     .max(120)
-    .regex(/^[A-Za-z0-9_-]+$/, 'Slug may contain only letters, numbers, underscores, and dashes'),
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      'Slug may contain only letters, numbers, underscores, and dashes'
+    ),
   inviteCode: z.string().min(4).max(64).optional(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const session = await getSession(req, res);
     const currentUser = await getUserBySession(session);
@@ -39,7 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
       default:
         res.setHeader('Allow', 'GET, POST');
-        res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+        res
+          .status(405)
+          .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
   } catch (error: any) {
     const message = error.message || 'Something went wrong';
@@ -86,7 +94,11 @@ const handleGET = async (res: NextApiResponse) => {
   res.json({ data: { teams: teamsWithStats } });
 };
 
-const handlePOST = async (req: NextApiRequest, res: NextApiResponse, userId: string) => {
+const handlePOST = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  userId: string
+) => {
   const { name, slug, inviteCode } = createTeamSchema.parse(req.body);
 
   const existing = await prisma.team.findFirst({

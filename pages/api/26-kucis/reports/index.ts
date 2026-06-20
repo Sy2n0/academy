@@ -18,7 +18,10 @@ const createReportSchema = z.object({
   severity: z.enum(SEVERITIES),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const session = await getSession(req, res);
     const currentUser = await getUserBySession(session);
@@ -32,14 +35,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await handleGET(res);
         break;
       case 'POST':
-        if (!isAdmin(currentUser.role) && !(await isKucisMember(currentUser.id))) {
+        if (
+          !isAdmin(currentUser.role) &&
+          !(await isKucisMember(currentUser.id))
+        ) {
           throw new ApiError(403, 'Only KUCIS team members can submit reports');
         }
         await handlePOST(req, res, currentUser.id);
         break;
       default:
         res.setHeader('Allow', 'GET, POST');
-        res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+        res
+          .status(405)
+          .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
   } catch (error: any) {
     const message = error.message || 'Something went wrong';
@@ -59,8 +67,13 @@ const handleGET = async (res: NextApiResponse) => {
   res.json({ data: { reports } });
 };
 
-const handlePOST = async (req: NextApiRequest, res: NextApiResponse, userId: string) => {
-  const { title, team, target, reportedTo, severity } = createReportSchema.parse(req.body);
+const handlePOST = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  userId: string
+) => {
+  const { title, team, target, reportedTo, severity } =
+    createReportSchema.parse(req.body);
 
   const report = await prisma.kucisVulnerabilityReport.create({
     data: {

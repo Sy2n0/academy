@@ -25,7 +25,9 @@ export default async function handler(
 ) {
   if (req.method !== 'POST' && req.method !== 'GET') {
     res.setHeader('Allow', ['GET', 'POST']);
-    return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+    return res
+      .status(405)
+      .json({ error: { message: `Method ${req.method} Not Allowed` } });
   }
 
   try {
@@ -36,21 +38,27 @@ export default async function handler(
       if (req.method === 'GET') {
         return res.status(200).json({ data: { enrolled: false } });
       }
-      return res.status(401).json({ error: { message: '로그인이 필요합니다.' } });
+      return res
+        .status(401)
+        .json({ error: { message: '로그인이 필요합니다.' } });
     }
 
-    const playground = await prisma.playgroundSettings.findFirst({
-      where: { isActive: true },
-      orderBy: { updatedAt: 'desc' },
-    }) || await prisma.playgroundSettings.findFirst({
-      orderBy: { updatedAt: 'desc' },
-    });
+    const playground =
+      (await prisma.playgroundSettings.findFirst({
+        where: { isActive: true },
+        orderBy: { updatedAt: 'desc' },
+      })) ||
+      (await prisma.playgroundSettings.findFirst({
+        orderBy: { updatedAt: 'desc' },
+      }));
 
     if (!playground) {
       if (req.method === 'GET') {
         return res.status(200).json({ data: { enrolled: false } });
       }
-      return res.status(404).json({ error: { message: '활성 Playground를 찾을 수 없습니다.' } });
+      return res
+        .status(404)
+        .json({ error: { message: '활성 Playground를 찾을 수 없습니다.' } });
     }
 
     await ensureEnrollmentTable();
@@ -84,7 +92,9 @@ export default async function handler(
       });
     }
 
-    const created = await prisma.$queryRaw<Array<{ id: string; createdAt: Date }>>`
+    const created = await prisma.$queryRaw<
+      Array<{ id: string; createdAt: Date }>
+    >`
       INSERT INTO "PlaygroundEnrollment" ("id", "userId", "playgroundId")
       VALUES (md5(random()::text || clock_timestamp()::text || ${user.id} || ${playground.id}), ${user.id}, ${playground.id})
       ON CONFLICT ("userId", "playgroundId") DO NOTHING
@@ -115,7 +125,10 @@ export default async function handler(
       },
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : '참가 신청 처리 중 오류가 발생했습니다.';
+    const message =
+      error instanceof Error
+        ? error.message
+        : '참가 신청 처리 중 오류가 발생했습니다.';
     return res.status(500).json({ error: { message } });
   }
 }

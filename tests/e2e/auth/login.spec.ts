@@ -23,9 +23,11 @@ test.describe('credential login / logout', () => {
     // 에러 메시지 또는 로그인 페이지에 그대로 머무는 것을 확인
     await expect(page).toHaveURL('/auth/login');
     const errorText = page.getByText(/invalid|incorrect|error|wrong/i);
-    await expect(errorText).toBeVisible({ timeout: 5000 }).catch(() => {
-      // 일부 앱은 toast 메시지로만 표시하므로 URL 유지만 확인
-    });
+    await expect(errorText)
+      .toBeVisible({ timeout: 5000 })
+      .catch(() => {
+        // 일부 앱은 toast 메시지로만 표시하므로 URL 유지만 확인
+      });
   });
 
   test('빈 이메일로 로그인하면 폼이 제출되지 않는다', async ({ page }) => {

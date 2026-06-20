@@ -18,7 +18,9 @@ test.describe('machines 페이지', () => {
     await page.waitForLoadState('networkidle');
 
     // 500/404 없이 로드됨 확인
-    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText(
+      'Internal Server Error'
+    );
     await expect(page.locator('body')).not.toContainText('404');
   });
 
@@ -29,7 +31,9 @@ test.describe('machines 페이지', () => {
     await page.waitForLoadState('networkidle');
 
     // 페이지의 메인 콘텐츠 영역이 존재함을 확인
-    const mainContent = page.locator('main, [role="main"], #main-content').first();
+    const mainContent = page
+      .locator('main, [role="main"], #main-content')
+      .first();
     const hasMain = await mainContent.count();
 
     // 레이아웃이 올바르게 렌더링됨
@@ -43,8 +47,8 @@ test.describe('machines 페이지', () => {
     await page.context().clearCookies();
     await page.goto(`/teams/${team.slug}/machines`);
 
-    await page.waitForURL((url) =>
-      url.pathname.includes('/auth/login') || url.pathname === '/'
+    await page.waitForURL(
+      (url) => url.pathname.includes('/auth/login') || url.pathname === '/'
     );
   });
 });

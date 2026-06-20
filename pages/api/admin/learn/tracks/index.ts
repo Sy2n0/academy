@@ -32,10 +32,14 @@ export default async function handler(
     }
   } catch (error: any) {
     if (error instanceof ApiError) {
-      return res.status(error.status).json({ error: { message: error.message } });
+      return res
+        .status(error.status)
+        .json({ error: { message: error.message } });
     }
     console.error('[API /admin/learn/tracks] Error:', error);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }
 

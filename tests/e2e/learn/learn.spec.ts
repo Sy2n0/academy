@@ -14,7 +14,9 @@ test.describe('learn (tracks & modules) 페이지', () => {
     await page.goto(`/teams/${team.slug}/learn`);
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText(
+      'Internal Server Error'
+    );
     await expect(page.locator('body')).not.toContainText('404');
   });
 
@@ -31,8 +33,8 @@ test.describe('learn (tracks & modules) 페이지', () => {
     await page.context().clearCookies();
     await page.goto(`/teams/${team.slug}/learn`);
 
-    await page.waitForURL((url) =>
-      url.pathname.includes('/auth/login') || url.pathname === '/'
+    await page.waitForURL(
+      (url) => url.pathname.includes('/auth/login') || url.pathname === '/'
     );
   });
 });
@@ -49,7 +51,9 @@ test.describe('sandbox 페이지', () => {
     await page.goto(`/teams/${team.slug}/sandbox`);
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText(
+      'Internal Server Error'
+    );
     await expect(page.locator('body')).not.toContainText('404');
   });
 
@@ -57,8 +61,8 @@ test.describe('sandbox 페이지', () => {
     await page.context().clearCookies();
     await page.goto(`/teams/${team.slug}/sandbox`);
 
-    await page.waitForURL((url) =>
-      url.pathname.includes('/auth/login') || url.pathname === '/'
+    await page.waitForURL(
+      (url) => url.pathname.includes('/auth/login') || url.pathname === '/'
     );
   });
 });

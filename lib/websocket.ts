@@ -40,11 +40,7 @@ export function getIO(): SocketIOServer | null {
 /**
  * 이벤트 브로드캐스트
  */
-export function broadcastEvent(
-  type: string,
-  data: any,
-  room?: string
-): void {
+export function broadcastEvent(type: string, data: any, room?: string): void {
   if (!io) {
     console.warn('WebSocket server not initialized');
     return;

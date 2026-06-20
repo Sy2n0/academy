@@ -1,0 +1,21 @@
+# Code owners for HUB-ACADEMY.
+# These owners are requested for review automatically when a PR touches
+# matching files. Replace @Sy2n0 with a team handle (e.g. @HUB-STAGE/maintainers)
+# once a team is set up.
+#
+# Note: required-review enforcement needs branch protection (GitHub Team plan
+# for private repos). Until then this only auto-requests reviewers.
+
+# Default owners for everything in the repo
+*                       @Sy2n0
+
+# CI / repo automation & governance
+/.github/               @Sy2n0
+/scripts/               @Sy2n0
+
+# Database schema & migrations — review carefully
+/prisma/                @Sy2n0
+
+# Auth, security & middleware
+/middleware.ts          @Sy2n0
+/lib/                   @Sy2n0

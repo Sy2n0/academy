@@ -23,7 +23,15 @@ import { UpdateAccount } from '@/components/account';
 import UpdatePassword from '@/components/account/UpdatePassword';
 import UpdateTheme from '@/components/account/UpdateTheme';
 import Head from 'next/head';
-import { Settings as SettingsIcon, User, Lock, Palette, Bell, Globe, Trash2 } from 'lucide-react';
+import {
+  Settings as SettingsIcon,
+  User,
+  Lock,
+  Palette,
+  Bell,
+  Globe,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,9 +58,7 @@ import * as Yup from 'yup';
 
 type SettingsProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
-const Settings: NextPageWithLayout<SettingsProps> = ({
-  user,
-}) => {
+const Settings: NextPageWithLayout<SettingsProps> = ({ user }) => {
   const { t } = useTranslation('common');
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState('');
@@ -180,7 +186,8 @@ const Settings: NextPageWithLayout<SettingsProps> = ({
                         Delete Account
                       </p>
                       <p className="font-mono text-xs text-muted-foreground mb-4">
-                        Once you delete your account, there is no going back. Please be certain.
+                        Once you delete your account, there is no going back.
+                        Please be certain.
                       </p>
                       <Button
                         variant="destructive"
@@ -206,7 +213,8 @@ const Settings: NextPageWithLayout<SettingsProps> = ({
               Delete Account
             </DialogTitle>
             <DialogDescription className="font-mono text-xs">
-              This action cannot be undone. This will permanently delete your account and all associated data.
+              This action cannot be undone. This will permanently delete your
+              account and all associated data.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={deleteFormik.handleSubmit}>
@@ -214,7 +222,8 @@ const Settings: NextPageWithLayout<SettingsProps> = ({
               <FieldGroup>
                 <Field>
                   <FieldLabel className="font-mono text-xs uppercase tracking-wider">
-                    Type <span className="text-destructive">DELETE</span> to confirm
+                    Type <span className="text-destructive">DELETE</span> to
+                    confirm
                   </FieldLabel>
                   <Input
                     value={deleteConfirm}
@@ -241,7 +250,9 @@ const Settings: NextPageWithLayout<SettingsProps> = ({
               <Button
                 type="submit"
                 variant="destructive"
-                disabled={deleteConfirm !== 'DELETE' || deleteFormik.isSubmitting}
+                disabled={
+                  deleteConfirm !== 'DELETE' || deleteFormik.isSubmitting
+                }
                 className="font-mono text-xs uppercase tracking-wider"
               >
                 {deleteFormik.isSubmitting ? 'Deleting...' : 'Delete Account'}

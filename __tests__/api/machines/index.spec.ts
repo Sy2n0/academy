@@ -22,24 +22,52 @@ import { getUserBySession } from 'models/user';
 import { prisma } from '@/lib/prisma';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
-const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
+const mockGetUserBySession = getUserBySession as jest.MockedFunction<
+  typeof getUserBySession
+>;
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'GET', headers: {}, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'GET',
+    headers: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 // machine 모델 필드 최소 구성
 const mockMachines = [
-  { id: 'm1', name: 'Easy Box', points: 100, difficulty: 'Easy', type: null, isActive: true, categoryType: 'active' },
-  { id: 'm2', name: 'Hard Box', points: 500, difficulty: 'Hard', type: null, isActive: true, categoryType: 'active' },
+  {
+    id: 'm1',
+    name: 'Easy Box',
+    points: 100,
+    difficulty: 'Easy',
+    type: null,
+    isActive: true,
+    categoryType: 'active',
+  },
+  {
+    id: 'm2',
+    name: 'Hard Box',
+    points: 500,
+    difficulty: 'Hard',
+    type: null,
+    isActive: true,
+    categoryType: 'active',
+  },
 ];
 
 beforeEach(() => {
@@ -89,7 +117,9 @@ describe('GET /api/machines - 로그인', () => {
   beforeEach(() => {
     mockGetSession.mockResolvedValue({ user: mockUser } as any);
     mockGetUserBySession.mockResolvedValue(mockUser as any);
-    (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({ totalPoints: 1500 });
+    (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
+      totalPoints: 1500,
+    });
     (mockPrisma.flagSubmission.findMany as jest.Mock).mockResolvedValue([
       { machineId: 'm1', userId: 'user-1', teamId: null },
     ]);

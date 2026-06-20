@@ -33,7 +33,9 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
   const { limit } = req.query;
   const session = await getSession(req, res);
 
-  const rankings = await getRankings(limit ? parseInt(limit as string, 10) : 100);
+  const rankings = await getRankings(
+    limit ? parseInt(limit as string, 10) : 100
+  );
 
   let userRanking: number | null = null;
   if (session?.user?.id) {

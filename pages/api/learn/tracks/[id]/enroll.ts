@@ -18,12 +18,14 @@ export default async function handler(
     const { id } = req.query;
 
     if (!id || typeof id !== 'string') {
-      return res.status(400).json({ error: { message: 'Track ID is required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'Track ID is required' } });
     }
 
     // Track이 존재하는지 확인
     const track = await prisma.skillPath.findUnique({
-      where: { 
+      where: {
         id,
         isActive: true,
       },
@@ -35,18 +37,19 @@ export default async function handler(
 
     if (req.method === 'POST') {
       // 등록
-      const existingEnrollment = await prisma.userSkillPathEnrollment.findUnique({
-        where: {
-          userId_skillPathId: {
-            userId: user.id,
-            skillPathId: id,
+      const existingEnrollment =
+        await prisma.userSkillPathEnrollment.findUnique({
+          where: {
+            userId_skillPathId: {
+              userId: user.id,
+              skillPathId: id,
+            },
           },
-        },
-      });
+        });
 
       if (existingEnrollment) {
-        return res.status(200).json({ 
-          data: { message: 'Already enrolled', enrolled: true } 
+        return res.status(200).json({
+          data: { message: 'Already enrolled', enrolled: true },
         });
       }
 
@@ -57,8 +60,8 @@ export default async function handler(
         },
       });
 
-      return res.status(200).json({ 
-        data: { message: 'Successfully enrolled', enrolled: true } 
+      return res.status(200).json({
+        data: { message: 'Successfully enrolled', enrolled: true },
       });
     } else if (req.method === 'DELETE') {
       // 해제
@@ -72,8 +75,8 @@ export default async function handler(
       });
 
       if (!enrollment) {
-        return res.status(200).json({ 
-          data: { message: 'Not enrolled', enrolled: false } 
+        return res.status(200).json({
+          data: { message: 'Not enrolled', enrolled: false },
         });
       }
 
@@ -86,16 +89,16 @@ export default async function handler(
         },
       });
 
-      return res.status(200).json({ 
-        data: { message: 'Successfully unenrolled', enrolled: false } 
+      return res.status(200).json({
+        data: { message: 'Successfully unenrolled', enrolled: false },
       });
     } else {
       return res.status(405).json({ error: { message: 'Method not allowed' } });
     }
   } catch (error: any) {
     console.error('[API /learn/tracks/[id]/enroll] Error:', error);
-    return res.status(500).json({ 
-      error: { message: error.message || 'Internal server error' }
+    return res.status(500).json({
+      error: { message: error.message || 'Internal server error' },
     });
   }
 }

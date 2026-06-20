@@ -58,7 +58,10 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
 
   // Remove all sessions other than the current one
   if (env.nextAuth.sessionStrategy === 'database') {
-    const sessionToken = await getCookie(getSessionTokenCookieNameForRequest(req), { req, res });
+    const sessionToken = await getCookie(
+      getSessionTokenCookieNameForRequest(req),
+      { req, res }
+    );
 
     await deleteManySessions({
       where: {

@@ -14,7 +14,9 @@ export default async function handler(
 
   const assignmentId = req.query.id as string;
   if (!assignmentId) {
-    return res.status(400).json({ error: { message: 'Assignment ID required' } });
+    return res
+      .status(400)
+      .json({ error: { message: 'Assignment ID required' } });
   }
 
   try {
@@ -26,14 +28,18 @@ export default async function handler(
 
     const model = (prisma as any).learnAssignment;
     if (!model || typeof model.findUnique !== 'function') {
-      return res.status(503).json({ error: { message: 'Assignments not available' } });
+      return res
+        .status(503)
+        .json({ error: { message: 'Assignments not available' } });
     }
 
     const assignment = await prisma.learnAssignment.findUnique({
       where: { id: assignmentId },
     });
     if (!assignment || !assignment.isActive) {
-      return res.status(404).json({ error: { message: 'Assignment not found' } });
+      return res
+        .status(404)
+        .json({ error: { message: 'Assignment not found' } });
     }
 
     const [enrolledTrackIds, completedModuleIds] = await Promise.all([
@@ -47,16 +53,26 @@ export default async function handler(
 
     const eligible =
       assignment.targetType === 'ALL' ||
-      (assignment.targetType === 'TRACK' && assignment.targetId && enrolledTrackIds.includes(assignment.targetId)) ||
-      (assignment.targetType === 'MODULE' && assignment.targetId && completedModuleIds.includes(assignment.targetId));
+      (assignment.targetType === 'TRACK' &&
+        assignment.targetId &&
+        enrolledTrackIds.includes(assignment.targetId)) ||
+      (assignment.targetType === 'MODULE' &&
+        assignment.targetId &&
+        completedModuleIds.includes(assignment.targetId));
 
     if (!eligible) {
-      return res.status(403).json({ error: { message: 'You are not eligible to submit this assignment' } });
+      return res.status(403).json({
+        error: { message: 'You are not eligible to submit this assignment' },
+      });
     }
 
     const body = req.body ?? {};
-    const content = typeof body.content === 'string' ? body.content.trim() || null : null;
-    const attachmentUrl = typeof body.attachmentUrl === 'string' ? body.attachmentUrl.trim() || null : null;
+    const content =
+      typeof body.content === 'string' ? body.content.trim() || null : null;
+    const attachmentUrl =
+      typeof body.attachmentUrl === 'string'
+        ? body.attachmentUrl.trim() || null
+        : null;
 
     const existing = await prisma.learnAssignmentSubmission.findUnique({
       where: {
@@ -66,7 +82,9 @@ export default async function handler(
 
     if (req.method === 'PATCH') {
       if (!existing) {
-        return res.status(404).json({ error: { message: 'No submission to update' } });
+        return res
+          .status(404)
+          .json({ error: { message: 'No submission to update' } });
       }
       const submission = await prisma.learnAssignmentSubmission.update({
         where: { id: existing.id },
@@ -91,6 +109,8 @@ export default async function handler(
     return res.status(201).json({ data: submission });
   } catch (e) {
     console.error('[API /learn/assignments/[id]/submit]', e);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }

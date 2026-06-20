@@ -1,6 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { getAuthOptions, getSessionTokenCookieNameForRequest } from '@/lib/nextAuth';
+import {
+  getAuthOptions,
+  getSessionTokenCookieNameForRequest,
+} from '@/lib/nextAuth';
 import { prisma } from '@/lib/prisma';
 import { getCookie } from 'cookies-next';
 import env from '@/lib/env';
@@ -23,10 +26,13 @@ export default async function handler(
     }
 
     if (env.nextAuth.sessionStrategy === 'database') {
-      const sessionToken = await getCookie(getSessionTokenCookieNameForRequest(req), {
-        req,
-        res,
-      });
+      const sessionToken = await getCookie(
+        getSessionTokenCookieNameForRequest(req),
+        {
+          req,
+          res,
+        }
+      );
       const sessionDBEntry = await prisma.session.findFirst({
         where: {
           sessionToken: sessionToken,

@@ -14,24 +14,30 @@ export const UrlPreview = ({ url }: { url: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [iframeUrl, setIframeUrl] = useState(url);
   const [showHeaders, setShowHeaders] = useState(false);
-  const [requestHeaders, setRequestHeaders] = useState<Record<string, string>>({});
-  const [responseHeaders, setResponseHeaders] = useState<Record<string, string>>({});
+  const [requestHeaders, setRequestHeaders] = useState<Record<string, string>>(
+    {}
+  );
+  const [responseHeaders, setResponseHeaders] = useState<
+    Record<string, string>
+  >({});
   const [responseStatus, setResponseStatus] = useState<number | null>(null);
   const [responseBody, setResponseBody] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'preview' | 'headers' | 'response'>('preview');
+  const [activeTab, setActiveTab] = useState<
+    'preview' | 'headers' | 'response'
+  >('preview');
 
   const fetchUrl = async () => {
     setIsLoading(true);
     setResponseStatus(null);
     setResponseHeaders({});
     setResponseBody('');
-    
+
     try {
       // Request 헤더 설정
       const headers: Record<string, string> = {
         'User-Agent': navigator.userAgent,
-        'Accept': '*/*',
+        Accept: '*/*',
         'Accept-Language': navigator.language,
       };
       setRequestHeaders(headers);
@@ -46,30 +52,34 @@ export const UrlPreview = ({ url }: { url: string }) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
         throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       setResponseStatus(data.status || 200);
       setResponseHeaders(data.responseHeaders || {});
       setResponseBody(data.body || '(No response body)');
     } catch (error: any) {
       // CORS 에러인지 확인
-      const isCorsError = error.message.includes('CORS') || 
-                         error.message.includes('Failed to fetch') ||
-                         error.message.includes('NetworkError');
-      
+      const isCorsError =
+        error.message.includes('CORS') ||
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError');
+
       setResponseStatus(0);
-      setResponseHeaders({ 
-        error: isCorsError 
+      setResponseHeaders({
+        error: isCorsError
           ? 'CORS Error: 브라우저에서 직접 요청할 수 없습니다. 서버 프록시를 사용하세요.'
-          : error.message 
+          : error.message,
       });
-      setResponseBody(isCorsError 
-        ? 'CORS 정책으로 인해 브라우저에서 직접 이 URL을 요청할 수 없습니다. 서버 사이드 프록시 API를 사용하거나 다른 방법을 시도해주세요.'
-        : error.message
+      setResponseBody(
+        isCorsError
+          ? 'CORS 정책으로 인해 브라우저에서 직접 이 URL을 요청할 수 없습니다. 서버 사이드 프록시 API를 사용하거나 다른 방법을 시도해주세요.'
+          : error.message
       );
     } finally {
       setIsLoading(false);
@@ -112,7 +122,7 @@ export const UrlPreview = ({ url }: { url: string }) => {
           </Button>
         </div>
       </div>
-      
+
       {/* Request/Response 정보 표시 */}
       {(responseStatus !== null || showHeaders) && (
         <div className="p-3 bg-background/40 border-b border-border/30">
@@ -146,7 +156,9 @@ export const UrlPreview = ({ url }: { url: string }) => {
           {activeTab === 'headers' && (
             <div className="space-y-4">
               <div>
-                <h4 className="font-mono text-xs font-semibold text-foreground mb-2">Request Headers</h4>
+                <h4 className="font-mono text-xs font-semibold text-foreground mb-2">
+                  Request Headers
+                </h4>
                 <div className="bg-background/60 rounded p-2 max-h-40 overflow-y-auto">
                   <pre className="font-mono text-xs text-foreground">
                     {Object.entries(requestHeaders).map(([key, value]) => (
@@ -158,12 +170,18 @@ export const UrlPreview = ({ url }: { url: string }) => {
                 </div>
               </div>
               <div>
-                <h4 className="font-mono text-xs font-semibold text-foreground mb-2">Response Headers</h4>
+                <h4 className="font-mono text-xs font-semibold text-foreground mb-2">
+                  Response Headers
+                </h4>
                 <div className="bg-background/60 rounded p-2 max-h-40 overflow-y-auto">
                   <pre className="font-mono text-xs text-foreground">
                     {responseStatus && (
                       <div className="mb-2 pb-2 border-b border-border/30">
-                        <span className="text-accent">Status:</span> {responseStatus} {responseStatus >= 200 && responseStatus < 300 ? '✓' : '✗'}
+                        <span className="text-accent">Status:</span>{' '}
+                        {responseStatus}{' '}
+                        {responseStatus >= 200 && responseStatus < 300
+                          ? '✓'
+                          : '✗'}
                       </div>
                     )}
                     {Object.entries(responseHeaders).map(([key, value]) => (
@@ -179,7 +197,9 @@ export const UrlPreview = ({ url }: { url: string }) => {
 
           {activeTab === 'response' && (
             <div>
-              <h4 className="font-mono text-xs font-semibold text-foreground mb-2">Response Body</h4>
+              <h4 className="font-mono text-xs font-semibold text-foreground mb-2">
+                Response Body
+              </h4>
               <div className="bg-background/60 rounded p-2 max-h-60 overflow-y-auto">
                 <pre className="font-mono text-xs text-foreground whitespace-pre-wrap break-words">
                   {responseBody || '(No response body)'}
@@ -191,7 +211,7 @@ export const UrlPreview = ({ url }: { url: string }) => {
           {activeTab === 'preview' && (
             <div className="text-center py-4">
               <p className="font-mono text-xs text-muted-foreground">
-                Click "Open" to view in iframe
+                Click &quot;Open&quot; to view in iframe
               </p>
             </div>
           )}
@@ -280,7 +300,13 @@ export const HeapVisualizer = ({ data }: { data?: string }) => {
 };
 
 // 코드 실행 컴포넌트
-export const CodeRunner = ({ code, language }: { code: string; language?: string }) => {
+export const CodeRunner = ({
+  code,
+  language,
+}: {
+  code: string;
+  language?: string;
+}) => {
   const [output, setOutput] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isRunning, setIsRunning] = useState(false);
@@ -291,7 +317,7 @@ export const CodeRunner = ({ code, language }: { code: string; language?: string
     setOutput('');
     setError('');
     setExecutionTime(null);
-    
+
     const startTime = Date.now();
 
     try {
@@ -306,23 +332,43 @@ export const CodeRunner = ({ code, language }: { code: string; language?: string
 
         // console.log, console.error, console.warn을 오버라이드
         console.log = (...args: any[]) => {
-          logs.push(args.map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-          ).join(' '));
+          logs.push(
+            args
+              .map((arg) =>
+                typeof arg === 'object'
+                  ? JSON.stringify(arg, null, 2)
+                  : String(arg)
+              )
+              .join(' ')
+          );
           originalLog.apply(console, args);
         };
 
         console.error = (...args: any[]) => {
-          logs.push('ERROR: ' + args.map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-          ).join(' '));
+          logs.push(
+            'ERROR: ' +
+              args
+                .map((arg) =>
+                  typeof arg === 'object'
+                    ? JSON.stringify(arg, null, 2)
+                    : String(arg)
+                )
+                .join(' ')
+          );
           originalError.apply(console, args);
         };
 
         console.warn = (...args: any[]) => {
-          logs.push('WARN: ' + args.map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-          ).join(' '));
+          logs.push(
+            'WARN: ' +
+              args
+                .map((arg) =>
+                  typeof arg === 'object'
+                    ? JSON.stringify(arg, null, 2)
+                    : String(arg)
+                )
+                .join(' ')
+          );
           originalWarn.apply(console, args);
         };
 
@@ -330,7 +376,7 @@ export const CodeRunner = ({ code, language }: { code: string; language?: string
           // 코드 실행 (안전한 방식으로)
           const func = new Function(code);
           const result = func();
-          
+
           // 반환값이 있으면 출력에 추가
           if (result !== undefined) {
             logs.push(String(result));
@@ -406,7 +452,9 @@ export const CodeRunner = ({ code, language }: { code: string; language?: string
         <div className="p-3 border-t border-border/30 bg-background/60">
           {error && (
             <div className="mb-2">
-              <p className="font-mono text-xs text-destructive font-semibold mb-1">Error:</p>
+              <p className="font-mono text-xs text-destructive font-semibold mb-1">
+                Error:
+              </p>
               <pre className="font-mono text-xs text-destructive whitespace-pre-wrap break-words">
                 {error}
               </pre>
@@ -414,7 +462,9 @@ export const CodeRunner = ({ code, language }: { code: string; language?: string
           )}
           {output && (
             <div>
-              <p className="font-mono text-xs text-foreground font-semibold mb-1">Output:</p>
+              <p className="font-mono text-xs text-foreground font-semibold mb-1">
+                Output:
+              </p>
               <pre className="font-mono text-xs text-foreground whitespace-pre-wrap break-words">
                 {output}
               </pre>

@@ -1,13 +1,13 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { ChevronRight, type LucideIcon } from "lucide-react"
+import Link from 'next/link';
+import { ChevronRight, type LucideIcon } from 'lucide-react';
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from '@/components/ui/collapsible';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -18,31 +18,31 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 interface NavKucisProps {
   items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+    isActive?: boolean;
     items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+      title: string;
+      url: string;
+    }[];
+  }[];
 }
 
 export function NavKucis({ items }: NavKucisProps) {
-  const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>KUCIS</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
-          const hasSubItems = item.items && item.items.length > 0
+          const hasSubItems = item.items && item.items.length > 0;
 
           return (
             <Collapsible
@@ -55,19 +55,23 @@ export function NavKucis({ items }: NavKucisProps) {
                 className="relative"
                 onMouseEnter={(e) => {
                   if (isCollapsed && hasSubItems) {
-                    const menuItem = e.currentTarget
-                    const hoverMenu = menuItem.querySelector('.hover-submenu') as HTMLElement
+                    const menuItem = e.currentTarget;
+                    const hoverMenu = menuItem.querySelector(
+                      '.hover-submenu'
+                    ) as HTMLElement;
                     if (hoverMenu) {
-                      hoverMenu.style.display = 'block'
+                      hoverMenu.style.display = 'block';
                     }
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (isCollapsed && hasSubItems) {
-                    const menuItem = e.currentTarget
-                    const hoverMenu = menuItem.querySelector('.hover-submenu') as HTMLElement
+                    const menuItem = e.currentTarget;
+                    const hoverMenu = menuItem.querySelector(
+                      '.hover-submenu'
+                    ) as HTMLElement;
                     if (hoverMenu) {
-                      hoverMenu.style.display = 'none'
+                      hoverMenu.style.display = 'none';
                     }
                   }
                 }}
@@ -84,7 +88,7 @@ export function NavKucis({ items }: NavKucisProps) {
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton asChild>
-                          {subItem.url === "#" ? (
+                          {subItem.url === '#' ? (
                             <a href={subItem.url}>
                               <span>{subItem.title}</span>
                             </a>
@@ -105,7 +109,7 @@ export function NavKucis({ items }: NavKucisProps) {
                   >
                     {item.items?.map((subItem) => (
                       <div key={subItem.title}>
-                        {subItem.url === "#" ? (
+                        {subItem.url === '#' ? (
                           <a
                             href={subItem.url}
                             className="block text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md px-3 py-2"
@@ -126,9 +130,9 @@ export function NavKucis({ items }: NavKucisProps) {
                 )}
               </SidebarMenuItem>
             </Collapsible>
-          )
+          );
         })}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

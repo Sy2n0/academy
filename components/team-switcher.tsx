@@ -1,29 +1,29 @@
-import * as React from "react"
-import { Shield } from "lucide-react"
+import * as React from 'react';
+import { Shield } from 'lucide-react';
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 export function TeamSwitcher({
   teams,
 }: {
   teams: {
-    name: string
-    logo: React.ElementType
-    plan: string
-  }[]
+    name: string;
+    logo: React.ElementType;
+    plan: string;
+  }[];
 }) {
-  const [activeTeam] = React.useState(teams[0])
-  const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
+  const [activeTeam] = React.useState(teams[0]);
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
 
   if (!activeTeam) {
-    return null
+    return null;
   }
 
   return (
@@ -33,8 +33,8 @@ export function TeamSwitcher({
           size="lg"
           tooltip="Highest Unique Batch · ACADEMY DASHBOARD"
           className={cn(
-            "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
-            isCollapsed && "justify-center"
+            'data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground',
+            isCollapsed && 'justify-center'
           )}
         >
           {isCollapsed ? (
@@ -50,5 +50,5 @@ export function TeamSwitcher({
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

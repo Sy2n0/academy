@@ -25,19 +25,31 @@ import { exec } from 'child_process';
 import { prisma } from '@/lib/prisma';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
-const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
+const mockGetUserBySession = getUserBySession as jest.MockedFunction<
+  typeof getUserBySession
+>;
 
 const mockUser = { id: 'user-1', email: 'test@example.com' };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'POST', headers: {}, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'POST',
+    headers: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {
@@ -51,7 +63,9 @@ describe('GET /api/attackbox/stop → 405', () => {
     const { res, json, status } = makeRes();
     await handler(makeReq({ method: 'GET' }), res);
     expect(status).toHaveBeenCalledWith(405);
-    expect(json).toHaveBeenCalledWith({ error: { message: 'Method not allowed' } });
+    expect(json).toHaveBeenCalledWith({
+      error: { message: 'Method not allowed' },
+    });
   });
 });
 
@@ -59,7 +73,10 @@ describe('POST /api/attackbox/stop - 인증', () => {
   it('비로그인 요청은 401을 반환한다', async () => {
     mockGetUserBySession.mockResolvedValue(null);
     const { res, json, status } = makeRes();
-    await handler(makeReq({ body: { containerName: 'attackbox-kali-22000' } }), res);
+    await handler(
+      makeReq({ body: { containerName: 'attackbox-kali-22000' } }),
+      res
+    );
     expect(status).toHaveBeenCalledWith(401);
     expect(json).toHaveBeenCalledWith({ error: { message: 'Unauthorized' } });
   });
@@ -69,9 +86,9 @@ describe('POST /api/attackbox/stop - containerName 유효성 검사', () => {
   const invalidNames = [
     '',
     'random-name',
-    'attackbox-22000',          // 타입 없음
-    'attackbox-KALI-22000',     // 대문자
-    'attackbox-kali-abc',       // 숫자 아닌 포트
+    'attackbox-22000', // 타입 없음
+    'attackbox-KALI-22000', // 대문자
+    'attackbox-kali-abc', // 숫자 아닌 포트
     'attackbox-kali-22000; rm -rf /', // 인젝션 시도
   ];
 
@@ -84,11 +101,22 @@ describe('POST /api/attackbox/stop - containerName 유효성 검사', () => {
   });
 
   it('올바른 containerName은 통과한다 (kali 타입)', async () => {
-    (exec as jest.Mock).mockImplementation((_cmd: string, cb: (err: null, result: { stdout: string; stderr: string }) => void) => cb(null, { stdout: '', stderr: '' }));
+    (exec as unknown as jest.Mock).mockImplementation(
+      (
+        _cmd: string,
+        cb: (err: null, result: { stdout: string; stderr: string }) => void
+      ) => cb(null, { stdout: '', stderr: '' })
+    );
     (prisma as any).attackBoxSession.deleteMany.mockResolvedValue({});
 
     const { res, json } = makeRes();
-    await handler(makeReq({ body: { containerName: 'attackbox-kali-22000' } }), res);
-    expect(json).toHaveBeenCalledWith({ success: true, containerName: 'attackbox-kali-22000' });
+    await handler(
+      makeReq({ body: { containerName: 'attackbox-kali-22000' } }),
+      res
+    );
+    expect(json).toHaveBeenCalledWith({
+      success: true,
+      containerName: 'attackbox-kali-22000',
+    });
   });
 });

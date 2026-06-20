@@ -62,11 +62,7 @@ const APIKeys = ({ team }: APIKeysProps) => {
               {t('api-keys-description')}
             </p>
           </div>
-          <Button
-            
-            size="md"
-            onClick={() => setCreateModalVisible(true)}
-          >
+          <Button size="md" onClick={() => setCreateModalVisible(true)}>
             {t('create-api-key')}
           </Button>
         </div>

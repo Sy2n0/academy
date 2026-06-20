@@ -20,7 +20,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useRef } from 'react';
 import { Search, Activity, Download, Flag } from 'lucide-react';
 import useSWR from 'swr';
@@ -125,12 +130,23 @@ interface PlaygroundFlagSubmissionResponse {
   data: PlaygroundFlagSubmissionItem[];
 }
 
-type CompileStage = 'idle' | 'container' | 'compare' | 'compile' | 'run' | 'done' | 'error';
+type CompileStage =
+  | 'idle'
+  | 'container'
+  | 'compare'
+  | 'compile'
+  | 'run'
+  | 'done'
+  | 'error';
 type CompileStepStatus = 'waiting' | 'active' | 'completed' | 'failed';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const BUCKET_BASE = 'https://bucket.hub-h4ck.com';
-const normalizeSeasonKey = (value: string) => value.trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+const normalizeSeasonKey = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[-_\s]+/g, ' ');
 
 const categories = [
   'All',
@@ -142,44 +158,51 @@ const categories = [
   'Programming',
 ];
 
-const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ season, isCurrentUserAdmin }) => {
+const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({
+  season,
+  isCurrentUserAdmin,
+}) => {
   // --- Scoreboard Capture Logic ---
   const scoreboardCaptureRef = useRef<HTMLDivElement>(null);
-    async function handleCaptureScoreboard() {
-      if (!scoreboardCaptureRef.current) return;
-      try {
-        const html2canvas = (await import('html2canvas')).default;
-        const target = scoreboardCaptureRef.current;
-        const fallbackBackground = 'rgb(15, 23, 42)';
-        const pageBackground = getComputedStyle(document.body).backgroundColor || fallbackBackground;
-        const canvas = await html2canvas(target, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: pageBackground,
-          width: target.scrollWidth,
-          height: target.scrollHeight,
-          windowWidth: target.scrollWidth,
-          windowHeight: target.scrollHeight,
-        });
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const safeSeason = season.replace(/[^a-zA-Z0-9-_]/g, '_');
-        const fileName = `scoreboard_${safeSeason}_${timestamp}.png`;
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = fileName;
-        link.click();
-      } catch (err) {
-        // Optionally show error toast
-      }
+  async function handleCaptureScoreboard() {
+    if (!scoreboardCaptureRef.current) return;
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const target = scoreboardCaptureRef.current;
+      const fallbackBackground = 'rgb(15, 23, 42)';
+      const pageBackground =
+        getComputedStyle(document.body).backgroundColor || fallbackBackground;
+      const canvas = await html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: pageBackground,
+        width: target.scrollWidth,
+        height: target.scrollHeight,
+        windowWidth: target.scrollWidth,
+        windowHeight: target.scrollHeight,
+      });
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const safeSeason = season.replace(/[^a-zA-Z0-9-_]/g, '_');
+      const fileName = `scoreboard_${safeSeason}_${timestamp}.png`;
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = fileName;
+      link.click();
+    } catch (err) {
+      // Optionally show error toast
     }
+  }
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedChallenge, setSelectedChallenge] = useState<PlaygroundChallenge | null>(null);
+  const [selectedChallenge, setSelectedChallenge] =
+    useState<PlaygroundChallenge | null>(null);
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
   const [isScoreboardModalOpen, setIsScoreboardModalOpen] = useState(false);
   const [isFlagLogModalOpen, setIsFlagLogModalOpen] = useState(false);
   const [flagLogChallengeFilter, setFlagLogChallengeFilter] = useState('all');
-  const [challengeModalTab, setChallengeModalTab] = useState<'overview' | 'compile' | 'solves'>('overview');
+  const [challengeModalTab, setChallengeModalTab] = useState<
+    'overview' | 'compile' | 'solves'
+  >('overview');
   const [flagInput, setFlagInput] = useState('');
   const [submittingFlag, setSubmittingFlag] = useState(false);
   const [instanceInfoVisible, setInstanceInfoVisible] = useState(false);
@@ -190,7 +213,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
   const [compileExitCode, setCompileExitCode] = useState<number | null>(null);
   const [compiling, setCompiling] = useState(false);
   const [compileStage, setCompileStage] = useState<CompileStage>('idle');
-  const [compilePhase, setCompilePhase] = useState<'compile' | 'run' | null>(null);
+  const [compilePhase, setCompilePhase] = useState<'compile' | 'run' | null>(
+    null
+  );
   const [compileProgressMessage, setCompileProgressMessage] = useState('');
   const [answerCompareChecked, setAnswerCompareChecked] = useState(false);
   const [answerCompareMatched, setAnswerCompareMatched] = useState(false);
@@ -218,34 +243,37 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
       revalidateOnFocus: true,
     }
   );
-  const { data: progressData, mutate: mutateProgress } = useSWR<PlaygroundProgressResponse>(
-    `/api/playground/progress?season=${encodeURIComponent(season)}`,
-    fetcher,
-    {
-      refreshInterval: 5000,
-      revalidateOnFocus: true,
-    }
-  );
-  const { data: scoreboardData, isLoading: scoreboardLoading } = useSWR<PlaygroundScoreboardResponse>(
-    isScoreboardModalOpen
-      ? `/api/playground/scoreboard?season=${encodeURIComponent(season)}`
-      : null,
-    fetcher,
-    {
-      refreshInterval: 10000,
-      revalidateOnFocus: true,
-    }
-  );
-  const { data: flagLogData, isLoading: flagLogLoading } = useSWR<PlaygroundFlagSubmissionResponse>(
-    isCurrentUserAdmin && isFlagLogModalOpen
-      ? `/api/admin/playground/flag-submissions?season=${encodeURIComponent(season)}&challengeId=${encodeURIComponent(flagLogChallengeFilter)}`
-      : null,
-    fetcher,
-    {
-      refreshInterval: 5000,
-      revalidateOnFocus: true,
-    }
-  );
+  const { data: progressData, mutate: mutateProgress } =
+    useSWR<PlaygroundProgressResponse>(
+      `/api/playground/progress?season=${encodeURIComponent(season)}`,
+      fetcher,
+      {
+        refreshInterval: 5000,
+        revalidateOnFocus: true,
+      }
+    );
+  const { data: scoreboardData, isLoading: scoreboardLoading } =
+    useSWR<PlaygroundScoreboardResponse>(
+      isScoreboardModalOpen
+        ? `/api/playground/scoreboard?season=${encodeURIComponent(season)}`
+        : null,
+      fetcher,
+      {
+        refreshInterval: 10000,
+        revalidateOnFocus: true,
+      }
+    );
+  const { data: flagLogData, isLoading: flagLogLoading } =
+    useSWR<PlaygroundFlagSubmissionResponse>(
+      isCurrentUserAdmin && isFlagLogModalOpen
+        ? `/api/admin/playground/flag-submissions?season=${encodeURIComponent(season)}&challengeId=${encodeURIComponent(flagLogChallengeFilter)}`
+        : null,
+      fetcher,
+      {
+        refreshInterval: 5000,
+        revalidateOnFocus: true,
+      }
+    );
   const scenarios = challengeData?.data || [];
   const activities = feedData?.data || [];
   const solveUsers = solveData?.data || [];
@@ -274,14 +302,19 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
       (scenario) => scenario.category.toLowerCase() === selectedCategory
     );
   }, [scenarios, selectedCategory]);
-  const solvedSet = useMemo(() => new Set(solvedChallengeIds), [solvedChallengeIds]);
+  const solvedSet = useMemo(
+    () => new Set(solvedChallengeIds),
+    [solvedChallengeIds]
+  );
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const unsolvedScenarios = useMemo(
     () =>
       categoryFilteredScenarios
         .filter((scenario) => !solvedSet.has(scenario.id))
         .filter((scenario) =>
-          normalizedSearch ? scenario.title.toLowerCase().includes(normalizedSearch) : true
+          normalizedSearch
+            ? scenario.title.toLowerCase().includes(normalizedSearch)
+            : true
         ),
     [categoryFilteredScenarios, solvedSet, normalizedSearch]
   );
@@ -297,7 +330,8 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
       }),
     [scenarios]
   );
-  const isProgrammingChallenge = selectedChallenge?.category?.toLowerCase() === 'programming';
+  const isProgrammingChallenge =
+    selectedChallenge?.category?.toLowerCase() === 'programming';
   const isInstanceEnabled = Boolean(
     selectedChallenge?.serverAddress?.trim() && selectedChallenge?.serverPort
   );
@@ -306,10 +340,12 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
     return `#include <stdio.h>\n\nint main(void) {\n    // ${title}\n    printf("Hello, HUB\\n");\n    return 0;\n}\n`;
   }, [selectedChallenge?.title]);
   const selectedAttachments = useMemo<ChallengeAttachment[]>(() => {
-    if (!selectedChallenge || !Array.isArray(selectedChallenge.attachments)) return [];
+    if (!selectedChallenge || !Array.isArray(selectedChallenge.attachments))
+      return [];
 
-    return selectedChallenge.attachments.reduce<ChallengeAttachment[]>((acc, item) => {
-      if (!item || typeof item !== 'object') return acc;
+    return selectedChallenge.attachments.reduce<ChallengeAttachment[]>(
+      (acc, item) => {
+        if (!item || typeof item !== 'object') return acc;
         const target = item as Record<string, unknown>;
         if (typeof target.name !== 'string') return acc;
         if (target.scope === 'programming_answer') return acc;
@@ -320,11 +356,16 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
           type: typeof target.type === 'string' ? target.type : '',
           key: typeof target.key === 'string' ? target.key : undefined,
           url: typeof target.url === 'string' ? target.url : undefined,
-          scope: target.scope === 'programming_answer' ? 'programming_answer' : 'public',
+          scope:
+            target.scope === 'programming_answer'
+              ? 'programming_answer'
+              : 'public',
         });
 
         return acc;
-      }, []);
+      },
+      []
+    );
   }, [selectedChallenge]);
   const getDownloadUrl = (file: ChallengeAttachment) => {
     if (file.key) {
@@ -399,16 +440,21 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
   };
 
   const stepClassName = (status: CompileStepStatus) => {
-    if (status === 'active') return 'border-accent/60 bg-accent/10 text-foreground';
-    if (status === 'completed') return 'border-green-500/30 bg-green-500/10 text-foreground';
-    if (status === 'failed') return 'border-destructive/40 bg-destructive/10 text-destructive';
+    if (status === 'active')
+      return 'border-accent/60 bg-accent/10 text-foreground';
+    if (status === 'completed')
+      return 'border-green-500/30 bg-green-500/10 text-foreground';
+    if (status === 'failed')
+      return 'border-destructive/40 bg-destructive/10 text-destructive';
     return 'border-border/30 bg-background/40 text-muted-foreground';
   };
 
   const handleCompileSubmit = async () => {
     if (!selectedChallenge?.id) return;
 
-    const source = (compileSource.trim() ? compileSource : defaultCSource).trim();
+    const source = (
+      compileSource.trim() ? compileSource : defaultCSource
+    ).trim();
     if (!source) {
       toast.error('C source code is required.');
       return;
@@ -433,7 +479,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
         setTimeout(() => {
           setCompileStage((prev) => (prev === 'container' ? 'compare' : prev));
           setCompileProgressMessage((prev) =>
-            prev === 'Starting sandbox container...' ? 'Comparing with correct file...' : prev
+            prev === 'Starting sandbox container...'
+              ? 'Comparing with correct file...'
+              : prev
           );
         }, 800)
       );
@@ -442,7 +490,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
         setTimeout(() => {
           setCompileStage((prev) => (prev === 'compare' ? 'compile' : prev));
           setCompileProgressMessage((prev) =>
-            prev === 'Comparing with correct file...' ? 'Compiling C source...' : prev
+            prev === 'Comparing with correct file...'
+              ? 'Compiling C source...'
+              : prev
           );
         }, 1500)
       );
@@ -451,7 +501,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
         setTimeout(() => {
           setCompileStage((prev) => (prev === 'compile' ? 'run' : prev));
           setCompileProgressMessage((prev) =>
-            prev === 'Compiling C source...' ? 'Running executable in sandbox...' : prev
+            prev === 'Compiling C source...'
+              ? 'Running executable in sandbox...'
+              : prev
           );
         }, 2400)
       );
@@ -474,10 +526,16 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
       const phase = result?.data?.phase === 'compile' ? 'compile' : 'run';
       const comparison = result?.data?.comparison;
-      const matchedFlag = typeof result?.data?.flag === 'string' ? result.data.flag : null;
-      const stdout = typeof result?.data?.stdout === 'string' ? result.data.stdout : '';
-      const stderr = typeof result?.data?.stderr === 'string' ? result.data.stderr : '';
-      const exitCode = typeof result?.data?.exitCode === 'number' ? result.data.exitCode : null;
+      const matchedFlag =
+        typeof result?.data?.flag === 'string' ? result.data.flag : null;
+      const stdout =
+        typeof result?.data?.stdout === 'string' ? result.data.stdout : '';
+      const stderr =
+        typeof result?.data?.stderr === 'string' ? result.data.stderr : '';
+      const exitCode =
+        typeof result?.data?.exitCode === 'number'
+          ? result.data.exitCode
+          : null;
 
       const compareChecked = Boolean(comparison?.checked);
       const compareMatched = Boolean(comparison?.matched);
@@ -504,14 +562,20 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
       if (finalSuccess) {
         setCompileStage('done');
-        setCompileProgressMessage('Answer match and sandbox compile/run completed successfully.');
+        setCompileProgressMessage(
+          'Answer match and sandbox compile/run completed successfully.'
+        );
         toast.success('Correct');
       } else {
         setCompileStage('error');
         if (!compareChecked) {
-          setCompileProgressMessage('Answer comparison could not be performed.');
+          setCompileProgressMessage(
+            'Answer comparison could not be performed.'
+          );
         } else if (!compareMatched) {
-          setCompileProgressMessage('Answer file comparison failed (source mismatch).');
+          setCompileProgressMessage(
+            'Answer file comparison failed (source mismatch).'
+          );
         } else {
           setCompileProgressMessage(
             phase === 'compile'
@@ -537,7 +601,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
     }
   };
 
-  const handleSourceTabKey = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleSourceTabKey = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     if (event.key !== 'Tab') return;
 
     event.preventDefault();
@@ -591,9 +657,15 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                     <div className="rounded-lg border border-border bg-card/70 p-4 md:p-5">
                       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div>
-                          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Season Playground</p>
-                          <h2 className="font-mono text-2xl md:text-3xl text-foreground uppercase mt-1">{season}</h2>
-                          <p className="font-mono text-xs text-muted-foreground mt-1">Stay Curious and Keep Hacking!</p>
+                          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Season Playground
+                          </p>
+                          <h2 className="font-mono text-2xl md:text-3xl text-foreground uppercase mt-1">
+                            {season}
+                          </h2>
+                          <p className="font-mono text-xs text-muted-foreground mt-1">
+                            Stay Curious and Keep Hacking!
+                          </p>
                         </div>
                         <div className="flex items-center gap-1">
                           <button
@@ -618,20 +690,36 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div className="rounded border border-border bg-card/70 px-4 py-3">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase">Rank</p>
-                        <p className="font-mono text-xl text-foreground">{rank ? `#${rank}` : '-'}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground uppercase">
+                          Rank
+                        </p>
+                        <p className="font-mono text-xl text-foreground">
+                          {rank ? `#${rank}` : '-'}
+                        </p>
                       </div>
                       <div className="rounded border border-border bg-card/70 px-4 py-3">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase">Points</p>
-                        <p className="font-mono text-xl text-foreground">{points}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground uppercase">
+                          Points
+                        </p>
+                        <p className="font-mono text-xl text-foreground">
+                          {points}
+                        </p>
                       </div>
                       <div className="rounded border border-border bg-card/70 px-4 py-3">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase">Challenges</p>
-                        <p className="font-mono text-xl text-foreground">{solvedScenarios.length}/{scenarios.length}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground uppercase">
+                          Challenges
+                        </p>
+                        <p className="font-mono text-xl text-foreground">
+                          {solvedScenarios.length}/{scenarios.length}
+                        </p>
                       </div>
                       <div className="rounded border border-border bg-card/70 px-4 py-3">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase">Flags</p>
-                        <p className="font-mono text-xl text-foreground">{solvedScenarios.length}/{scenarios.length}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground uppercase">
+                          Flags
+                        </p>
+                        <p className="font-mono text-xl text-foreground">
+                          {solvedScenarios.length}/{scenarios.length}
+                        </p>
                       </div>
                     </div>
 
@@ -651,19 +739,20 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                           const isSelected = selectedCategory === value;
 
                           return (
-                          <button
-                            key={category}
-                            type="button"
-                            onClick={() => setSelectedCategory(value)}
-                            className={`px-3 py-1.5 rounded border font-mono text-[10px] uppercase ${
-                              isSelected
-                                ? 'border-accent bg-accent/10 text-foreground'
-                                : 'border-border bg-background/70 text-muted-foreground'
-                            }`}
-                          >
-                            {category}
-                          </button>
-                        );})}
+                            <button
+                              key={category}
+                              type="button"
+                              onClick={() => setSelectedCategory(value)}
+                              className={`px-3 py-1.5 rounded border font-mono text-[10px] uppercase ${
+                                isSelected
+                                  ? 'border-accent bg-accent/10 text-foreground'
+                                  : 'border-border bg-background/70 text-muted-foreground'
+                              }`}
+                            >
+                              {category}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -671,16 +760,28 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                       <div className="space-y-4">
                         <div className="bg-card/70 border border-border rounded overflow-hidden">
                           <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                            <span className="font-mono text-[11px] uppercase text-foreground">Challenge Board</span>
-                            <span className="font-mono text-[10px] uppercase text-muted-foreground">Unsolved · {unsolvedScenarios.length}</span>
+                            <span className="font-mono text-[11px] uppercase text-foreground">
+                              Challenge Board
+                            </span>
+                            <span className="font-mono text-[10px] uppercase text-muted-foreground">
+                              Unsolved · {unsolvedScenarios.length}
+                            </span>
                           </div>
                           <table className="w-full table-fixed text-xs font-mono">
                             <thead>
                               <tr className="text-muted-foreground border-b border-border">
-                                <th className="w-[40%] text-left px-4 py-2">Challenge</th>
-                                <th className="w-[15%] text-left px-4 py-2">Points</th>
-                                <th className="w-[20%] text-left px-4 py-2">Difficulty</th>
-                                <th className="w-[25%] text-left px-4 py-2">Category</th>
+                                <th className="w-[40%] text-left px-4 py-2">
+                                  Challenge
+                                </th>
+                                <th className="w-[15%] text-left px-4 py-2">
+                                  Points
+                                </th>
+                                <th className="w-[20%] text-left px-4 py-2">
+                                  Difficulty
+                                </th>
+                                <th className="w-[25%] text-left px-4 py-2">
+                                  Category
+                                </th>
                               </tr>
                             </thead>
                           </table>
@@ -689,7 +790,10 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                               <tbody>
                                 {unsolvedScenarios.length > 0 ? (
                                   unsolvedScenarios.map((scenario) => (
-                                    <tr key={scenario.id} className="border-b last:border-b-0 border-border/70">
+                                    <tr
+                                      key={scenario.id}
+                                      className="border-b last:border-b-0 border-border/70"
+                                    >
                                       <td className="w-[40%] px-4 py-2 text-foreground">
                                         <button
                                           type="button"
@@ -717,15 +821,26 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                                           {scenario.title}
                                         </button>
                                       </td>
-                                      <td className="w-[15%] px-4 py-2 text-foreground">{scenario.value}</td>
-                                      <td className="w-[20%] px-4 py-2 text-muted-foreground">{scenario.difficulty}</td>
-                                      <td className="w-[25%] px-4 py-2 text-muted-foreground uppercase">{scenario.category}</td>
+                                      <td className="w-[15%] px-4 py-2 text-foreground">
+                                        {scenario.value}
+                                      </td>
+                                      <td className="w-[20%] px-4 py-2 text-muted-foreground">
+                                        {scenario.difficulty}
+                                      </td>
+                                      <td className="w-[25%] px-4 py-2 text-muted-foreground uppercase">
+                                        {scenario.category}
+                                      </td>
                                     </tr>
                                   ))
                                 ) : (
                                   <tr>
-                                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                                      <span className="font-mono text-xs">No scenarios found for this category.</span>
+                                    <td
+                                      colSpan={4}
+                                      className="px-4 py-8 text-center text-muted-foreground"
+                                    >
+                                      <span className="font-mono text-xs">
+                                        No scenarios found for this category.
+                                      </span>
                                     </td>
                                   </tr>
                                 )}
@@ -736,8 +851,12 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
                         <div className="bg-card/70 border border-border rounded overflow-hidden">
                           <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                            <span className="font-mono text-[11px] uppercase text-foreground">Solved Archive</span>
-                            <span className="font-mono text-[10px] uppercase text-muted-foreground">{solvedScenarios.length} Solved</span>
+                            <span className="font-mono text-[11px] uppercase text-foreground">
+                              Solved Archive
+                            </span>
+                            <span className="font-mono text-[10px] uppercase text-muted-foreground">
+                              {solvedScenarios.length} Solved
+                            </span>
                           </div>
                           {solvedScenarios.length > 0 ? (
                             <div className="max-h-[132px] overflow-y-auto">
@@ -766,9 +885,12 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                                   }}
                                   className="w-full text-left px-4 py-3 border-b border-border/70 last:border-b-0 hover:bg-accent/10 rounded transition"
                                 >
-                                  <p className="font-mono text-xs text-foreground">{scenario.title}</p>
+                                  <p className="font-mono text-xs text-foreground">
+                                    {scenario.title}
+                                  </p>
                                   <p className="font-mono text-[10px] text-muted-foreground mt-1 uppercase">
-                                    {scenario.category} · {scenario.difficulty} · {scenario.value} pts
+                                    {scenario.category} · {scenario.difficulty}{' '}
+                                    · {scenario.value} pts
                                   </p>
                                 </button>
                               ))}
@@ -776,8 +898,12 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                           ) : (
                             <div className="h-40 flex flex-col items-center justify-center text-muted-foreground">
                               <Activity className="w-5 h-5 mb-2" />
-                              <p className="font-mono text-xs">No solved challenges yet.</p>
-                              <p className="font-mono text-xs">Capture your first flag.</p>
+                              <p className="font-mono text-xs">
+                                No solved challenges yet.
+                              </p>
+                              <p className="font-mono text-xs">
+                                Capture your first flag.
+                              </p>
                             </div>
                           )}
                         </div>
@@ -785,19 +911,30 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
                       <aside className="bg-card/70 border border-border rounded overflow-hidden">
                         <div className="px-4 py-3 border-b border-border">
-                          <span className="font-mono text-[11px] uppercase text-foreground">Live Feed</span>
+                          <span className="font-mono text-[11px] uppercase text-foreground">
+                            Live Feed
+                          </span>
                         </div>
                         <div className="max-h-[420px] overflow-y-auto">
                           {activities.length > 0 ? (
                             activities.slice(0, 7).map((activity) => (
-                              <div key={activity.id} className="px-4 py-3 border-b border-border/70">
-                                <p className="font-mono text-xs text-foreground leading-5">{activity.message}</p>
-                                <p className="font-mono text-[10px] text-muted-foreground mt-1">{formatAgo(activity.createdAt)}</p>
+                              <div
+                                key={activity.id}
+                                className="px-4 py-3 border-b border-border/70"
+                              >
+                                <p className="font-mono text-xs text-foreground leading-5">
+                                  {activity.message}
+                                </p>
+                                <p className="font-mono text-[10px] text-muted-foreground mt-1">
+                                  {formatAgo(activity.createdAt)}
+                                </p>
                               </div>
                             ))
                           ) : (
                             <div className="px-4 py-6">
-                              <p className="font-mono text-xs text-muted-foreground">No solve activity yet.</p>
+                              <p className="font-mono text-xs text-muted-foreground">
+                                No solve activity yet.
+                              </p>
                             </div>
                           )}
                         </div>
@@ -811,11 +948,18 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
         </div>
       </div>
 
-      <Dialog open={isChallengeModalOpen} onOpenChange={setIsChallengeModalOpen}>
+      <Dialog
+        open={isChallengeModalOpen}
+        onOpenChange={setIsChallengeModalOpen}
+      >
         <DialogContent className="w-[94vw] max-w-5xl border-border/30 bg-card/95 backdrop-blur-sm">
           <DialogHeader>
-            <DialogTitle className="font-mono text-xs uppercase tracking-wider text-muted-foreground">챌린지 이름</DialogTitle>
-            <p className="font-mono text-xl text-foreground">{selectedChallenge?.title || '-'}</p>
+            <DialogTitle className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+              챌린지 이름
+            </DialogTitle>
+            <p className="font-mono text-xl text-foreground">
+              {selectedChallenge?.title || '-'}
+            </p>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -861,176 +1005,227 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
             {challengeModalTab === 'overview' ? (
               <>
-            <div className="space-y-1.5">
-              <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">챌린지 설명</p>
-              {selectedChallenge?.description?.trim() ? (
-                <div className="rounded border border-border/40 bg-background/40 px-3 py-2">
-                  <div className="prose prose-sm max-w-none text-foreground prose-headings:font-mono prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-a:text-white hover:prose-a:text-white/90">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {selectedChallenge.description}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              ) : (
-                <p className="font-mono text-sm text-foreground leading-6">설명이 없습니다.</p>
-              )}
-            </div>
-
-            {isInstanceEnabled && (
-              <div className="rounded border border-border bg-background/50 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Instance 실행</p>
-                </div>
-
-                <div className="mt-2">
-                    <div className="flex items-center justify-between rounded border border-border/40 bg-background/70 px-3 py-3">
-                      <div className="space-y-2">
-                        <p className="font-mono text-sm text-foreground">Challenge Instance</p>
-                        {instanceInfoVisible ? (
-                          <div className="flex items-stretch gap-2">
-                            <div className="min-w-0 flex-1 rounded border border-accent/40 bg-accent/10 px-2 py-1">
-                              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Server Address</p>
-                              <p className="font-mono text-sm text-foreground break-all">{selectedChallenge?.serverAddress}</p>
-                            </div>
-                            <div className="w-28 rounded border border-accent/40 bg-accent/10 px-2 py-1">
-                              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Port</p>
-                              <p className="font-mono text-sm text-foreground">{selectedChallenge?.serverPort}</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="font-mono text-xs text-muted-foreground">버튼을 눌러 SERVER ADDRESS / PORT 정보를 확인하세요.</p>
-                        )}
+                <div className="space-y-1.5">
+                  <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                    챌린지 설명
+                  </p>
+                  {selectedChallenge?.description?.trim() ? (
+                    <div className="rounded border border-border/40 bg-background/40 px-3 py-2">
+                      <div className="prose prose-sm max-w-none text-foreground prose-headings:font-mono prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-a:text-white hover:prose-a:text-white/90">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {selectedChallenge.description}
+                        </ReactMarkdown>
                       </div>
-                    <button
-                      type="button"
-                      onClick={handleStartInstance}
-                        className="inline-flex h-9 items-center rounded border border-accent/60 bg-accent/20 px-3 font-mono text-xs uppercase text-foreground hover:bg-accent/30 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Instance 정보
-                    </button>
-                  </div>
+                    </div>
+                  ) : (
+                    <p className="font-mono text-sm text-foreground leading-6">
+                      설명이 없습니다.
+                    </p>
+                  )}
                 </div>
-              </div>
-            )}
 
-            <div className="rounded border border-border bg-background/50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">첨부 파일 (다운로드)</p>
-              </div>
+                {isInstanceEnabled && (
+                  <div className="rounded border border-border bg-background/50 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                        Instance 실행
+                      </p>
+                    </div>
 
-              {selectedAttachments.length > 0 ? (
-                <div className="mt-2 space-y-2">
-                  {selectedAttachments.map((file) => (
-                    <div key={`${file.name}-${file.size}-${file.type}`} className="flex items-center justify-between rounded border border-border/40 px-3 py-2">
-                      <div>
-                        <p className="font-mono text-xs text-foreground">{file.name}</p>
-                        <p className="font-mono text-[10px] text-muted-foreground">
-                          {(file.size / 1024).toFixed(1)} KB{file.type ? ` · ${file.type}` : ''}
-                        </p>
-                      </div>
-                      {getDownloadUrl(file) ? (
-                        <a
-                          href={getDownloadUrl(file) || '#'}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded border border-border/40 hover:bg-background/70"
-                          aria-label={`Download ${file.name}`}
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between rounded border border-border/40 bg-background/70 px-3 py-3">
+                        <div className="space-y-2">
+                          <p className="font-mono text-sm text-foreground">
+                            Challenge Instance
+                          </p>
+                          {instanceInfoVisible ? (
+                            <div className="flex items-stretch gap-2">
+                              <div className="min-w-0 flex-1 rounded border border-accent/40 bg-accent/10 px-2 py-1">
+                                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                                  Server Address
+                                </p>
+                                <p className="font-mono text-sm text-foreground break-all">
+                                  {selectedChallenge?.serverAddress}
+                                </p>
+                              </div>
+                              <div className="w-28 rounded border border-accent/40 bg-accent/10 px-2 py-1">
+                                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                                  Port
+                                </p>
+                                <p className="font-mono text-sm text-foreground">
+                                  {selectedChallenge?.serverPort}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="font-mono text-xs text-muted-foreground">
+                              버튼을 눌러 SERVER ADDRESS / PORT 정보를
+                              확인하세요.
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleStartInstance}
+                          className="inline-flex h-9 items-center rounded border border-accent/60 bg-accent/20 px-3 font-mono text-xs uppercase text-foreground hover:bg-accent/30 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <Download className="h-4 w-4" />
-                        </a>
-                      ) : (
+                          Instance 정보
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded border border-border bg-background/50 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                      첨부 파일 (다운로드)
+                    </p>
+                  </div>
+
+                  {selectedAttachments.length > 0 ? (
+                    <div className="mt-2 space-y-2">
+                      {selectedAttachments.map((file) => (
+                        <div
+                          key={`${file.name}-${file.size}-${file.type}`}
+                          className="flex items-center justify-between rounded border border-border/40 px-3 py-2"
+                        >
+                          <div>
+                            <p className="font-mono text-xs text-foreground">
+                              {file.name}
+                            </p>
+                            <p className="font-mono text-[10px] text-muted-foreground">
+                              {(file.size / 1024).toFixed(1)} KB
+                              {file.type ? ` · ${file.type}` : ''}
+                            </p>
+                          </div>
+                          {getDownloadUrl(file) ? (
+                            <a
+                              href={getDownloadUrl(file) || '#'}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded border border-border/40 hover:bg-background/70"
+                              aria-label={`Download ${file.name}`}
+                            >
+                              <Download className="h-4 w-4" />
+                            </a>
+                          ) : (
+                            <span className="inline-flex h-8 items-center rounded border border-border/40 px-2 font-mono text-[10px] text-muted-foreground">
+                              N/A
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between rounded border border-border/40 px-3 py-2">
+                        <div>
+                          <p className="font-mono text-xs text-foreground">
+                            첨부 파일이 없습니다.
+                          </p>
+                          <p className="font-mono text-[10px] text-muted-foreground">
+                            0.0 KB
+                          </p>
+                        </div>
                         <span className="inline-flex h-8 items-center rounded border border-border/40 px-2 font-mono text-[10px] text-muted-foreground">
                           N/A
                         </span>
-                      )}
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              ) : (
-                <div className="mt-2">
-                  <div className="flex items-center justify-between rounded border border-border/40 px-3 py-2">
-                    <div>
-                      <p className="font-mono text-xs text-foreground">첨부 파일이 없습니다.</p>
-                      <p className="font-mono text-[10px] text-muted-foreground">0.0 KB</p>
-                    </div>
-                    <span className="inline-flex h-8 items-center rounded border border-border/40 px-2 font-mono text-[10px] text-muted-foreground">
-                      N/A
-                    </span>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="rounded border border-border bg-background/50 px-4 py-3">
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      포인트
+                    </p>
+                    <p className="font-mono text-xl text-foreground">
+                      {selectedChallenge?.value ?? 0}
+                    </p>
+                  </div>
+                  <div className="rounded border border-border bg-background/50 px-4 py-3">
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      난이도
+                    </p>
+                    <p className="font-mono text-xl text-foreground uppercase">
+                      {selectedChallenge?.difficulty || '-'}
+                    </p>
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="rounded border border-border bg-background/50 px-4 py-3">
-                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">포인트</p>
-                <p className="font-mono text-xl text-foreground">{selectedChallenge?.value ?? 0}</p>
-              </div>
-              <div className="rounded border border-border bg-background/50 px-4 py-3">
-                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">난이도</p>
-                <p className="font-mono text-xl text-foreground uppercase">{selectedChallenge?.difficulty || '-'}</p>
-              </div>
-            </div>
+                <div className="space-y-1.5">
+                  <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                    플래그
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={flagInput}
+                      onChange={(e) => setFlagInput(e.target.value)}
+                      placeholder="플래그 제출"
+                      className="w-full bg-background/60 border border-border rounded text-sm font-mono text-foreground px-3 py-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!selectedChallenge?.id) return;
+                        const flag = flagInput.trim();
+                        if (!flag) {
+                          toast.error('플래그를 입력해주세요.');
+                          return;
+                        }
 
-            <div className="space-y-1.5">
-              <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">플래그</p>
-              <div className="flex items-center gap-2">
-                <input
-                  value={flagInput}
-                  onChange={(e) => setFlagInput(e.target.value)}
-                  placeholder="플래그 제출"
-                  className="w-full bg-background/60 border border-border rounded text-sm font-mono text-foreground px-3 py-2"
-                />
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!selectedChallenge?.id) return;
-                    const flag = flagInput.trim();
-                    if (!flag) {
-                      toast.error('플래그를 입력해주세요.');
-                      return;
-                    }
+                        try {
+                          setSubmittingFlag(true);
 
-                    try {
-                      setSubmittingFlag(true);
+                          const response = await fetch(
+                            '/api/playground/submit-flag',
+                            {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              credentials: 'include',
+                              body: JSON.stringify({
+                                challengeId: selectedChallenge.id,
+                                flag,
+                              }),
+                            }
+                          );
 
-                      const response = await fetch('/api/playground/submit-flag', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                          challengeId: selectedChallenge.id,
-                          flag,
-                        }),
-                      });
+                          const result = await response
+                            .json()
+                            .catch(() => ({}));
+                          if (!response.ok) {
+                            throw new Error(
+                              result?.error?.message ||
+                                '플래그 제출에 실패했습니다.'
+                            );
+                          }
 
-                      const result = await response.json().catch(() => ({}));
-                      if (!response.ok) {
-                        throw new Error(result?.error?.message || '플래그 제출에 실패했습니다.');
-                      }
-
-                      if (result?.data?.correct) {
-                        const message = result?.data?.alreadySolved
-                          ? '이미 해결한 문제입니다.'
-                          : '정답입니다!';
-                        toast.success(message);
-                        await mutateProgress();
-                      } else {
-                        toast.error('오답입니다.');
-                      }
-                    } catch (error: any) {
-                      toast.error(error?.message || '플래그 제출에 실패했습니다.');
-                    } finally {
-                      setSubmittingFlag(false);
-                    }
-                  }}
-                  disabled={submittingFlag}
-                  className="h-9 px-6 rounded border border-accent/50 bg-accent/10 font-mono text-xs uppercase whitespace-nowrap text-foreground hover:bg-accent/20 disabled:opacity-50"
-                >
-                  {submittingFlag ? '제출 중...' : '제출'}
-                </button>
-              </div>
-            </div>
+                          if (result?.data?.correct) {
+                            const message = result?.data?.alreadySolved
+                              ? '이미 해결한 문제입니다.'
+                              : '정답입니다!';
+                            toast.success(message);
+                            await mutateProgress();
+                          } else {
+                            toast.error('오답입니다.');
+                          }
+                        } catch (error: any) {
+                          toast.error(
+                            error?.message || '플래그 제출에 실패했습니다.'
+                          );
+                        } finally {
+                          setSubmittingFlag(false);
+                        }
+                      }}
+                      disabled={submittingFlag}
+                      className="h-9 px-6 rounded border border-accent/50 bg-accent/10 font-mono text-xs uppercase whitespace-nowrap text-foreground hover:bg-accent/20 disabled:opacity-50"
+                    >
+                      {submittingFlag ? '제출 중...' : '제출'}
+                    </button>
+                  </div>
+                </div>
               </>
             ) : challengeModalTab === 'compile' && isProgrammingChallenge ? (
               <div className="rounded border border-border bg-background/50 p-3">
@@ -1242,7 +1437,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">C Source</p>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        C Source
+                      </p>
                       <button
                         type="button"
                         onClick={handleCompileSubmit}
@@ -1264,7 +1461,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
                   <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">플래그</p>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        플래그
+                      </p>
                       <div
                         className={`w-full min-h-[84px] px-3 py-2 border rounded font-mono text-xs text-foreground break-all ${
                           compileFlag
@@ -1272,44 +1471,61 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                             : 'border-border/30 bg-background/60'
                         }`}
                       >
-                        {compileFlag || 'Challenge를 해결하면 플래그가 표시됩니다.'}
+                        {compileFlag ||
+                          'Challenge를 해결하면 플래그가 표시됩니다.'}
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">표준 출력</p>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        표준 출력
+                      </p>
                       <pre className="w-full min-h-[120px] px-3 py-2 border border-border/30 rounded bg-background/60 font-mono text-xs text-foreground overflow-auto whitespace-pre-wrap break-words">
                         {compileStdout || '(출력 없음)'}
                       </pre>
                     </div>
 
                     <div className="space-y-1.5">
-                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">에러 출력 / 컴파일 오류</p>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        에러 출력 / 컴파일 오류
+                      </p>
                       <pre className="w-full min-h-[120px] px-3 py-2 border border-border/30 rounded bg-background/60 font-mono text-xs text-foreground overflow-auto whitespace-pre-wrap break-words">
                         {compileStderr || '(에러 없음)'}
                       </pre>
                     </div>
 
                     <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
-                      종료 코드: {compileExitCode === null ? '-' : compileExitCode}
+                      종료 코드:{' '}
+                      {compileExitCode === null ? '-' : compileExitCode}
                     </p>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="rounded border border-border bg-background/50 p-3">
-                <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-2">풀이한 참가자</p>
+                <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                  풀이한 참가자
+                </p>
                 {solveUsers.length > 0 ? (
                   <div className="space-y-2">
                     {solveUsers.map((solve) => (
-                      <div key={solve.id} className="flex items-center justify-between rounded border border-border/40 px-3 py-2">
-                        <p className="font-mono text-sm text-foreground">{solve.userName}</p>
-                        <p className="font-mono text-[10px] text-muted-foreground">{formatAgo(solve.createdAt)}</p>
+                      <div
+                        key={solve.id}
+                        className="flex items-center justify-between rounded border border-border/40 px-3 py-2"
+                      >
+                        <p className="font-mono text-sm text-foreground">
+                          {solve.userName}
+                        </p>
+                        <p className="font-mono text-[10px] text-muted-foreground">
+                          {formatAgo(solve.createdAt)}
+                        </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="font-mono text-xs text-muted-foreground">아직 이 문제를 푼 사람이 없습니다.</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    아직 이 문제를 푼 사람이 없습니다.
+                  </p>
                 )}
               </div>
             )}
@@ -1318,7 +1534,10 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
       </Dialog>
 
       {/* Scoreboard Modal with Capture Button */}
-      <Dialog open={isScoreboardModalOpen} onOpenChange={setIsScoreboardModalOpen}>
+      <Dialog
+        open={isScoreboardModalOpen}
+        onOpenChange={setIsScoreboardModalOpen}
+      >
         <DialogContent className="w-[98vw] max-w-[1500px] max-h-[94vh] overflow-hidden overscroll-none border-border/30 bg-card/95 backdrop-blur-sm">
           <DialogHeader>
             <div className="flex items-center">
@@ -1339,11 +1558,15 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
           {scoreboardLoading ? (
             <div className="py-8 text-center border border-dashed border-border/40 rounded">
-              <p className="font-mono text-xs text-muted-foreground">Loading scoreboard...</p>
+              <p className="font-mono text-xs text-muted-foreground">
+                Loading scoreboard...
+              </p>
             </div>
           ) : scoreboardRows.length === 0 ? (
             <div className="py-8 text-center border border-dashed border-border/40 rounded">
-              <p className="font-mono text-xs text-muted-foreground">No scoreboard data yet.</p>
+              <p className="font-mono text-xs text-muted-foreground">
+                No scoreboard data yet.
+              </p>
             </div>
           ) : (
             <div className="overflow-auto overscroll-none max-h-[78vh] rounded border border-border/20 no-scrollbar">
@@ -1351,10 +1574,16 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                 <table className="w-full min-w-[680px] table-fixed text-xs font-mono">
                   <thead>
                     <tr className="border-b border-border/20 bg-card text-muted-foreground">
-                      <th className="sticky left-0 top-0 z-[110] w-14 bg-card px-3 py-3 text-left">#</th>
-                      <th className="sticky left-14 top-0 z-[110] w-[84px] bg-card px-0.5 py-3 text-left whitespace-nowrap">Team</th>
+                      <th className="sticky left-0 top-0 z-[110] w-14 bg-card px-3 py-3 text-left">
+                        #
+                      </th>
+                      <th className="sticky left-14 top-0 z-[110] w-[84px] bg-card px-0.5 py-3 text-left whitespace-nowrap">
+                        Team
+                      </th>
                       <th className="sticky left-[140px] top-0 z-[120] relative w-14 bg-card px-0 py-3 border-r border-border/40">
-                        <span className="absolute inset-0 flex items-center justify-center">Score</span>
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          Score
+                        </span>
                       </th>
                       {scoreboardChallenges.map((challenge) => (
                         <th
@@ -1374,7 +1603,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                   <tbody>
                     {scoreboardRows.map((row, index) => {
                       const solved = new Set(row.solvedChallengeIds || []);
-                      const firstBlood = new Set(row.firstBloodChallengeIds || []);
+                      const firstBlood = new Set(
+                        row.firstBloodChallengeIds || []
+                      );
                       const rowBg = index % 2 === 0 ? 'bg-card' : 'bg-muted/10';
 
                       return (
@@ -1389,14 +1620,19 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                             {row.name}
                           </td>
                           <td className="sticky left-[140px] z-[120] w-14 bg-card px-0.5 py-3 text-foreground font-semibold border-r border-border/40">
-                            <span className="block w-full text-center tabular-nums">{row.points}</span>
+                            <span className="block w-full text-center tabular-nums">
+                              {row.points}
+                            </span>
                           </td>
                           {scoreboardChallenges.map((challenge) => {
                             const isSolved = solved.has(challenge.id);
                             const isFirstBlood = firstBlood.has(challenge.id);
 
                             return (
-                              <td key={`scoreboard-cell-${row.userId}-${challenge.id}`} className="relative z-0 w-[64px] min-w-[64px] px-0 py-3 text-center">
+                              <td
+                                key={`scoreboard-cell-${row.userId}-${challenge.id}`}
+                                className="relative z-0 w-[64px] min-w-[64px] px-0 py-3 text-center"
+                              >
                                 <span
                                   className={`inline-flex h-6 w-6 items-center justify-center ${
                                     isFirstBlood
@@ -1405,9 +1641,17 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                                         ? 'text-green-500'
                                         : 'text-muted-foreground/45'
                                   }`}
-                                  title={isFirstBlood ? 'First Blood' : isSolved ? 'Solved' : 'Unsolved'}
+                                  title={
+                                    isFirstBlood
+                                      ? 'First Blood'
+                                      : isSolved
+                                        ? 'Solved'
+                                        : 'Unsolved'
+                                  }
                                 >
-                                  <Flag className={`h-3.5 w-3.5 ${isSolved || isFirstBlood ? 'fill-current' : ''}`} />
+                                  <Flag
+                                    className={`h-3.5 w-3.5 ${isSolved || isFirstBlood ? 'fill-current' : ''}`}
+                                  />
                                 </span>
                               </td>
                             );
@@ -1422,7 +1666,6 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
           )}
         </DialogContent>
       </Dialog>
-
 
       <Dialog
         open={isFlagLogModalOpen}
@@ -1442,10 +1685,14 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">문제 필터</p>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                문제 필터
+              </p>
               <select
                 value={flagLogChallengeFilter}
-                onChange={(event) => setFlagLogChallengeFilter(event.target.value)}
+                onChange={(event) =>
+                  setFlagLogChallengeFilter(event.target.value)
+                }
                 className="h-8 rounded border border-border/30 bg-background/60 px-2 font-mono text-xs text-foreground"
               >
                 <option value="all">전체</option>
@@ -1459,11 +1706,15 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
 
             {flagLogLoading ? (
               <div className="py-8 text-center border border-dashed border-border/40 rounded">
-                <p className="font-mono text-xs text-muted-foreground">로그를 불러오는 중...</p>
+                <p className="font-mono text-xs text-muted-foreground">
+                  로그를 불러오는 중...
+                </p>
               </div>
             ) : flagLogRows.length === 0 ? (
               <div className="py-8 text-center border border-dashed border-border/40 rounded">
-                <p className="font-mono text-xs text-muted-foreground">제출 로그가 없습니다.</p>
+                <p className="font-mono text-xs text-muted-foreground">
+                  제출 로그가 없습니다.
+                </p>
               </div>
             ) : (
               <div className="border border-border/20 rounded overflow-hidden">
@@ -1488,7 +1739,10 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                     <table className="w-full min-w-[1060px] text-xs font-mono">
                       <tbody>
                         {flagLogRows.map((row) => (
-                          <tr key={row.id} className="border-b border-border/10 last:border-b-0">
+                          <tr
+                            key={row.id}
+                            className="border-b border-border/10 last:border-b-0"
+                          >
                             <td className="px-3 py-2 text-foreground whitespace-nowrap">
                               {new Date(row.createdAt).toLocaleString('ko-KR', {
                                 year: 'numeric',
@@ -1502,7 +1756,9 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                             </td>
                             <td className="px-3 py-2 text-foreground">
                               <p>{row.userName}</p>
-                              <p className="text-[10px] text-muted-foreground">{row.userEmail}</p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {row.userEmail}
+                              </p>
                             </td>
                             <td className="px-3 py-2 text-foreground">
                               <p>{row.challengeTitle}</p>
@@ -1510,11 +1766,23 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({ s
                                 {row.category || '-'} · {row.difficulty || '-'}
                               </p>
                             </td>
-                            <td className="px-3 py-2 text-foreground break-all">{row.submittedFlag}</td>
-                            <td className="px-3 py-2 text-foreground">{row.submissionMethod}</td>
-                            <td className="px-3 py-2 text-right text-foreground">{row.attemptNumber}</td>
+                            <td className="px-3 py-2 text-foreground break-all">
+                              {row.submittedFlag}
+                            </td>
+                            <td className="px-3 py-2 text-foreground">
+                              {row.submissionMethod}
+                            </td>
+                            <td className="px-3 py-2 text-right text-foreground">
+                              {row.attemptNumber}
+                            </td>
                             <td className="px-3 py-2 text-right">
-                              <span className={row.isCorrect ? 'text-green-400' : 'text-destructive'}>
+                              <span
+                                className={
+                                  row.isCorrect
+                                    ? 'text-green-400'
+                                    : 'text-destructive'
+                                }
+                              >
                                 {row.isCorrect ? '정답' : '오답'}
                               </span>
                             </td>
@@ -1539,7 +1807,8 @@ export const getServerSideProps = async (
   const { locale } = context;
   const session = await getSession(context.req, context.res);
   const user = await getUserBySession(session);
-  const season = typeof context.query.season === 'string' ? context.query.season.trim() : '';
+  const season =
+    typeof context.query.season === 'string' ? context.query.season.trim() : '';
 
   if (!season) {
     return { notFound: true };

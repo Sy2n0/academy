@@ -70,7 +70,6 @@ const Webhooks = ({ team }: { team: Team }) => {
             </p>
           </div>
           <Button
-            
             size="md"
             onClick={() => setCreateWebhookVisible(!createWebhookVisible)}
           >

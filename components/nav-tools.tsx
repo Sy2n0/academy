@@ -1,21 +1,21 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { type LucideIcon } from "lucide-react"
+import * as React from 'react';
+import { type LucideIcon } from 'lucide-react';
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 interface NavToolsProps {
   tools: {
-    title: string
-    url: string
-    icon?: LucideIcon
-  }[]
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+  }[];
 }
 
 export function NavTools({ tools }: NavToolsProps) {
@@ -35,5 +35,5 @@ export function NavTools({ tools }: NavToolsProps) {
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

@@ -37,10 +37,13 @@ export default async function handler(
     const contentType = types[ext] ?? 'application/octet-stream';
     res.setHeader('Content-Type', contentType);
     const filename = path.basename(key);
-    const forceDownload = req.query.download === '1' || req.query.download === 'true';
+    const forceDownload =
+      req.query.download === '1' || req.query.download === 'true';
     res.setHeader(
       'Content-Disposition',
-      forceDownload ? `attachment; filename="${filename}"` : `inline; filename="${filename}"`
+      forceDownload
+        ? `attachment; filename="${filename}"`
+        : `inline; filename="${filename}"`
     );
     return res.send(buffer);
   } catch {

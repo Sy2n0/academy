@@ -3,11 +3,23 @@ import { InputHTMLAttributes } from 'react';
 
 import { CopyToClipboardButton } from '@/components/shared';
 
-interface InputWithCopyButtonProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'color'> {
+interface InputWithCopyButtonProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'color'
+> {
   label: string;
   description?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
-  color?: 'primary' | 'secondary' | 'accent' | 'ghost' | 'link' | 'info' | 'success' | 'warning' | 'error';
+  color?:
+    | 'primary'
+    | 'secondary'
+    | 'accent'
+    | 'ghost'
+    | 'link'
+    | 'info'
+    | 'success'
+    | 'warning'
+    | 'error';
 }
 
 const InputWithCopyButton = (props: InputWithCopyButtonProps) => {

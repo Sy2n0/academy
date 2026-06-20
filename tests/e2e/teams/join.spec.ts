@@ -10,7 +10,9 @@ test.describe('팀 합류 플로우', () => {
     await loginPage.loggedInCheck(team.slug);
   });
 
-  test('잘못된 초대 코드로 팀 합류 시 오류 메시지가 표시된다', async ({ page }) => {
+  test('잘못된 초대 코드로 팀 합류 시 오류 메시지가 표시된다', async ({
+    page,
+  }) => {
     // API 직접 호출로 검증
     const res = await page.request.post('/api/teams/join', {
       data: { inviteCode: 'invalid-code-that-does-not-exist' },
@@ -27,7 +29,9 @@ test.describe('팀 합류 플로우', () => {
     expect(res.status()).toBe(500);
   });
 
-  test('비로그인 상태에서 팀 합류 API 호출 시 401을 반환한다', async ({ page }) => {
+  test('비로그인 상태에서 팀 합류 API 호출 시 401을 반환한다', async ({
+    page,
+  }) => {
     await page.context().clearCookies();
     const res = await page.request.post('/api/teams/join', {
       data: { inviteCode: 'some-code' },
@@ -38,6 +42,8 @@ test.describe('팀 합류 플로우', () => {
   test('팀 스위치 페이지에 접근할 수 있다', async ({ page }) => {
     await page.goto('/teams/switch');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText(
+      'Internal Server Error'
+    );
   });
 });

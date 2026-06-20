@@ -27,7 +27,8 @@ const schema = Yup.object().shape({
 
 const UpdatePassword = () => {
   const { t } = useTranslation('common');
-  const [isCurrentPasswordVisible, setIsCurrentPasswordVisible] = useState(false);
+  const [isCurrentPasswordVisible, setIsCurrentPasswordVisible] =
+    useState(false);
   const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
 
   const formik = useFormik({
@@ -68,7 +69,10 @@ const UpdatePassword = () => {
         </div>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="currentPassword" className="font-mono text-xs uppercase tracking-wider">
+            <FieldLabel
+              htmlFor="currentPassword"
+              className="font-mono text-xs uppercase tracking-wider"
+            >
               {t('current-password')}
             </FieldLabel>
             <div className="relative">
@@ -80,14 +84,18 @@ const UpdatePassword = () => {
                 value={formik.values.currentPassword}
                 onChange={formik.handleChange}
                 className={cn(
-                  "font-mono text-sm pr-10",
-                  formik.touched.currentPassword && formik.errors.currentPassword && "border-destructive"
+                  'font-mono text-sm pr-10',
+                  formik.touched.currentPassword &&
+                    formik.errors.currentPassword &&
+                    'border-destructive'
                 )}
                 required
               />
               <button
                 type="button"
-                onClick={() => setIsCurrentPasswordVisible(!isCurrentPasswordVisible)}
+                onClick={() =>
+                  setIsCurrentPasswordVisible(!isCurrentPasswordVisible)
+                }
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {isCurrentPasswordVisible ? (
@@ -97,15 +105,19 @@ const UpdatePassword = () => {
                 )}
               </button>
             </div>
-            {formik.touched.currentPassword && formik.errors.currentPassword && (
-              <FieldDescription className="text-destructive font-mono text-xs">
-                {formik.errors.currentPassword}
-              </FieldDescription>
-            )}
+            {formik.touched.currentPassword &&
+              formik.errors.currentPassword && (
+                <FieldDescription className="text-destructive font-mono text-xs">
+                  {formik.errors.currentPassword}
+                </FieldDescription>
+              )}
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="newPassword" className="font-mono text-xs uppercase tracking-wider">
+            <FieldLabel
+              htmlFor="newPassword"
+              className="font-mono text-xs uppercase tracking-wider"
+            >
               {t('new-password')}
             </FieldLabel>
             <div className="relative">
@@ -117,8 +129,10 @@ const UpdatePassword = () => {
                 value={formik.values.newPassword}
                 onChange={formik.handleChange}
                 className={cn(
-                  "font-mono text-sm pr-10",
-                  formik.touched.newPassword && formik.errors.newPassword && "border-destructive"
+                  'font-mono text-sm pr-10',
+                  formik.touched.newPassword &&
+                    formik.errors.newPassword &&
+                    'border-destructive'
                 )}
                 required
               />
@@ -140,7 +154,9 @@ const UpdatePassword = () => {
               </FieldDescription>
             )}
             <FieldDescription className="font-mono text-xs">
-              {t('password-must-be-at-least') || 'Must be at least'} {passwordPolicies.minLength} {t('characters-long') || 'characters long'}.
+              {t('password-must-be-at-least') || 'Must be at least'}{' '}
+              {passwordPolicies.minLength}{' '}
+              {t('characters-long') || 'characters long'}.
             </FieldDescription>
           </Field>
         </FieldGroup>
@@ -150,7 +166,9 @@ const UpdatePassword = () => {
             disabled={!formik.dirty || !formik.isValid || formik.isSubmitting}
             className="font-mono text-xs uppercase tracking-wider"
           >
-            {formik.isSubmitting ? t('loading') || 'Loading...' : t('change-password')}
+            {formik.isSubmitting
+              ? t('loading') || 'Loading...'
+              : t('change-password')}
           </Button>
         </div>
       </div>

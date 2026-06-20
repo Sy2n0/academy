@@ -1,7 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getFileUrl } from '@/lib/storage';
 
-const BUCKET_BASE = (process.env.PLAYGROUND_ATTACHMENT_PUBLIC_BASE_URL || 'https://bucket.hub-h4ck.com').replace(/\/+$/, '');
+const BUCKET_BASE = (
+  process.env.PLAYGROUND_ATTACHMENT_PUBLIC_BASE_URL ||
+  'https://bucket.hub-h4ck.com'
+).replace(/\/+$/, '');
 
 const getKeyFromUrl = (value: string): string => {
   try {
@@ -13,28 +16,45 @@ const getKeyFromUrl = (value: string): string => {
   }
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+    return res
+      .status(405)
+      .json({ error: { message: `Method ${req.method} Not Allowed` } });
   }
 
   try {
-    const keyParam = typeof req.query.key === 'string' ? decodeURIComponent(req.query.key) : '';
-    const urlParam = typeof req.query.url === 'string' ? decodeURIComponent(req.query.url) : '';
+    const keyParam =
+      typeof req.query.key === 'string'
+        ? decodeURIComponent(req.query.key)
+        : '';
+    const urlParam =
+      typeof req.query.url === 'string'
+        ? decodeURIComponent(req.query.url)
+        : '';
 
     const key = keyParam || (urlParam ? getKeyFromUrl(urlParam) : '');
     if (!key || key.includes('..')) {
-      return res.status(400).json({ error: { message: 'Invalid attachment key' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'Invalid attachment key' } });
     }
 
     const fileName = key.split('/').pop() || 'attachment';
     const bucket = process.env.S3_BUCKET || 'hub-academy';
-    const downloadUrl = await getFileUrl(bucket, key, { downloadFilename: fileName });
+    const downloadUrl = await getFileUrl(bucket, key, {
+      downloadFilename: fileName,
+    });
 
     return res.redirect(302, downloadUrl);
   } catch (error) {
     console.error('Error creating attachment download URL:', error);
-    return res.status(500).json({ error: { message: 'Failed to create download URL' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Failed to create download URL' } });
   }
 }

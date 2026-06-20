@@ -65,7 +65,13 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 });
 
 // 비밀번호 변경 다이얼로그 컴포넌트
-function ChangePasswordDialog({ userId, userName }: { userId: string, userName: string }) {
+function ChangePasswordDialog({
+  userId,
+  userName,
+}: {
+  userId: string;
+  userName: string;
+}) {
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -97,7 +103,12 @@ function ChangePasswordDialog({ userId, userName }: { userId: string, userName: 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="xs" className="w-full font-mono text-xs" type="button">
+        <Button
+          variant="outline"
+          size="xs"
+          className="w-full font-mono text-xs"
+          type="button"
+        >
           비밀번호 변경
         </Button>
       </DialogTrigger>
@@ -107,13 +118,15 @@ function ChangePasswordDialog({ userId, userName }: { userId: string, userName: 
           <Input
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="새 비밀번호 (6자 이상)"
             minLength={6}
             className="font-mono text-sm"
             disabled={loading}
           />
-          {error && <div className="text-red-500 font-mono text-xs">{error}</div>}
+          {error && (
+            <div className="text-red-500 font-mono text-xs">{error}</div>
+          )}
           <Button
             onClick={handleChangePassword}
             disabled={loading || password.length < 6}
@@ -127,7 +140,10 @@ function ChangePasswordDialog({ userId, userName }: { userId: string, userName: 
   );
 }
 
-const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({ initialUsers, initialPagination }) => {
+const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({
+  initialUsers,
+  initialPagination,
+}) => {
   const { t } = useTranslation('common');
   const [users, setUsers] = useState(initialUsers);
   const [pagination, setPagination] = useState(initialPagination);
@@ -137,7 +153,9 @@ const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({ initialUsers, initial
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}&page=1&limit=50`);
+      const response = await fetch(
+        `/api/admin/users?search=${encodeURIComponent(search)}&page=1&limit=50`
+      );
       const data = (await response.json()) as UserListApiResponse;
       if (data.data) {
         setUsers(data.data);
@@ -169,9 +187,11 @@ const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({ initialUsers, initial
       }
 
       // Update local state
-      setUsers(users.map((user) => 
-        user.id === userId ? { ...user, role: newRole } : user
-      ));
+      setUsers(
+        users.map((user) =>
+          user.id === userId ? { ...user, role: newRole } : user
+        )
+      );
 
       toast.success('User role updated successfully');
     } catch (error) {
@@ -264,43 +284,74 @@ const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({ initialUsers, initial
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">Name</TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">Email</TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">Role</TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">Points</TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">Joined</TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">Actions</TableHead>
+                        <TableHead className="font-mono text-xs uppercase tracking-wider">
+                          Name
+                        </TableHead>
+                        <TableHead className="font-mono text-xs uppercase tracking-wider">
+                          Email
+                        </TableHead>
+                        <TableHead className="font-mono text-xs uppercase tracking-wider">
+                          Role
+                        </TableHead>
+                        <TableHead className="font-mono text-xs uppercase tracking-wider">
+                          Points
+                        </TableHead>
+                        <TableHead className="font-mono text-xs uppercase tracking-wider">
+                          Joined
+                        </TableHead>
+                        <TableHead className="font-mono text-xs uppercase tracking-wider">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {users.map((user) => (
                         <TableRow key={user.id}>
-                          <TableCell className="font-mono text-sm">{user.name}</TableCell>
-                          <TableCell className="font-mono text-sm">{user.email}</TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {user.name}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {user.email}
+                          </TableCell>
                           <TableCell>
-                            <span className={`inline-flex items-center px-2 py-1 rounded border text-xs font-mono uppercase tracking-wider ${getRoleBadgeColor(user.role)}`}>
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded border text-xs font-mono uppercase tracking-wider ${getRoleBadgeColor(user.role)}`}
+                            >
                               {user.role}
                             </span>
                           </TableCell>
-                          <TableCell className="font-mono text-sm">{numberFormatter.format(user.totalPoints)}</TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {numberFormatter.format(user.totalPoints)}
+                          </TableCell>
                           <TableCell className="font-mono text-xs text-muted-foreground">
                             {dateFormatter.format(new Date(user.createdAt))}
                           </TableCell>
                           <TableCell className="space-y-2">
                             <Select
                               value={user.role}
-                              onValueChange={(value) => handleRoleChange(user.id, value as UserRole)}
+                              onValueChange={(value) =>
+                                handleRoleChange(user.id, value as UserRole)
+                              }
                             >
                               <SelectTrigger className="w-32 font-mono text-xs">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value={UserRole.USER}>USER</SelectItem>
-                                <SelectItem value={UserRole.LAB}>LAB</SelectItem>
-                                <SelectItem value={UserRole.ADMIN}>ADMIN</SelectItem>
+                                <SelectItem value={UserRole.USER}>
+                                  USER
+                                </SelectItem>
+                                <SelectItem value={UserRole.LAB}>
+                                  LAB
+                                </SelectItem>
+                                <SelectItem value={UserRole.ADMIN}>
+                                  ADMIN
+                                </SelectItem>
                               </SelectContent>
                             </Select>
-                            <ChangePasswordDialog userId={user.id} userName={user.name} />
+                            <ChangePasswordDialog
+                              userId={user.id}
+                              userName={user.name}
+                            />
                           </TableCell>
                         </TableRow>
                       ))}
@@ -312,7 +363,12 @@ const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({ initialUsers, initial
                 {pagination.totalPages > 1 && (
                   <div className="flex items-center justify-between">
                     <p className="font-mono text-xs text-muted-foreground">
-                      Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
+                      Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                      {Math.min(
+                        pagination.page * pagination.limit,
+                        pagination.total
+                      )}{' '}
+                      of {pagination.total} users
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -320,8 +376,11 @@ const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({ initialUsers, initial
                         size="sm"
                         disabled={pagination.page === 1}
                         onClick={async () => {
-                          const response = await fetch(`/api/admin/users?page=${pagination.page - 1}&limit=${pagination.limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`);
-                          const data = (await response.json()) as UserListApiResponse;
+                          const response = await fetch(
+                            `/api/admin/users?page=${pagination.page - 1}&limit=${pagination.limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`
+                          );
+                          const data =
+                            (await response.json()) as UserListApiResponse;
                           if (data.data) {
                             setUsers(data.data);
                             if (data.pagination) {
@@ -338,8 +397,11 @@ const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({ initialUsers, initial
                         size="sm"
                         disabled={pagination.page === pagination.totalPages}
                         onClick={async () => {
-                          const response = await fetch(`/api/admin/users?page=${pagination.page + 1}&limit=${pagination.limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`);
-                          const data = (await response.json()) as UserListApiResponse;
+                          const response = await fetch(
+                            `/api/admin/users?page=${pagination.page + 1}&limit=${pagination.limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`
+                          );
+                          const data =
+                            (await response.json()) as UserListApiResponse;
                           if (data.data) {
                             setUsers(data.data);
                             if (data.pagination) {

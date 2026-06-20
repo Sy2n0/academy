@@ -35,7 +35,10 @@ export const isLabOrAbove = (role: UserRole): boolean => {
 /**
  * 사용자가 특정 역할 이상의 권한을 가지고 있는지 확인
  */
-export const hasRoleOrAbove = (userRole: UserRole, requiredRole: UserRole): boolean => {
+export const hasRoleOrAbove = (
+  userRole: UserRole,
+  requiredRole: UserRole
+): boolean => {
   const roleHierarchy = {
     [UserRole.USER]: 1,
     [UserRole.LAB]: 2,

@@ -20,7 +20,10 @@ const SOURCE_LIMIT = 100_000;
 const STDIN_LIMIT = 20_000;
 const SANDBOX_TIMEOUT_MS = 8_000;
 const SANDBOX_IMAGE = process.env.PLAYGROUND_C_SANDBOX_IMAGE || 'gcc:14.2.0';
-const ATTACHMENT_PUBLIC_BASE = (process.env.PLAYGROUND_ATTACHMENT_PUBLIC_BASE_URL || 'https://bucket.hub-h4ck.com').replace(/\/+$/, '');
+const ATTACHMENT_PUBLIC_BASE = (
+  process.env.PLAYGROUND_ATTACHMENT_PUBLIC_BASE_URL ||
+  'https://bucket.hub-h4ck.com'
+).replace(/\/+$/, '');
 
 const normalize = (value: string) => value.trim().toLowerCase();
 
@@ -40,10 +43,19 @@ const execFileAsync = (
       },
       (error, stdout, stderr) => {
         if (error) {
-          const anyError = error as NodeJS.ErrnoException & { code?: number | string };
+          const anyError = error as NodeJS.ErrnoException & {
+            code?: number | string;
+          };
 
-          if (typeof anyError.code === 'string' && anyError.code === 'ETIMEDOUT') {
-            resolve({ stdout: stdout || '', stderr: (stderr || '') + '\nSandbox timed out.', exitCode: 124 });
+          if (
+            typeof anyError.code === 'string' &&
+            anyError.code === 'ETIMEDOUT'
+          ) {
+            resolve({
+              stdout: stdout || '',
+              stderr: (stderr || '') + '\nSandbox timed out.',
+              exitCode: 124,
+            });
             return;
           }
 
@@ -66,7 +78,9 @@ const execFileAsync = (
   });
 };
 
-const parseMetaFile = (content: string): { phase: 'compile' | 'run'; exitCode: number } => {
+const parseMetaFile = (
+  content: string
+): { phase: 'compile' | 'run'; exitCode: number } => {
   const phaseMatch = content.match(/PHASE=(compile|run)/);
   const codeMatch = content.match(/EXIT_CODE=(-?\d+)/);
 
@@ -128,7 +142,9 @@ const CHECKER_RESOURCE_SCOPES = new Set([
 ]);
 
 const isSandboxResourceAttachment = (attachment: AttachmentItem) => {
-  const scope = String(attachment.scope || '').trim().toLowerCase();
+  const scope = String(attachment.scope || '')
+    .trim()
+    .toLowerCase();
   if (!scope) {
     // Backward compatibility: old rows may not have scope; treat as public resource.
     return true;
@@ -148,7 +164,8 @@ const safeBaseName = (value: string) => {
 };
 
 const resolveCheckerFileName = (attachment: AttachmentItem, index: number) => {
-  const fromName = typeof attachment.name === 'string' ? safeBaseName(attachment.name) : '';
+  const fromName =
+    typeof attachment.name === 'string' ? safeBaseName(attachment.name) : '';
   if (fromName) return fromName;
 
   const key = extractAttachmentKey(attachment);
@@ -159,13 +176,18 @@ const resolveCheckerFileName = (attachment: AttachmentItem, index: number) => {
   return `checker_resource_${index + 1}.txt`;
 };
 
-const writeCheckerResources = async (attachmentsValue: unknown, workDir: string) => {
+const writeCheckerResources = async (
+  attachmentsValue: unknown,
+  workDir: string
+) => {
   if (!Array.isArray(attachmentsValue)) {
     return { writtenFiles: [] as string[], hasCheckerResources: false };
   }
 
   const items = (attachmentsValue as unknown[])
-    .filter((item): item is AttachmentItem => !!item && typeof item === 'object')
+    .filter(
+      (item): item is AttachmentItem => !!item && typeof item === 'object'
+    )
     .filter((item) => isSandboxResourceAttachment(item));
 
   if (items.length === 0) {
@@ -196,10 +218,15 @@ const writeCheckerResources = async (attachmentsValue: unknown, workDir: string)
   return { writtenFiles, hasCheckerResources: writtenFiles.length > 0 };
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+    return res
+      .status(405)
+      .json({ error: { message: `Method ${req.method} Not Allowed` } });
   }
 
   let workDir = '';
@@ -209,23 +236,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const user = await getUserBySession(session);
 
     if (!user) {
-      return res.status(401).json({ error: { message: '로그인이 필요합니다.' } });
+      return res
+        .status(401)
+        .json({ error: { message: '로그인이 필요합니다.' } });
     }
 
-    const challengeId = typeof req.body?.challengeId === 'string' ? req.body.challengeId : '';
+    const challengeId =
+      typeof req.body?.challengeId === 'string' ? req.body.challengeId : '';
     const source = typeof req.body?.source === 'string' ? req.body.source : '';
     const stdin = typeof req.body?.stdin === 'string' ? req.body.stdin : '';
 
     if (!challengeId) {
-      return res.status(400).json({ error: { message: 'challengeId is required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'challengeId is required' } });
     }
 
     if (!source.trim()) {
-      return res.status(400).json({ error: { message: 'C source code is required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'C source code is required' } });
     }
 
     if (source.length > SOURCE_LIMIT) {
-      return res.status(400).json({ error: { message: 'Source code is too large' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'Source code is too large' } });
     }
 
     if (stdin.length > STDIN_LIMIT) {
@@ -245,11 +281,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!challenge || !challenge.isActive) {
-      return res.status(404).json({ error: { message: 'Challenge not found' } });
+      return res
+        .status(404)
+        .json({ error: { message: 'Challenge not found' } });
     }
 
     if (normalize(challenge.category || '') !== 'programming') {
-      return res.status(400).json({ error: { message: 'Compile is only available for Programming challenges' } });
+      return res.status(400).json({
+        error: {
+          message: 'Compile is only available for Programming challenges',
+        },
+      });
     }
 
     const enrolledPlaygrounds = await prisma.playgroundEnrollment.findMany({
@@ -264,11 +306,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const isEnrolled = enrolledPlaygrounds.some(
-      (entry) => normalize(entry.playground.codeName || '') === normalize(challenge.playgroundCodeName || '')
+      (entry) =>
+        normalize(entry.playground.codeName || '') ===
+        normalize(challenge.playgroundCodeName || '')
     );
 
     if (!isEnrolled && !isAdmin(user.role)) {
-      return res.status(403).json({ error: { message: '해당 Playground 참가자만 컴파일할 수 있습니다.' } });
+      return res.status(403).json({
+        error: { message: '해당 Playground 참가자만 컴파일할 수 있습니다.' },
+      });
     }
 
     workDir = path.join(os.tmpdir(), `hub-playground-c-${randomUUID()}`);
@@ -281,13 +327,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await fs.writeFile(sourcePath, source, 'utf8');
     await fs.writeFile(stdinPath, stdin || '', 'utf8');
 
-    const checkerResources = await writeCheckerResources(challenge.attachments, workDir);
+    const checkerResources = await writeCheckerResources(
+      challenge.attachments,
+      workDir
+    );
     const helperCSources = checkerResources.writtenFiles.filter((name) => {
       const lower = name.toLowerCase();
-      return lower.endsWith('.c') && lower !== 'main.c' && !lower.startsWith('provided_main_');
+      return (
+        lower.endsWith('.c') &&
+        lower !== 'main.c' &&
+        !lower.startsWith('provided_main_')
+      );
     });
 
-    const successMarker = process.env.PLAYGROUND_PROGRAMMING_SUCCESS_MARKER || 'Correct!';
+    const successMarker =
+      process.env.PLAYGROUND_PROGRAMMING_SUCCESS_MARKER || 'Correct!';
 
     const helperSourcesArg = helperCSources.join(' ');
 
@@ -337,9 +391,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (sandbox.exitCode !== 0 && sandbox.exitCode !== 124) {
-      const stderr = sandbox.stderr || sandbox.stdout || 'Docker sandbox execution failed';
+      const stderr =
+        sandbox.stderr || sandbox.stdout || 'Docker sandbox execution failed';
       const lower = stderr.toLowerCase();
-      if (lower.includes('unable to find image') || lower.includes('pull access denied')) {
+      if (
+        lower.includes('unable to find image') ||
+        lower.includes('pull access denied')
+      ) {
         return res.status(500).json({
           error: {
             message: `Docker image not available: ${SANDBOX_IMAGE}`,
@@ -378,7 +436,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const runStdoutPath = path.join(workDir, 'run.stdout');
     const runStderrPath = path.join(workDir, 'run.stderr');
 
-    const [metaRaw, compileStdoutRaw, compileStderrRaw, runStdoutRaw, runStderrRaw] = await Promise.all([
+    const [
+      metaRaw,
+      compileStdoutRaw,
+      compileStderrRaw,
+      runStdoutRaw,
+      runStderrRaw,
+    ] = await Promise.all([
       fs.readFile(metaPath, 'utf8').catch(() => ''),
       fs.readFile(compileStdoutPath, 'utf8').catch(() => ''),
       fs.readFile(compileStderrPath, 'utf8').catch(() => ''),
@@ -436,7 +500,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error: any) {
     console.error('Error compiling C code:', error);
-    return res.status(500).json({ error: { message: error?.message || 'Failed to compile code' } });
+    return res
+      .status(500)
+      .json({ error: { message: error?.message || 'Failed to compile code' } });
   } finally {
     if (workDir) {
       await fs.rm(workDir, { recursive: true, force: true }).catch(() => null);

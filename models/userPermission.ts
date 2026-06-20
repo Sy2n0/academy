@@ -1,5 +1,9 @@
 import { prisma } from '@/lib/prisma';
-import { UserResource, UserAction, defaultUserPermissions } from '@/lib/user-permissions';
+import {
+  UserResource,
+  UserAction,
+  defaultUserPermissions,
+} from '@/lib/user-permissions';
 
 /**
  * 사용자의 권한을 조회합니다.
@@ -16,7 +20,10 @@ export const getUserPermissions = async (userId: string) => {
       id: '',
       userId,
       resource: perm.resource,
-      actions: perm.actions === '*' ? ['create', 'read', 'update', 'delete'] : perm.actions,
+      actions:
+        perm.actions === '*'
+          ? ['create', 'read', 'update', 'delete']
+          : perm.actions,
       createdAt: new Date(),
       updatedAt: new Date(),
     }));
@@ -36,7 +43,8 @@ export const setUserPermission = async (
   resource: UserResource,
   actions: UserAction[] | '*'
 ) => {
-  const actionsArray = actions === '*' ? ['create', 'read', 'update', 'delete'] : actions;
+  const actionsArray =
+    actions === '*' ? ['create', 'read', 'update', 'delete'] : actions;
 
   return await prisma.userPermission.upsert({
     where: {
@@ -60,7 +68,10 @@ export const setUserPermission = async (
 /**
  * 사용자 권한을 삭제합니다.
  */
-export const deleteUserPermission = async (userId: string, resource: UserResource) => {
+export const deleteUserPermission = async (
+  userId: string,
+  resource: UserResource
+) => {
   return await prisma.userPermission.delete({
     where: {
       userId_resource: {
@@ -105,9 +116,10 @@ export const ensureDefaultUserPermissions = async (userId: string) => {
   if (existingPermissions.length === 0) {
     // 기본 권한 생성
     for (const perm of defaultUserPermissions) {
-      const actions = perm.actions === '*' 
-        ? ['create', 'read', 'update', 'delete'] 
-        : perm.actions;
+      const actions =
+        perm.actions === '*'
+          ? ['create', 'read', 'update', 'delete']
+          : perm.actions;
 
       await prisma.userPermission.create({
         data: {

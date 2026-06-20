@@ -40,7 +40,10 @@ const CyberChefPage: NextPageWithLayout = () => {
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href="/dashboard" className="font-mono text-xs uppercase tracking-wider">
+                    <BreadcrumbLink
+                      href="/dashboard"
+                      className="font-mono text-xs uppercase tracking-wider"
+                    >
                       Dashboard
                     </BreadcrumbLink>
                   </BreadcrumbItem>

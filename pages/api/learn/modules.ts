@@ -32,7 +32,7 @@ export default async function handler(
         where: {
           userId: user.id,
           moduleId: {
-            in: modules.map(m => m.id),
+            in: modules.map((m) => m.id),
           },
         },
         select: {
@@ -43,7 +43,7 @@ export default async function handler(
     }
 
     const completionMap = new Map(
-      completions.map(c => [c.moduleId, c.completedAt])
+      completions.map((c) => [c.moduleId, c.completedAt])
     );
 
     // 사용자 진행 상황 포함
@@ -57,11 +57,21 @@ export default async function handler(
         image: module.imageUrl || '/api/placeholder/400/200',
         type: module.type as 'REGULAR' | 'PREMIUM',
         category: module.category as 'GENERAL' | 'OFFENSIVE' | 'DEFENSIVE',
-        difficulty: module.difficulty as 'Fundamental' | 'Easy' | 'Medium' | 'Hard',
+        difficulty: module.difficulty as
+          | 'Fundamental'
+          | 'Easy'
+          | 'Medium'
+          | 'Hard',
         duration: module.duration || 'N/A',
         tier: module.tier,
         progress: isCompleted ? 100 : undefined,
-        status: isCompleted ? 'Completed' as const : undefined as 'In Progress' | 'Completed' | 'Not Started' | undefined,
+        status: isCompleted
+          ? ('Completed' as const)
+          : (undefined as
+              | 'In Progress'
+              | 'Completed'
+              | 'Not Started'
+              | undefined),
         isCompleted,
         isFavourite: false, // TODO: 즐겨찾기 기능 추가
       };
@@ -72,8 +82,8 @@ export default async function handler(
     });
   } catch (error: any) {
     console.error('[API /learn/modules] Error:', error);
-    res.status(500).json({ 
-      error: { message: error.message || 'Failed to fetch modules' }
+    res.status(500).json({
+      error: { message: error.message || 'Failed to fetch modules' },
     });
   }
 }

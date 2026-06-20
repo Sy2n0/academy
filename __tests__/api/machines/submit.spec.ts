@@ -27,20 +27,32 @@ import { getUserBySession } from 'models/user';
 import { submitFlag } from 'models/flag-submission';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
-const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
+const mockGetUserBySession = getUserBySession as jest.MockedFunction<
+  typeof getUserBySession
+>;
 const mockSubmitFlag = submitFlag as jest.MockedFunction<typeof submitFlag>;
 
 const mockUser = { id: 'user-1', email: 'test@example.com', isBlocked: false };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'POST', headers: {}, query: { id: 'machine-1' }, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'POST',
+    headers: {},
+    query: { id: 'machine-1' },
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {
@@ -66,7 +78,10 @@ describe('POST /api/machines/[id]/submit - 인증', () => {
   });
 
   it('blocked 유저는 403을 반환한다', async () => {
-    mockGetUserBySession.mockResolvedValue({ ...mockUser, isBlocked: true } as any);
+    mockGetUserBySession.mockResolvedValue({
+      ...mockUser,
+      isBlocked: true,
+    } as any);
     const { res, status } = makeRes();
     await handler(makeReq({ body: { flag: 'flag{test}' } }), res);
     expect(status).toHaveBeenCalledWith(403);
@@ -76,23 +91,39 @@ describe('POST /api/machines/[id]/submit - 인증', () => {
 describe('POST /api/machines/[id]/submit - 플래그 제출', () => {
   it('올바른 플래그 제출 결과를 반환한다', async () => {
     const result = {
-      success: true, isCorrect: true, earnedPoints: 500,
-      bloodBonus: 25, isFirstBlood: false, bloodRank: null,
+      success: true,
+      isCorrect: true,
+      earnedPoints: 500,
+      bloodBonus: 25,
+      isFirstBlood: false,
+      bloodRank: null,
       message: 'Correct!',
     };
     mockSubmitFlag.mockResolvedValue(result);
 
     const { res, json } = makeRes();
-    await handler(makeReq({ body: { flag: 'flag{correct}', teamId: null } }), res);
+    await handler(
+      makeReq({ body: { flag: 'flag{correct}', teamId: null } }),
+      res
+    );
 
-    expect(mockSubmitFlag).toHaveBeenCalledWith('machine-1', 'user-1', null, 'flag{correct}');
+    expect(mockSubmitFlag).toHaveBeenCalledWith(
+      'machine-1',
+      'user-1',
+      null,
+      'flag{correct}'
+    );
     expect(json).toHaveBeenCalledWith({ data: result });
   });
 
   it('오답 플래그 제출 결과를 반환한다', async () => {
     const result = {
-      success: false, isCorrect: false, earnedPoints: 0,
-      bloodBonus: 0, isFirstBlood: false, bloodRank: null,
+      success: false,
+      isCorrect: false,
+      earnedPoints: 0,
+      bloodBonus: 0,
+      isFirstBlood: false,
+      bloodRank: null,
       message: 'Wrong flag',
     };
     mockSubmitFlag.mockResolvedValue(result);
@@ -104,8 +135,12 @@ describe('POST /api/machines/[id]/submit - 플래그 제출', () => {
 
   it('이미 풀었을 때 메시지를 반환한다', async () => {
     const result = {
-      success: false, isCorrect: false, earnedPoints: 0,
-      bloodBonus: 0, isFirstBlood: false, bloodRank: null,
+      success: false,
+      isCorrect: false,
+      earnedPoints: 0,
+      bloodBonus: 0,
+      isFirstBlood: false,
+      bloodRank: null,
       message: 'You have already solved this machine',
     };
     mockSubmitFlag.mockResolvedValue(result);

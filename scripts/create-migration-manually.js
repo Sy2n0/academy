@@ -3,7 +3,11 @@ const path = require('path');
 
 // 마이그레이션 파일 생성
 const migrationDir = path.join(__dirname, '../prisma/migrations');
-const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0].replace('T', '');
+const timestamp = new Date()
+  .toISOString()
+  .replace(/[-:]/g, '')
+  .split('.')[0]
+  .replace('T', '');
 const migrationName = `${timestamp}_add_ctf_features`;
 const migrationPath = path.join(migrationDir, migrationName);
 
@@ -171,7 +175,10 @@ ALTER TABLE "Writeup" ADD CONSTRAINT "Writeup_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "Writeup" ADD CONSTRAINT "Writeup_reviewedBy_fkey" FOREIGN KEY ("reviewedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 `;
 
-fs.writeFileSync(path.join(migrationPath, 'migration.sql'), migrationSQL.trim());
+fs.writeFileSync(
+  path.join(migrationPath, 'migration.sql'),
+  migrationSQL.trim()
+);
 
 console.log(`Migration file created at: ${migrationPath}/migration.sql`);
 console.log('Next steps:');

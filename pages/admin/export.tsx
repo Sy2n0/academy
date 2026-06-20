@@ -145,7 +145,10 @@ const Export: NextPageWithLayout = () => {
                   <div className="max-w-4xl mx-auto space-y-6">
                     {/* Header */}
                     <div>
-                      <h1 className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2" style={{ fontStyle: 'italic' }}>
+                      <h1
+                        className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2"
+                        style={{ fontStyle: 'italic' }}
+                      >
                         EXPORT DATA
                       </h1>
                       <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
@@ -163,7 +166,8 @@ const Export: NextPageWithLayout = () => {
                           </h2>
                         </div>
                         <p className="font-mono text-xs text-muted-foreground mb-4">
-                          Export current rankings with user points, ranks, and score breakdowns.
+                          Export current rankings with user points, ranks, and
+                          score breakdowns.
                         </p>
                         <Button
                           onClick={handleExportRankings}
@@ -182,7 +186,8 @@ const Export: NextPageWithLayout = () => {
                           </h2>
                         </div>
                         <p className="font-mono text-xs text-muted-foreground mb-4">
-                          Export all flag submission history with timestamps, scores, and status.
+                          Export all flag submission history with timestamps,
+                          scores, and status.
                         </p>
                         <Button
                           onClick={handleExportSubmissions}

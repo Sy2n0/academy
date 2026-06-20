@@ -33,14 +33,24 @@ const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockSession = { user: { id: 'user-1' } };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'POST', headers: {}, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'POST',
+    headers: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {
@@ -52,7 +62,10 @@ describe('POST /api/sandbox/submit - 인증', () => {
   it('비로그인 요청은 401을 반환한다', async () => {
     mockGetSession.mockResolvedValue(null);
     const { res, json, status } = makeRes();
-    await handler(makeReq({ body: { problemId: 'p1', flag: 'flag{test}' } }), res);
+    await handler(
+      makeReq({ body: { problemId: 'p1', flag: 'flag{test}' } }),
+      res
+    );
     expect(status).toHaveBeenCalledWith(401);
     expect(json).toHaveBeenCalledWith({ error: { message: 'Unauthorized' } });
   });
@@ -76,9 +89,14 @@ describe('POST /api/sandbox/submit - 문제 조회', () => {
   it('존재하지 않는 problemId는 404를 반환한다', async () => {
     (mockPrisma.sandboxProblem.findUnique as jest.Mock).mockResolvedValue(null);
     const { res, json, status } = makeRes();
-    await handler(makeReq({ body: { problemId: 'no-such', flag: 'flag{x}' } }), res);
+    await handler(
+      makeReq({ body: { problemId: 'no-such', flag: 'flag{x}' } }),
+      res
+    );
     expect(status).toHaveBeenCalledWith(404);
-    expect(json).toHaveBeenCalledWith({ error: { message: 'Problem not found' } });
+    expect(json).toHaveBeenCalledWith({
+      error: { message: 'Problem not found' },
+    });
   });
 });
 
@@ -86,13 +104,21 @@ describe('POST /api/sandbox/submit - 플래그 판정', () => {
   const problem = { id: 'p1', flag: 'flag{correct}' };
 
   beforeEach(() => {
-    (mockPrisma.sandboxProblem.findUnique as jest.Mock).mockResolvedValue(problem);
+    (mockPrisma.sandboxProblem.findUnique as jest.Mock).mockResolvedValue(
+      problem
+    );
   });
 
   it('이미 풀었으면 already_solved를 반환한다', async () => {
-    (mockPrisma.sandboxSolve.findUnique as jest.Mock).mockResolvedValue({ userId: 'user-1', problemId: 'p1' });
+    (mockPrisma.sandboxSolve.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      problemId: 'p1',
+    });
     const { res, json } = makeRes();
-    await handler(makeReq({ body: { problemId: 'p1', flag: 'flag{correct}' } }), res);
+    await handler(
+      makeReq({ body: { problemId: 'p1', flag: 'flag{correct}' } }),
+      res
+    );
     expect(json).toHaveBeenCalledWith({ data: { result: 'already_solved' } });
   });
 
@@ -100,7 +126,10 @@ describe('POST /api/sandbox/submit - 플래그 판정', () => {
     (mockPrisma.sandboxSolve.findUnique as jest.Mock).mockResolvedValue(null);
     (mockPrisma.sandboxSolve.create as jest.Mock).mockResolvedValue({});
     const { res, json } = makeRes();
-    await handler(makeReq({ body: { problemId: 'p1', flag: 'flag{correct}' } }), res);
+    await handler(
+      makeReq({ body: { problemId: 'p1', flag: 'flag{correct}' } }),
+      res
+    );
     expect(mockPrisma.sandboxSolve.create).toHaveBeenCalledWith({
       data: { userId: 'user-1', problemId: 'p1' },
     });
@@ -111,14 +140,20 @@ describe('POST /api/sandbox/submit - 플래그 판정', () => {
     (mockPrisma.sandboxSolve.findUnique as jest.Mock).mockResolvedValue(null);
     (mockPrisma.sandboxSolve.create as jest.Mock).mockResolvedValue({});
     const { res, json } = makeRes();
-    await handler(makeReq({ body: { problemId: 'p1', flag: '  flag{correct}  ' } }), res);
+    await handler(
+      makeReq({ body: { problemId: 'p1', flag: '  flag{correct}  ' } }),
+      res
+    );
     expect(json).toHaveBeenCalledWith({ data: { result: 'correct' } });
   });
 
   it('오답 플래그는 wrong을 반환하고 기록하지 않는다', async () => {
     (mockPrisma.sandboxSolve.findUnique as jest.Mock).mockResolvedValue(null);
     const { res, json } = makeRes();
-    await handler(makeReq({ body: { problemId: 'p1', flag: 'flag{wrong}' } }), res);
+    await handler(
+      makeReq({ body: { problemId: 'p1', flag: 'flag{wrong}' } }),
+      res
+    );
     expect(mockPrisma.sandboxSolve.create).not.toHaveBeenCalled();
     expect(json).toHaveBeenCalledWith({ data: { result: 'wrong' } });
   });

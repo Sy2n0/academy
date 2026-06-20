@@ -17,7 +17,6 @@ import { Themer } from '@boxyhq/react-ui/shared';
 import { useRouter } from 'next/router';
 import { DefaultLayout } from '@/components/layouts';
 
-
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const { session, ...props } = pageProps;
   const router = useRouter();
@@ -76,4 +75,4 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   );
 }
 
-export default appWithTranslation<never>(MyApp);
+export default appWithTranslation(MyApp);

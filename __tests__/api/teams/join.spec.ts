@@ -23,20 +23,34 @@ import { getUserBySession } from 'models/user';
 import { joinTeamByInviteCode } from 'models/team';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
-const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
-const mockJoinTeam = joinTeamByInviteCode as jest.MockedFunction<typeof joinTeamByInviteCode>;
+const mockGetUserBySession = getUserBySession as jest.MockedFunction<
+  typeof getUserBySession
+>;
+const mockJoinTeam = joinTeamByInviteCode as jest.MockedFunction<
+  typeof joinTeamByInviteCode
+>;
 
 const mockUser = { id: 'user-1', email: 'user@test.com' };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'POST', headers: {}, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'POST',
+    headers: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {
@@ -98,7 +112,9 @@ describe('POST /api/teams/join - 팀 합류', () => {
   });
 
   it('이미 팀 멤버인 경우 500 오류를 반환한다', async () => {
-    mockJoinTeam.mockRejectedValue(new Error('You are already a member of this team'));
+    mockJoinTeam.mockRejectedValue(
+      new Error('You are already a member of this team')
+    );
     const { res, status } = makeRes();
     await handler(makeReq({ body: { inviteCode: 'valid-code' } }), res);
     expect(status).toHaveBeenCalledWith(500);

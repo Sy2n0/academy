@@ -35,7 +35,9 @@ export default async function handler(
 
     // 허용된 프로토콜만 (보안)
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return res.status(400).json({ error: 'Only HTTP and HTTPS URLs are allowed' });
+      return res
+        .status(400)
+        .json({ error: 'Only HTTP and HTTPS URLs are allowed' });
     }
 
     // 요청 보내기
@@ -43,7 +45,7 @@ export default async function handler(
       method: 'GET',
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; HUB-ACADEMY/1.0)',
-        'Accept': '*/*',
+        Accept: '*/*',
       },
       // 타임아웃 설정 (10초)
       signal: AbortSignal.timeout(10000),
@@ -61,8 +63,12 @@ export default async function handler(
     // Response Body 추출
     let body = '';
     const contentType = fetchResponse.headers.get('content-type') || '';
-    
-    if (contentType.includes('text/') || contentType.includes('application/json') || contentType.includes('application/xml')) {
+
+    if (
+      contentType.includes('text/') ||
+      contentType.includes('application/json') ||
+      contentType.includes('application/xml')
+    ) {
       try {
         body = await fetchResponse.text();
         // 너무 긴 응답은 잘라내기
@@ -85,14 +91,14 @@ export default async function handler(
     });
   } catch (error: any) {
     console.error('[API /proxy-fetch] Error:', error);
-    
+
     if (error.name === 'AbortError' || error.message.includes('timeout')) {
       return res.status(408).json({ error: 'Request timeout' });
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: error.message || 'Failed to fetch URL',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 }

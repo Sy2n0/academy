@@ -4,7 +4,10 @@ import { getUserBySession } from 'models/user';
 import { prisma } from '@/lib/prisma';
 import { downloadFile } from '@/lib/storage';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: { message: 'Method not allowed' } });
   }
@@ -12,7 +15,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const session = await getSession(req, res);
     const user = await getUserBySession(session);
-    if (!user) return res.status(401).json({ error: { message: 'Unauthorized' } });
+    if (!user)
+      return res.status(401).json({ error: { message: 'Unauthorized' } });
 
     const { id } = req.query;
     if (!id || typeof id !== 'string') {
@@ -24,8 +28,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: { attachmentUrl: true, title: true },
     });
 
-    if (!machine) return res.status(404).json({ error: { message: 'Machine not found' } });
-    if (!machine.attachmentUrl) return res.status(404).json({ error: { message: '파일이 없습니다' } });
+    if (!machine)
+      return res.status(404).json({ error: { message: 'Machine not found' } });
+    if (!machine.attachmentUrl)
+      return res.status(404).json({ error: { message: '파일이 없습니다' } });
 
     // URL에서 bucket/key 추출
     // 형식: https://bucket.hub-h4ck.com/{bucket}/{key}
@@ -43,12 +49,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Content-Length', buffer.length);
     return res.send(buffer);
   } catch (error: any) {
-    console.error('[download] error:', JSON.stringify(error, null, 2), error?.message, error?.Code, error?.name);
+    console.error(
+      '[download] error:',
+      JSON.stringify(error, null, 2),
+      error?.message,
+      error?.Code,
+      error?.name
+    );
     return res.status(500).json({
       error: {
-        message: error?.message || error?.Code || String(error) || '파일 다운로드 실패',
+        message:
+          error?.message ||
+          error?.Code ||
+          String(error) ||
+          '파일 다운로드 실패',
         code: error?.Code || error?.name,
-      }
+      },
     });
   }
 }

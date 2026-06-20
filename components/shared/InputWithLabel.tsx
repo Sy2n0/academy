@@ -1,12 +1,24 @@
 import { Input } from '@/components/ui/input';
 import { InputHTMLAttributes } from 'react';
 
-interface InputWithLabelProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'color'> {
+interface InputWithLabelProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'size' | 'color'
+> {
   label: string | React.ReactNode;
   error?: string;
   descriptionText?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
-  color?: 'primary' | 'secondary' | 'accent' | 'ghost' | 'link' | 'info' | 'success' | 'warning' | 'error';
+  color?:
+    | 'primary'
+    | 'secondary'
+    | 'accent'
+    | 'ghost'
+    | 'link'
+    | 'info'
+    | 'success'
+    | 'warning'
+    | 'error';
 }
 
 const InputWithLabel = (props: InputWithLabelProps) => {

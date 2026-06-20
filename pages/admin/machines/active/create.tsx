@@ -64,15 +64,24 @@ const CreateActiveMachine: NextPageWithLayout = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [testingImage, setTestingImage] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; url: string; size: number }[]>([]);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<
+    { name: string; url: string; size: number }[]
+  >([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    type: 'DYNAMIC_CONTAINER' as 'STATIC_ATTACHMENT' | 'DYNAMIC_ATTACHMENT' | 'STATIC_CONTAINER' | 'DYNAMIC_CONTAINER',
+    type: 'DYNAMIC_CONTAINER' as
+      | 'STATIC_ATTACHMENT'
+      | 'DYNAMIC_ATTACHMENT'
+      | 'STATIC_CONTAINER'
+      | 'DYNAMIC_CONTAINER',
     category: '',
     maxAttempts: 'unlimited',
     score: 1000,
@@ -89,7 +98,7 @@ const CreateActiveMachine: NextPageWithLayout = () => {
   });
 
   const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,11 +117,20 @@ const CreateActiveMachine: NextPageWithLayout = () => {
       });
 
       const result = await response.json();
-      if (!response.ok) throw new Error(result?.error?.message || '업로드 실패');
+      if (!response.ok)
+        throw new Error(result?.error?.message || '업로드 실패');
 
-      setUploadedFiles(prev => [...prev, { name: result.data.name, url: result.data.url, size: result.data.size }]);
+      setUploadedFiles((prev) => [
+        ...prev,
+        {
+          name: result.data.name,
+          url: result.data.url,
+          size: result.data.size,
+        },
+      ]);
       // 첫 번째 파일이면 attachmentUrl 자동 세팅
-      if (uploadedFiles.length === 0) handleChange('attachmentUrl', result.data.url);
+      if (uploadedFiles.length === 0)
+        handleChange('attachmentUrl', result.data.url);
       toast.success(`${result.data.name} 업로드 완료`);
     } catch (error: any) {
       toast.error(error.message || '업로드 실패');
@@ -141,7 +159,10 @@ const CreateActiveMachine: NextPageWithLayout = () => {
           description: formData.description || null,
           type: formData.type,
           category: formData.category,
-          maxAttempts: formData.maxAttempts === 'unlimited' ? null : parseInt(formData.maxAttempts),
+          maxAttempts:
+            formData.maxAttempts === 'unlimited'
+              ? null
+              : parseInt(formData.maxAttempts),
           score: formData.score,
           difficultyFactor: formData.difficultyFactor,
           minimumScoreRatio: formData.minimumScoreRatio,
@@ -163,7 +184,10 @@ const CreateActiveMachine: NextPageWithLayout = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result?.error?.message || `머신 생성에 실패했습니다 (${response.status})`);
+        throw new Error(
+          result?.error?.message ||
+            `머신 생성에 실패했습니다 (${response.status})`
+        );
       }
 
       toast.success('Machine created successfully');
@@ -194,14 +218,23 @@ const CreateActiveMachine: NextPageWithLayout = () => {
       const result = await response.json();
 
       if (response.ok) {
-        setTestResult({ success: true, message: result.data?.message || 'Image is valid' });
+        setTestResult({
+          success: true,
+          message: result.data?.message || 'Image is valid',
+        });
         toast.success('이미지 테스트 성공');
       } else {
-        setTestResult({ success: false, message: result?.error?.message || '이미지 테스트 실패' });
+        setTestResult({
+          success: false,
+          message: result?.error?.message || '이미지 테스트 실패',
+        });
         toast.error('이미지 테스트 실패');
       }
     } catch (error: any) {
-      setTestResult({ success: false, message: error?.message || '이미지 테스트 실패' });
+      setTestResult({
+        success: false,
+        message: error?.message || '이미지 테스트 실패',
+      });
       toast.error('이미지 테스트 실패');
     } finally {
       setTestingImage(false);
@@ -228,13 +261,19 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                   <Breadcrumb>
                     <BreadcrumbList>
                       <BreadcrumbItem>
-                        <BreadcrumbLink href="/admin/dashboard" className="font-mono text-xs uppercase tracking-wider">
+                        <BreadcrumbLink
+                          href="/admin/dashboard"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
                           Admin
                         </BreadcrumbLink>
                       </BreadcrumbItem>
                       <BreadcrumbSeparator />
                       <BreadcrumbItem>
-                        <BreadcrumbLink href="/admin/machines/active/manage" className="font-mono text-xs uppercase tracking-wider">
+                        <BreadcrumbLink
+                          href="/admin/machines/active/manage"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
                           Active Machines
                         </BreadcrumbLink>
                       </BreadcrumbItem>
@@ -266,7 +305,9 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                         <Field label="Name" required>
                           <Input
                             value={formData.title}
-                            onChange={(e) => handleChange('title', e.target.value)}
+                            onChange={(e) =>
+                              handleChange('title', e.target.value)
+                            }
                             placeholder="e.g., SokopwnRev"
                             className="font-mono"
                             required
@@ -276,7 +317,9 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                         <Field label="Description" hint="Markdown supported">
                           <textarea
                             value={formData.description}
-                            onChange={(e) => handleChange('description', e.target.value)}
+                            onChange={(e) =>
+                              handleChange('description', e.target.value)
+                            }
                             placeholder="문제 설명을 입력하세요..."
                             rows={6}
                             className="w-full px-3 py-2 border border-border/30 rounded-md bg-background/40 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent/50 transition-colors resize-none"
@@ -285,7 +328,10 @@ const CreateActiveMachine: NextPageWithLayout = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                           <Field label="Category" required>
-                            <Select value={formData.category} onValueChange={(v) => handleChange('category', v)}>
+                            <Select
+                              value={formData.category}
+                              onValueChange={(v) => handleChange('category', v)}
+                            >
                               <SelectTrigger className="font-mono">
                                 <SelectValue placeholder="Select..." />
                               </SelectTrigger>
@@ -293,35 +339,62 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                                 <SelectItem value="pwn">Pwn</SelectItem>
                                 <SelectItem value="web">Web</SelectItem>
                                 <SelectItem value="crypto">Crypto</SelectItem>
-                                <SelectItem value="forensics">Forensics</SelectItem>
-                                <SelectItem value="reversing">Reversing</SelectItem>
+                                <SelectItem value="forensics">
+                                  Forensics
+                                </SelectItem>
+                                <SelectItem value="reversing">
+                                  Reversing
+                                </SelectItem>
                                 <SelectItem value="misc">Misc</SelectItem>
                               </SelectContent>
                             </Select>
                           </Field>
 
-                          <Field label="Type" hint="Cannot be changed after creation">
-                            <Select value={formData.type} onValueChange={(v: any) => handleChange('type', v)}>
+                          <Field
+                            label="Type"
+                            hint="Cannot be changed after creation"
+                          >
+                            <Select
+                              value={formData.type}
+                              onValueChange={(v: any) =>
+                                handleChange('type', v)
+                              }
+                            >
                               <SelectTrigger className="font-mono">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="STATIC_ATTACHMENT">Static Attachment</SelectItem>
-                                <SelectItem value="DYNAMIC_ATTACHMENT">Dynamic Attachment</SelectItem>
-                                <SelectItem value="STATIC_CONTAINER">Static Container</SelectItem>
-                                <SelectItem value="DYNAMIC_CONTAINER">Dynamic Container</SelectItem>
+                                <SelectItem value="STATIC_ATTACHMENT">
+                                  Static Attachment
+                                </SelectItem>
+                                <SelectItem value="DYNAMIC_ATTACHMENT">
+                                  Dynamic Attachment
+                                </SelectItem>
+                                <SelectItem value="STATIC_CONTAINER">
+                                  Static Container
+                                </SelectItem>
+                                <SelectItem value="DYNAMIC_CONTAINER">
+                                  Dynamic Container
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </Field>
                         </div>
 
                         <Field label="Max Attempts">
-                          <Select value={formData.maxAttempts} onValueChange={(v) => handleChange('maxAttempts', v)}>
+                          <Select
+                            value={formData.maxAttempts}
+                            onValueChange={(v) =>
+                              handleChange('maxAttempts', v)
+                            }
+                          >
                             <SelectTrigger className="font-mono w-40">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="unlimited">Unlimited</SelectItem>
+                              <SelectItem value="unlimited">
+                                Unlimited
+                              </SelectItem>
                               <SelectItem value="1">1</SelectItem>
                               <SelectItem value="3">3</SelectItem>
                               <SelectItem value="5">5</SelectItem>
@@ -338,7 +411,12 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                             <Input
                               type="number"
                               value={formData.score}
-                              onChange={(e) => handleChange('score', parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleChange(
+                                  'score',
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
                               className="font-mono"
                               required
                             />
@@ -349,7 +427,12 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                               type="number"
                               step="0.01"
                               value={formData.difficultyFactor}
-                              onChange={(e) => handleChange('difficultyFactor', parseFloat(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleChange(
+                                  'difficultyFactor',
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
                               className="font-mono"
                             />
                           </Field>
@@ -360,23 +443,60 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                               min={0}
                               max={100}
                               value={formData.minimumScoreRatio}
-                              onChange={(e) => handleChange('minimumScoreRatio', parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleChange(
+                                  'minimumScoreRatio',
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
                               className="font-mono"
                             />
                           </Field>
                         </div>
 
                         <div className="p-3 border border-border/30 rounded-md bg-background/40 font-mono text-xs text-muted-foreground space-y-1">
-                          <p>Min score: <span className="text-foreground">{Math.round(formData.score * (formData.minimumScoreRatio / 100))}</span></p>
-                          <p>Score after 10 solves: <span className="text-foreground">{Math.round(formData.score * Math.exp(-10 / formData.difficultyFactor))}</span></p>
-                          <p>Score after 50 solves: <span className="text-foreground">{Math.max(Math.round(formData.score * (formData.minimumScoreRatio / 100)), Math.round(formData.score * Math.exp(-50 / formData.difficultyFactor)))}</span></p>
+                          <p>
+                            Min score:{' '}
+                            <span className="text-foreground">
+                              {Math.round(
+                                formData.score *
+                                  (formData.minimumScoreRatio / 100)
+                              )}
+                            </span>
+                          </p>
+                          <p>
+                            Score after 10 solves:{' '}
+                            <span className="text-foreground">
+                              {Math.round(
+                                formData.score *
+                                  Math.exp(-10 / formData.difficultyFactor)
+                              )}
+                            </span>
+                          </p>
+                          <p>
+                            Score after 50 solves:{' '}
+                            <span className="text-foreground">
+                              {Math.max(
+                                Math.round(
+                                  formData.score *
+                                    (formData.minimumScoreRatio / 100)
+                                ),
+                                Math.round(
+                                  formData.score *
+                                    Math.exp(-50 / formData.difficultyFactor)
+                                )
+                              )}
+                            </span>
+                          </p>
                         </div>
 
                         <Field label="Blood Bonus">
                           <div className="flex items-center gap-3">
                             <Switch
                               checked={formData.bloodBonus}
-                              onCheckedChange={(v) => handleChange('bloodBonus', v)}
+                              onCheckedChange={(v) =>
+                                handleChange('bloodBonus', v)
+                              }
                             />
                             <span className="font-mono text-xs text-muted-foreground">
                               First blood 보너스 점수 활성화
@@ -387,27 +507,37 @@ const CreateActiveMachine: NextPageWithLayout = () => {
 
                       {/* ── Flags ── */}
                       <TabsContent value="flags" className="space-y-5">
-                        <Field label="Flag Template" hint="Dynamic flag 사용 시 {xxx} 형태로 placeholder 지정">
+                        <Field
+                          label="Flag Template"
+                          hint="Dynamic flag 사용 시 {xxx} 형태로 placeholder 지정"
+                        >
                           <Input
                             value={formData.flagTemplate}
-                            onChange={(e) => handleChange('flagTemplate', e.target.value)}
+                            onChange={(e) =>
+                              handleChange('flagTemplate', e.target.value)
+                            }
                             placeholder="flag{xxx}"
                             className="font-mono"
                           />
                         </Field>
 
-                        <Field label="Static Flags" hint="Static 타입 사용 시, 쉼표로 구분">
+                        <Field
+                          label="Static Flags"
+                          hint="Static 타입 사용 시, 쉼표로 구분"
+                        >
                           <Input
                             value={formData.staticFlags.join(', ')}
                             onChange={(e) => {
-                              const flags = e.target.value.split(',').map(f => f.trim()).filter(f => f);
+                              const flags = e.target.value
+                                .split(',')
+                                .map((f) => f.trim())
+                                .filter((f) => f);
                               handleChange('staticFlags', flags);
                             }}
                             placeholder="flag{abc123}, flag{def456}"
                             className="font-mono"
                           />
                         </Field>
-
                       </TabsContent>
 
                       {/* ── Files ── */}
@@ -418,9 +548,13 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                         >
                           <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                           <p className="font-mono text-xs text-muted-foreground">
-                            {uploading ? 'Uploading...' : '클릭하여 파일 업로드'}
+                            {uploading
+                              ? 'Uploading...'
+                              : '클릭하여 파일 업로드'}
                           </p>
-                          <p className="font-mono text-[11px] text-muted-foreground mt-1">최대 500MB</p>
+                          <p className="font-mono text-[11px] text-muted-foreground mt-1">
+                            최대 500MB
+                          </p>
                         </div>
                         <input
                           ref={fileInputRef}
@@ -433,12 +567,19 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                         {uploadedFiles.length > 0 && (
                           <div className="space-y-2">
                             {uploadedFiles.map((f, i) => (
-                              <div key={i} className="flex items-center justify-between px-3 py-2 border border-border/30 rounded-md bg-background/40">
+                              <div
+                                key={i}
+                                className="flex items-center justify-between px-3 py-2 border border-border/30 rounded-md bg-background/40"
+                              >
                                 <div className="flex items-center gap-2 min-w-0">
                                   <FileIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                                   <div className="min-w-0">
-                                    <p className="font-mono text-xs text-foreground truncate">{f.name}</p>
-                                    <p className="font-mono text-[11px] text-muted-foreground">{(f.size / 1024).toFixed(1)} KB</p>
+                                    <p className="font-mono text-xs text-foreground truncate">
+                                      {f.name}
+                                    </p>
+                                    <p className="font-mono text-[11px] text-muted-foreground">
+                                      {(f.size / 1024).toFixed(1)} KB
+                                    </p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
@@ -452,7 +593,11 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                                   </a>
                                   <button
                                     type="button"
-                                    onClick={() => setUploadedFiles(prev => prev.filter((_, idx) => idx !== i))}
+                                    onClick={() =>
+                                      setUploadedFiles((prev) =>
+                                        prev.filter((_, idx) => idx !== i)
+                                      )
+                                    }
                                     className="text-muted-foreground hover:text-destructive"
                                   >
                                     <X className="h-3.5 w-3.5" />
@@ -463,10 +608,15 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                           </div>
                         )}
 
-                        <Field label="Attachment URL" hint="업로드 후 자동 입력되거나 직접 입력 가능">
+                        <Field
+                          label="Attachment URL"
+                          hint="업로드 후 자동 입력되거나 직접 입력 가능"
+                        >
                           <Input
                             value={formData.attachmentUrl}
-                            onChange={(e) => handleChange('attachmentUrl', e.target.value)}
+                            onChange={(e) =>
+                              handleChange('attachmentUrl', e.target.value)
+                            }
                             placeholder="https://..."
                             className="font-mono"
                           />
@@ -490,7 +640,9 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                             <Button
                               type="button"
                               onClick={testContainerImage}
-                              disabled={testingImage || !formData.containerImage}
+                              disabled={
+                                testingImage || !formData.containerImage
+                              }
                               variant="outline"
                               className="font-mono text-xs shrink-0"
                             >
@@ -498,7 +650,9 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                             </Button>
                           </div>
                           {testResult && (
-                            <p className={`font-mono text-xs mt-1 ${testResult.success ? 'text-green-500' : 'text-destructive'}`}>
+                            <p
+                              className={`font-mono text-xs mt-1 ${testResult.success ? 'text-green-500' : 'text-destructive'}`}
+                            >
                               {testResult.message}
                             </p>
                           )}
@@ -509,7 +663,12 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                             <Input
                               type="number"
                               value={formData.servicePort}
-                              onChange={(e) => handleChange('servicePort', parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleChange(
+                                  'servicePort',
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
                               className="font-mono"
                               required
                             />
@@ -519,7 +678,12 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                             <Input
                               type="number"
                               value={formData.cpuLimit}
-                              onChange={(e) => handleChange('cpuLimit', parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleChange(
+                                  'cpuLimit',
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
                               className="font-mono"
                             />
                           </Field>
@@ -528,7 +692,12 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                             <Input
                               type="number"
                               value={formData.memoryLimit}
-                              onChange={(e) => handleChange('memoryLimit', parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleChange(
+                                  'memoryLimit',
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
                               className="font-mono"
                             />
                           </Field>
@@ -541,7 +710,9 @@ const CreateActiveMachine: NextPageWithLayout = () => {
                         type="button"
                         variant="outline"
                         className="font-mono text-xs"
-                        onClick={() => router.push('/admin/machines/active/manage')}
+                        onClick={() =>
+                          router.push('/admin/machines/active/manage')
+                        }
                       >
                         Cancel
                       </Button>
@@ -581,7 +752,9 @@ function Field({
         {label}
         {required && <span className="text-destructive ml-1">*</span>}
       </Label>
-      {hint && <p className="font-mono text-[11px] text-muted-foreground">{hint}</p>}
+      {hint && (
+        <p className="font-mono text-[11px] text-muted-foreground">{hint}</p>
+      )}
       {children}
     </div>
   );

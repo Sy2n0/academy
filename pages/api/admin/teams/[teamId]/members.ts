@@ -16,7 +16,10 @@ const removeMemberSchema = z.object({
   userId: z.string().min(1, 'userId is required'),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const session = await getSession(req, res);
     const currentUser = await getUserBySession(session);
@@ -46,7 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
       default:
         res.setHeader('Allow', 'GET, POST, DELETE');
-        res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+        res
+          .status(405)
+          .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
   } catch (error: any) {
     const message = error.message || 'Something went wrong';
@@ -78,7 +83,11 @@ const handleGET = async (res: NextApiResponse, teamId: string) => {
   });
 };
 
-const handlePOST = async (req: NextApiRequest, res: NextApiResponse, teamId: string) => {
+const handlePOST = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  teamId: string
+) => {
   const { userId, role } = addMemberSchema.parse(req.body);
 
   const team = await prisma.team.findUnique({ where: { id: teamId } });
@@ -109,7 +118,11 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse, teamId: str
   res.status(201).json({ data: { member } });
 };
 
-const handleDELETE = async (req: NextApiRequest, res: NextApiResponse, teamId: string) => {
+const handleDELETE = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  teamId: string
+) => {
   const { userId } = removeMemberSchema.parse(req.body);
 
   await prisma.teamMember.delete({

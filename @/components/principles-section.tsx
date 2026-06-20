@@ -1,59 +1,64 @@
-"use client"
+'use client';
 /* eslint-disable i18next/no-literal-string */
 
-import { useRef, useEffect } from "react"
-import { HighlightText } from "@/components/highlight-text"
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useRef, useEffect } from 'react';
+import { HighlightText } from '@/components/highlight-text';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger);
 
 export function PrinciplesSection() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const principlesRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const principlesRef = useRef<HTMLDivElement>(null);
 
   const principles = [
     {
-      number: "01",
+      number: '01',
       titleParts: [
-        { text: "INTERFACE", highlight: true },
-        { text: " MINIMALISM", highlight: false },
+        { text: 'INTERFACE', highlight: true },
+        { text: ' MINIMALISM', highlight: false },
       ],
-      description: "Reduce until only the essential remains. Every element earns its place.",
-      align: "left",
+      description:
+        'Reduce until only the essential remains. Every element earns its place.',
+      align: 'left',
     },
     {
-      number: "02",
+      number: '02',
       titleParts: [
-        { text: "SYSTEMS", highlight: true },
-        { text: " OVER SCREENS", highlight: false },
+        { text: 'SYSTEMS', highlight: true },
+        { text: ' OVER SCREENS', highlight: false },
       ],
-      description: "Design behaviors, not just layouts. Build logic that scales.",
-      align: "right",
+      description:
+        'Design behaviors, not just layouts. Build logic that scales.',
+      align: 'right',
     },
     {
-      number: "03",
+      number: '03',
       titleParts: [
-        { text: "CONTROLLED ", highlight: false },
-        { text: "TENSION", highlight: true },
+        { text: 'CONTROLLED ', highlight: false },
+        { text: 'TENSION', highlight: true },
       ],
-      description: "Balance between restraint and expression. Confidence without excess.",
-      align: "left",
+      description:
+        'Balance between restraint and expression. Confidence without excess.',
+      align: 'left',
     },
     {
-      number: "04",
+      number: '04',
       titleParts: [
-        { text: "SIGNAL ", highlight: false },
-        { text: "CLARITY", highlight: true },
+        { text: 'SIGNAL ', highlight: false },
+        { text: 'CLARITY', highlight: true },
       ],
-      description: "Communication that cuts through noise. Precision in every interaction.",
-      align: "right",
+      description:
+        'Communication that cuts through noise. Precision in every interaction.',
+      align: 'right',
     },
-  ]
+  ];
 
   useEffect(() => {
-    if (!sectionRef.current || !headerRef.current || !principlesRef.current) return
+    if (!sectionRef.current || !headerRef.current || !principlesRef.current)
+      return;
 
     const ctx = gsap.context(() => {
       // Header slide in
@@ -61,41 +66,49 @@ export function PrinciplesSection() {
         x: -60,
         opacity: 0,
         duration: 1,
-        ease: "power3.out",
+        ease: 'power3.out',
         scrollTrigger: {
           trigger: headerRef.current,
-          start: "top 85%",
-          toggleActions: "play none none reverse",
+          start: 'top 85%',
+          toggleActions: 'play none none reverse',
         },
-      })
+      });
 
       // Each principle slides in from its aligned side
-      const articles = principlesRef.current?.querySelectorAll("article")
+      const articles = principlesRef.current?.querySelectorAll('article');
       articles?.forEach((article, index) => {
-        const isRight = principles[index].align === "right"
+        const isRight = principles[index].align === 'right';
         gsap.from(article, {
           x: isRight ? 80 : -80,
           opacity: 0,
           duration: 1,
-          ease: "power3.out",
+          ease: 'power3.out',
           scrollTrigger: {
             trigger: article,
-            start: "top 85%",
-            toggleActions: "play none none reverse",
+            start: 'top 85%',
+            toggleActions: 'play none none reverse',
           },
-        })
-      })
-    }, sectionRef)
+        });
+      });
+    }, sectionRef);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section ref={sectionRef} id="principles" className="relative py-32 pl-6 md:pl-28 pr-6 md:pr-12">
+    <section
+      ref={sectionRef}
+      id="principles"
+      className="relative py-32 pl-6 md:pl-28 pr-6 md:pr-12"
+    >
       {/* Section header */}
       <div ref={headerRef} className="mb-24">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">03 / Principles</span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">HOW WE WORK</h2>
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">
+          03 / Principles
+        </span>
+        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">
+          HOW WE WORK
+        </h2>
       </div>
 
       {/* Staggered principles */}
@@ -104,12 +117,14 @@ export function PrinciplesSection() {
           <article
             key={index}
             className={`flex flex-col ${
-              principle.align === "right" ? "items-end text-right" : "items-start text-left"
+              principle.align === 'right'
+                ? 'items-end text-right'
+                : 'items-start text-left'
             }`}
           >
             {/* Annotation label */}
             <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-4">
-              {principle.number} / {principle.titleParts[0].text.split(" ")[0]}
+              {principle.number} / {principle.titleParts[0].text.split(' ')[0]}
             </span>
 
             <h3 className="font-[var(--font-bebas)] text-4xl md:text-6xl lg:text-8xl tracking-tight leading-none">
@@ -120,7 +135,7 @@ export function PrinciplesSection() {
                   </HighlightText>
                 ) : (
                   <span key={i}>{part.text}</span>
-                ),
+                )
               )}
             </h3>
 
@@ -130,10 +145,12 @@ export function PrinciplesSection() {
             </p>
 
             {/* Decorative line */}
-            <div className={`mt-8 h-[1px] bg-border w-24 md:w-48 ${principle.align === "right" ? "mr-0" : "ml-0"}`} />
+            <div
+              className={`mt-8 h-[1px] bg-border w-24 md:w-48 ${principle.align === 'right' ? 'mr-0' : 'ml-0'}`}
+            />
           </article>
         ))}
       </div>
     </section>
-  )
+  );
 }

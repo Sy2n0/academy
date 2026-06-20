@@ -11,7 +11,9 @@ export default async function handler(
   try {
     if (req.method !== 'POST') {
       res.setHeader('Allow', 'POST');
-      return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+      return res
+        .status(405)
+        .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
 
     const apiKey = req.headers['x-api-key'];
@@ -21,11 +23,24 @@ export default async function handler(
       throw new ApiError(401, 'Invalid API key');
     }
 
-    const { trigger, commit, branch, status, passedCount, failedCount, skipCount, duration, results } = req.body ?? {};
+    const {
+      trigger,
+      commit,
+      branch,
+      status,
+      passedCount,
+      failedCount,
+      skipCount,
+      duration,
+      results,
+    } = req.body ?? {};
 
     const validStatuses = ['PENDING', 'RUNNING', 'PASSED', 'FAILED', 'ERROR'];
     if (!status || !validStatuses.includes(status)) {
-      throw new ApiError(400, `status must be one of: ${validStatuses.join(', ')}`);
+      throw new ApiError(
+        400,
+        `status must be one of: ${validStatuses.join(', ')}`
+      );
     }
 
     const run = await prisma.testRun.create({
@@ -44,6 +59,8 @@ export default async function handler(
 
     res.status(201).json({ data: { id: run.id } });
   } catch (error: any) {
-    res.status(error.status ?? 500).json({ error: { message: error.message ?? 'Something went wrong' } });
+    res
+      .status(error.status ?? 500)
+      .json({ error: { message: error.message ?? 'Something went wrong' } });
   }
 }

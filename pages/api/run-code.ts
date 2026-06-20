@@ -10,7 +10,10 @@ import { tmpdir } from 'os';
 const execAsync = promisify(exec);
 
 // 지원하는 언어와 실행 명령어
-const LANGUAGE_COMMANDS: Record<string, { command: string; extension: string; timeout?: number }> = {
+const LANGUAGE_COMMANDS: Record<
+  string,
+  { command: string; extension: string; timeout?: number }
+> = {
   python: { command: 'python3', extension: '.py', timeout: 5000 },
   py: { command: 'python3', extension: '.py', timeout: 5000 },
   node: { command: 'node', extension: '.js', timeout: 5000 },
@@ -48,8 +51,8 @@ export default async function handler(
     const langConfig = LANGUAGE_COMMANDS[lang];
 
     if (!langConfig) {
-      return res.status(400).json({ 
-        error: `Language "${language}" is not supported. Supported languages: ${Object.keys(LANGUAGE_COMMANDS).join(', ')}` 
+      return res.status(400).json({
+        error: `Language "${language}" is not supported. Supported languages: ${Object.keys(LANGUAGE_COMMANDS).join(', ')}`,
       });
     }
 
@@ -61,7 +64,9 @@ export default async function handler(
       const allowed = ['ls', 'pwd', 'echo', 'cat', 'whoami', 'date', 'uname'];
       const cmd = code.trim().split(/\s+/)[0];
       if (!allowed.includes(cmd)) {
-        return res.status(400).json({ error: `Command '${cmd}' is not allowed.` });
+        return res
+          .status(400)
+          .json({ error: `Command '${cmd}' is not allowed.` });
       }
       // 더미 결과 정의
       const dummyResults: Record<string, string> = {
@@ -92,12 +97,15 @@ export default async function handler(
     const tempFile = join(tempDir, `code-${Date.now()}${langConfig.extension}`);
     try {
       await writeFile(tempFile, code, 'utf-8');
-      const { stdout, stderr } = await Promise.race([
+      const { stdout, stderr } = (await Promise.race([
         execAsync(`${langConfig.command} ${tempFile}`),
         new Promise<{ stdout: string; stderr: string }>((_, reject) =>
-          setTimeout(() => reject(new Error('Execution timeout')), executionTimeout)
+          setTimeout(
+            () => reject(new Error('Execution timeout')),
+            executionTimeout
+          )
         ),
-      ]) as { stdout: string; stderr: string };
+      ])) as { stdout: string; stderr: string };
       await unlink(tempFile).catch(() => {});
       res.status(200).json({
         output: stdout || '(No output)',
@@ -106,12 +114,13 @@ export default async function handler(
     } catch (execError: any) {
       await unlink(tempFile).catch(() => {});
       if (execError.message === 'Execution timeout') {
-        return res.status(408).json({ 
+        return res.status(408).json({
           error: `Execution timeout after ${executionTimeout}ms`,
           output: null,
         });
       }
-      const errorOutput = execError.stderr || execError.message || 'Execution failed';
+      const errorOutput =
+        execError.stderr || execError.message || 'Execution failed';
       res.status(200).json({
         output: execError.stdout || null,
         error: errorOutput,
@@ -119,9 +128,9 @@ export default async function handler(
     }
   } catch (error: any) {
     console.error('[API /run-code] Error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: error.message || 'Failed to execute code',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 }

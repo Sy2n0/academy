@@ -18,7 +18,7 @@ async function checkMachineData() {
 
     // Type 값 분포 확인
     const typeCounts = {};
-    machines.forEach(m => {
+    machines.forEach((m) => {
       typeCounts[m.type] = (typeCounts[m.type] || 0) + 1;
     });
     console.log('\nType distribution:', typeCounts);

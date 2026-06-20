@@ -22,28 +22,62 @@ import { getUserBySession } from 'models/user';
 import { prisma } from '@/lib/prisma';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
-const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
+const mockGetUserBySession = getUserBySession as jest.MockedFunction<
+  typeof getUserBySession
+>;
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'GET', headers: {}, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'GET',
+    headers: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 const mockModules = [
-  { id: 'mod-1', title: 'Linux Basics', type: 'REGULAR', category: 'GENERAL', difficulty: 'Easy', duration: 60, tier: 'FREE', imageUrl: null, isActive: true },
-  { id: 'mod-2', title: 'Web Exploitation', type: 'PREMIUM', category: 'OFFENSIVE', difficulty: 'Medium', duration: 120, tier: 'PRO', imageUrl: null, isActive: true },
+  {
+    id: 'mod-1',
+    title: 'Linux Basics',
+    type: 'REGULAR',
+    category: 'GENERAL',
+    difficulty: 'Easy',
+    duration: 60,
+    tier: 'FREE',
+    imageUrl: null,
+    isActive: true,
+  },
+  {
+    id: 'mod-2',
+    title: 'Web Exploitation',
+    type: 'PREMIUM',
+    category: 'OFFENSIVE',
+    difficulty: 'Medium',
+    duration: 120,
+    tier: 'PRO',
+    imageUrl: null,
+    isActive: true,
+  },
 ];
 
 beforeEach(() => {
   jest.clearAllMocks();
-  (mockPrisma.learningModule.findMany as jest.Mock).mockResolvedValue(mockModules);
+  (mockPrisma.learningModule.findMany as jest.Mock).mockResolvedValue(
+    mockModules
+  );
   (mockPrisma.userModuleCompletion.findMany as jest.Mock).mockResolvedValue([]);
 });
 

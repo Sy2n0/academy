@@ -18,10 +18,7 @@ const HeroSection = () => {
             >
               {t('get-started')}
             </Link>
-            <Link
-              href="#"
-              className="btn btn-outline px-8"
-            >
+            <Link href="#" className="btn btn-outline px-8">
               GitHub
             </Link>
           </div>

@@ -1,13 +1,16 @@
-import { type ReactElement, useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  type ReactElement,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-  SidebarInset,
-  SidebarProvider
-} from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
@@ -28,14 +31,18 @@ import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
-import { UrlPreview, HeapVisualizer, CodeRunner } from '@/components/learn/InteractiveBlock';
-import { 
-  QuizBlock, 
-  TerminalBlock, 
-  JsonFormatter, 
-  FileDownloadBlock, 
-  ChecklistBlock, 
-  ApiTestBlock 
+import {
+  UrlPreview,
+  HeapVisualizer,
+  CodeRunner,
+} from '@/components/learn/InteractiveBlock';
+import {
+  QuizBlock,
+  TerminalBlock,
+  JsonFormatter,
+  FileDownloadBlock,
+  ChecklistBlock,
+  ApiTestBlock,
 } from '@/components/learn/AdditionalBlocks';
 import {
   CryptoBlock,
@@ -44,9 +51,13 @@ import {
   XssTestBlock,
   PortScannerBlock,
   LogAnalyzerBlock,
-  PacketAnalyzerBlock
+  PacketAnalyzerBlock,
 } from '@/components/learn/SecurityBlocks';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Textarea } from '@/components/ui/textarea';
 
 interface Module {
@@ -101,7 +112,10 @@ const PROSE_CLASSES = `prose dark:prose-invert max-w-none
 
 // [quiz:question|option1|option2|...|answerIndex] 패턴을 인식하여 렌더링
 const RichContent = ({ content }: { content: string }) => {
-  const segments: Array<{ type: 'md'; text: string } | { type: 'quiz'; question: string; options: string[]; answer: number }> = [];
+  const segments: Array<
+    | { type: 'md'; text: string }
+    | { type: 'quiz'; question: string; options: string[]; answer: number }
+  > = [];
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -109,7 +123,10 @@ const RichContent = ({ content }: { content: string }) => {
 
   while ((match = re.exec(content)) !== null) {
     if (match.index > lastIndex) {
-      segments.push({ type: 'md', text: content.slice(lastIndex, match.index) });
+      segments.push({
+        type: 'md',
+        text: content.slice(lastIndex, match.index),
+      });
     }
     const parts = match[1].split('|');
     const question = parts[0] ?? '';
@@ -127,10 +144,18 @@ const RichContent = ({ content }: { content: string }) => {
     <>
       {segments.map((seg, i) =>
         seg.type === 'quiz' ? (
-          <QuizBlock key={i} question={seg.question} options={seg.options} answer={seg.answer} />
+          <QuizBlock
+            key={i}
+            question={seg.question}
+            options={seg.options}
+            answer={seg.answer}
+          />
         ) : (
           <div key={i} className={PROSE_CLASSES}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
+            >
               {seg.text}
             </ReactMarkdown>
           </div>
@@ -142,8 +167,8 @@ const RichContent = ({ content }: { content: string }) => {
 
 const fetcher = async (url: string) => {
   const res = await fetch(url, {
-    credentials: 'include'
-});
+    credentials: 'include',
+  });
   if (!res.ok) {
     throw new Error('불러오기에 실패했습니다');
   }
@@ -155,7 +180,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
   const { trackId, id: moduleId } = router.query;
   const [mounted, setMounted] = useState(false);
   const [tocOpen, setTocOpen] = useState(true);
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0]));
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(
+    new Set([0])
+  );
   const [noteOpen, setNoteOpen] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [noteContent, setNoteContent] = useState('');
@@ -178,15 +205,18 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
     fetcher
   );
 
-  const { data: moduleData, error, isLoading } = useSWR<{ data: Module }>(
+  const {
+    data: moduleData,
+    error,
+    isLoading,
+  } = useSWR<{ data: Module }>(
     moduleId ? `/api/learn/modules/${moduleId}` : null,
     fetcher
   );
 
-  const { data: noteData, mutate: mutateNote } = useSWR<{ data: { id: string; content: string | null } | null }>(
-    moduleId ? `/api/learn/modules/${moduleId}/note` : null,
-    fetcher
-  );
+  const { data: noteData, mutate: mutateNote } = useSWR<{
+    data: { id: string; content: string | null } | null;
+  }>(moduleId ? `/api/learn/modules/${moduleId}/note` : null, fetcher);
 
   useEffect(() => {
     if (noteData?.data?.content !== undefined) {
@@ -197,16 +227,21 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
   const module = moduleData?.data;
   const track = trackData?.data;
 
-  const currentModuleIndex = track?.modules.findIndex((tm) => tm.moduleId === moduleId) ?? -1;
+  const currentModuleIndex =
+    track?.modules.findIndex((tm) => tm.moduleId === moduleId) ?? -1;
   const currentModule = track?.modules[currentModuleIndex];
-  const prevModule = currentModuleIndex > 0 ? track?.modules[currentModuleIndex - 1] : null;
-  const nextModule = currentModuleIndex >= 0 && track?.modules[currentModuleIndex + 1] 
-    ? track?.modules[currentModuleIndex + 1] 
-    : null;
+  const prevModule =
+    currentModuleIndex > 0 ? track?.modules[currentModuleIndex - 1] : null;
+  const nextModule =
+    currentModuleIndex >= 0 && track?.modules[currentModuleIndex + 1]
+      ? track?.modules[currentModuleIndex + 1]
+      : null;
 
-  const completedCount = track?.modules.filter((m) => m.isCompleted).length ?? 0;
+  const completedCount =
+    track?.modules.filter((m) => m.isCompleted).length ?? 0;
   const totalModules = track?.modules.length ?? 0;
-  const progress = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
+  const progress =
+    totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
   const currentSectionNumber = currentModuleIndex + 1;
   const totalSections = totalModules;
 
@@ -215,11 +250,13 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
     try {
       const response = await fetch(`/api/learn/modules/${moduleId}/complete`, {
         method: 'POST',
-        credentials: 'include'
-});
+        credentials: 'include',
+      });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || '모듈 완료 처리에 실패했습니다');
+        throw new Error(
+          errorData.error?.message || '모듈 완료 처리에 실패했습니다'
+        );
       }
       toast.success('Module completed successfully!');
       mutateTrack();
@@ -261,8 +298,8 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ content: noteContent })
-});
+        body: JSON.stringify({ content: noteContent }),
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error?.message || '노트 저장에 실패했습니다');
@@ -294,7 +331,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
     setAttackBoxSplit(false);
     setCloudIdeLaunching(true);
     try {
-      const statusRes = await fetch('/api/cloud-ide/status', { credentials: 'include' });
+      const statusRes = await fetch('/api/cloud-ide/status', {
+        credentials: 'include',
+      });
       const statusJson = await statusRes.json().catch(() => ({}));
       if (statusJson?.data) {
         const d = statusJson.data;
@@ -315,7 +354,11 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
       });
       const launchJson = await launchRes.json().catch(() => ({}));
       if (!launchRes.ok) {
-        throw new Error(launchJson?.error?.detail ?? launchJson?.error?.message ?? 'Cloud IDE 실행 실패');
+        throw new Error(
+          launchJson?.error?.detail ??
+            launchJson?.error?.message ??
+            'Cloud IDE 실행 실패'
+        );
       }
       const port = launchJson.port;
       const password = launchJson.password ?? '';
@@ -327,7 +370,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
       setShowNotes(false);
       toast.success('Cloud IDE가 실행되었습니다.');
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Cloud IDE 실행에 실패했습니다.');
+      toast.error(
+        e instanceof Error ? e.message : 'Cloud IDE 실행에 실패했습니다.'
+      );
     } finally {
       setCloudIdeLaunching(false);
     }
@@ -341,7 +386,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
     }
     setAttackBoxLaunching(true);
     try {
-      const statusRes = await fetch('/api/attackbox/status', { credentials: 'include' });
+      const statusRes = await fetch('/api/attackbox/status', {
+        credentials: 'include',
+      });
       const statusJson = await statusRes.json().catch(() => ({}));
       if (statusJson?.data) {
         const d = statusJson.data;
@@ -362,7 +409,11 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
       });
       const launchJson = await launchRes.json().catch(() => ({}));
       if (!launchRes.ok) {
-        throw new Error(launchJson?.error?.detail ?? launchJson?.error?.message ?? 'Attack Box 실행 실패');
+        throw new Error(
+          launchJson?.error?.detail ??
+            launchJson?.error?.message ??
+            'Attack Box 실행 실패'
+        );
       }
       const url = `/tool/attackbox/${launchJson.port8080}/`;
       setAttackBoxWebUrl(url);
@@ -372,7 +423,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
       setTocOpen(false);
       setShowNotes(false);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Attack Box 실행에 실패했습니다.');
+      toast.error(
+        e instanceof Error ? e.message : 'Attack Box 실행에 실패했습니다.'
+      );
     } finally {
       setAttackBoxLaunching(false);
     }
@@ -391,9 +444,10 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
   // 모듈 바뀌면 localStorage에서 저장된 스텝 복원 (없으면 0)
   useEffect(() => {
     if (!moduleId) return;
-    const saved = typeof window !== 'undefined'
-      ? parseInt(localStorage.getItem(`step:${moduleId}`) ?? '0', 10)
-      : 0;
+    const saved =
+      typeof window !== 'undefined'
+        ? parseInt(localStorage.getItem(`step:${moduleId}`) ?? '0', 10)
+        : 0;
     setCurrentStep(Number.isFinite(saved) ? saved : 0);
   }, [moduleId]);
 
@@ -404,11 +458,15 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
   }, [currentStep, moduleId]);
 
   // 키보드 좌우 화살표로 스텝 이동
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (!hasSteps) return;
-    if (e.key === 'ArrowRight') setCurrentStep(s => Math.min(s + 1, totalContentSteps - 1));
-    if (e.key === 'ArrowLeft') setCurrentStep(s => Math.max(s - 1, 0));
-  }, [hasSteps, totalContentSteps]);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!hasSteps) return;
+      if (e.key === 'ArrowRight')
+        setCurrentStep((s) => Math.min(s + 1, totalContentSteps - 1));
+      if (e.key === 'ArrowLeft') setCurrentStep((s) => Math.max(s - 1, 0));
+    },
+    [hasSteps, totalContentSteps]
+  );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -421,7 +479,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
         <AppSidebar />
         <SidebarInset>
           <div className="flex items-center justify-center h-screen">
-            <p className="font-mono text-sm text-muted-foreground">Loading module...</p>
+            <p className="font-mono text-sm text-muted-foreground">
+              Loading module...
+            </p>
           </div>
         </SidebarInset>
       </SidebarProvider>
@@ -435,8 +495,14 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
         <SidebarInset>
           <div className="flex items-center justify-center h-screen">
             <div className="text-center">
-              <p className="font-mono text-sm text-destructive mb-4">모듈을 불러오지 못했습니다</p>
-              <Button onClick={() => router.push(`/learn/tracks/${trackId}`)} variant="outline" className="font-mono text-xs">
+              <p className="font-mono text-sm text-destructive mb-4">
+                모듈을 불러오지 못했습니다
+              </p>
+              <Button
+                onClick={() => router.push(`/learn/tracks/${trackId}`)}
+                variant="outline"
+                className="font-mono text-xs"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Track
               </Button>
@@ -447,17 +513,17 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
     );
   }
 
-  const sections = track?.modules.map((tm, index) => ({
-    id: index,
-    title: tm.module.title,
-    modules: [tm]
-  })) ?? [];
+  const sections =
+    track?.modules.map((tm, index) => ({
+      id: index,
+      title: tm.module.title,
+      modules: [tm],
+    })) ?? [];
 
   return (
     <SidebarProvider defaultOpen={false}>
       <AppSidebar />
       <SidebarInset className="flex flex-col h-screen bg-background overflow-hidden">
-
         {/* 상단 진행률 바 */}
         <div className="h-0.5 w-full bg-border/20 flex-shrink-0">
           {/* 트랙 전체 진행률 (베이스) */}
@@ -471,7 +537,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
           <div className="h-0.5 w-full bg-transparent flex-shrink-0 -mt-0.5">
             <div
               className="h-full bg-emerald-400 transition-[width] duration-300 ease-out"
-              style={{ width: `${Math.round(((currentStep + 1) / totalContentSteps) * 100)}%` }}
+              style={{
+                width: `${Math.round(((currentStep + 1) / totalContentSteps) * 100)}%`,
+              }}
             />
           </div>
         )}
@@ -485,10 +553,14 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
               className="flex items-center gap-1.5 hover:text-foreground hover:bg-accent/10 px-2 py-1 rounded transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
-              <span className="text-xs truncate max-w-[120px]">{track?.title ?? 'Track'}</span>
+              <span className="text-xs truncate max-w-[120px]">
+                {track?.title ?? 'Track'}
+              </span>
             </button>
             <span className="text-border">/</span>
-            <span className="text-xs text-foreground px-2 py-1 truncate max-w-[200px]">{module.title}</span>
+            <span className="text-xs text-foreground px-2 py-1 truncate max-w-[200px]">
+              {module.title}
+            </span>
           </div>
 
           {/* Right: action buttons */}
@@ -499,7 +571,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
               onClick={handleCloudIdeClick}
               disabled={cloudIdeLaunching}
               className={`h-7 px-2.5 text-xs gap-1.5 rounded transition-colors ${
-                cloudIdeSplit ? 'bg-blue-500/10 text-blue-400' : 'text-muted-foreground hover:text-foreground hover:bg-accent/10'
+                cloudIdeSplit
+                  ? 'bg-blue-500/10 text-blue-400'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/10'
               }`}
             >
               <Cloud className="h-3.5 w-3.5" />
@@ -511,7 +585,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
               onClick={handleAttackBoxClick}
               disabled={attackBoxLaunching}
               className={`h-7 px-2.5 text-xs gap-1.5 rounded transition-colors ${
-                attackBoxSplit ? 'bg-rose-500/10 text-rose-400' : 'text-muted-foreground hover:text-foreground hover:bg-accent/10'
+                attackBoxSplit
+                  ? 'bg-rose-500/10 text-rose-400'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/10'
               }`}
             >
               <Swords className="h-3.5 w-3.5" />
@@ -530,7 +606,10 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => { setTocOpen(!tocOpen); setShowNotes(false); }}
+              onClick={() => {
+                setTocOpen(!tocOpen);
+                setShowNotes(false);
+              }}
               className={`h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-accent/10 rounded ${tocOpen && !showNotes ? 'text-foreground bg-accent/10' : ''}`}
               title="Table of Contents"
             >
@@ -541,12 +620,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
 
         {/* ── Body ── */}
         <div className="flex flex-1 overflow-hidden min-h-0">
-
           {/* ── Main content (Notion doc style) ── */}
           <div className="overflow-y-auto min-w-0 flex-1">
-
             <div className="max-w-3xl mx-auto px-6 md:px-12 pt-12 pb-32">
-
               {/* Page title */}
               <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight tracking-tight mb-3">
                 {module.title}
@@ -557,9 +633,16 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
                 <span>{module.category}</span>
                 <span>·</span>
                 <span>{module.difficulty}</span>
-                {module.duration && <><span>·</span><span>{module.duration}</span></>}
+                {module.duration && (
+                  <>
+                    <span>·</span>
+                    <span>{module.duration}</span>
+                  </>
+                )}
                 <span>·</span>
-                <span>{currentSectionNumber} of {totalSections}</span>
+                <span>
+                  {currentSectionNumber} of {totalSections}
+                </span>
               </div>
 
               <div className="h-px bg-border/30 mb-6" />
@@ -568,7 +651,7 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
               {hasSteps && (
                 <div className="flex items-center justify-between mb-6">
                   <button
-                    onClick={() => setCurrentStep(s => Math.max(s - 1, 0))}
+                    onClick={() => setCurrentStep((s) => Math.max(s - 1, 0))}
                     disabled={currentStep === 0}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-2 py-1 rounded hover:bg-accent/10"
                   >
@@ -589,7 +672,11 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
                     ))}
                   </div>
                   <button
-                    onClick={() => setCurrentStep(s => Math.min(s + 1, totalContentSteps - 1))}
+                    onClick={() =>
+                      setCurrentStep((s) =>
+                        Math.min(s + 1, totalContentSteps - 1)
+                      )
+                    }
                     disabled={currentStep === totalContentSteps - 1}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-2 py-1 rounded hover:bg-accent/10"
                   >
@@ -602,11 +689,17 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
               {/* Content */}
               {module.content ? (
                 <RichContent
-                  content={hasSteps ? (contentSteps[currentStep] ?? '') : module.content}
+                  content={
+                    hasSteps
+                      ? (contentSteps[currentStep] ?? '')
+                      : module.content
+                  }
                 />
               ) : (
                 <div className="py-24 text-center">
-                  <p className="text-sm text-muted-foreground">No content available for this module.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No content available for this module.
+                  </p>
                 </div>
               )}
 
@@ -615,29 +708,43 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
                 <div>
                   {prevModule ? (
                     <button
-                      onClick={() => router.push(`/learn/tracks/${trackId}/modules/${prevModule.moduleId}`)}
+                      onClick={() =>
+                        router.push(
+                          `/learn/tracks/${trackId}/modules/${prevModule.moduleId}`
+                        )
+                      }
                       className="flex flex-col gap-1 text-left hover:opacity-80 transition-opacity"
                     >
                       <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                         <ArrowLeft className="h-3 w-3" /> Previous
                       </span>
-                      <span className="text-sm text-foreground">{prevModule.module.title}</span>
+                      <span className="text-sm text-foreground">
+                        {prevModule.module.title}
+                      </span>
                     </button>
-                  ) : <div />}
+                  ) : (
+                    <div />
+                  )}
                 </div>
                 <div className="text-right">
                   {!currentModule?.isCompleted ? (
                     (() => {
-                      const reachedEnd = !hasSteps || currentStep === totalContentSteps - 1;
+                      const reachedEnd =
+                        !hasSteps || currentStep === totalContentSteps - 1;
                       return reachedEnd ? (
                         <button
                           onClick={handleMarkCompleteAndNext}
                           className="flex flex-col gap-1 text-right items-end hover:opacity-80 transition-opacity"
                         >
                           <span className="text-[11px] text-emerald-400 flex items-center gap-1">
-                            Mark complete {nextModule ? '& next' : ''} <CheckCircle2 className="h-3 w-3" />
+                            Mark complete {nextModule ? '& next' : ''}{' '}
+                            <CheckCircle2 className="h-3 w-3" />
                           </span>
-                          {nextModule && <span className="text-sm text-foreground">{nextModule.module.title}</span>}
+                          {nextModule && (
+                            <span className="text-sm text-foreground">
+                              {nextModule.module.title}
+                            </span>
+                          )}
                         </button>
                       ) : (
                         <div className="flex flex-col gap-1 items-end">
@@ -645,7 +752,11 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
                             Mark complete <CheckCircle2 className="h-3 w-3" />
                           </span>
                           <span className="text-[10px] text-muted-foreground/30">
-                            {totalContentSteps - currentStep - 1} step{totalContentSteps - currentStep - 1 > 1 ? 's' : ''} remaining
+                            {totalContentSteps - currentStep - 1} step
+                            {totalContentSteps - currentStep - 1 > 1
+                              ? 's'
+                              : ''}{' '}
+                            remaining
                           </span>
                         </div>
                       );
@@ -658,7 +769,9 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
                       <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                         Next <ArrowRight className="h-3 w-3" />
                       </span>
-                      <span className="text-sm text-foreground">{nextModule.module.title}</span>
+                      <span className="text-sm text-foreground">
+                        {nextModule.module.title}
+                      </span>
                     </button>
                   ) : (
                     <div className="flex items-center gap-1.5 text-emerald-500">
@@ -677,20 +790,38 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
               <div className="h-11 border-b border-border/20 flex items-center justify-between px-3 flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <Cloud className="h-3.5 w-3.5 text-blue-400" />
-                  <span className="text-xs font-medium text-foreground">Cloud IDE</span>
+                  <span className="text-xs font-medium text-foreground">
+                    Cloud IDE
+                  </span>
                   {cloudIdePassword && (
                     <span className="text-[11px] text-muted-foreground">
-                      pw: <code className="bg-muted/50 px-1 rounded">{cloudIdePassword}</code>
+                      pw:{' '}
+                      <code className="bg-muted/50 px-1 rounded">
+                        {cloudIdePassword}
+                      </code>
                     </span>
                   )}
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                  onClick={() => { setCloudIdeSplit(false); setCloudIdeUrl(null); setCloudIdePassword(''); }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setCloudIdeSplit(false);
+                    setCloudIdeUrl(null);
+                    setCloudIdePassword('');
+                  }}
+                >
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
               <div className="flex-1 min-h-0 w-full">
-                <iframe src={cloudIdeUrl} title="Cloud IDE" className="w-full h-full border-0" allow="fullscreen" />
+                <iframe
+                  src={cloudIdeUrl}
+                  title="Cloud IDE"
+                  className="w-full h-full border-0"
+                  allow="fullscreen"
+                />
               </div>
             </div>
           )}
@@ -701,15 +832,28 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
               <div className="h-11 border-b border-border/20 flex items-center justify-between px-3 flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <Swords className="h-3.5 w-3.5 text-rose-400" />
-                  <span className="text-xs font-medium text-foreground">Attack Box</span>
+                  <span className="text-xs font-medium text-foreground">
+                    Attack Box
+                  </span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                  onClick={() => { setAttackBoxSplit(false); setAttackBoxWebUrl(null); }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setAttackBoxSplit(false);
+                    setAttackBoxWebUrl(null);
+                  }}
+                >
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
               <div className="flex-1 min-h-0 w-full">
-                <iframe src={attackBoxWebUrl} title="Attack Box" className="w-full h-full border-0" />
+                <iframe
+                  src={attackBoxWebUrl}
+                  title="Attack Box"
+                  className="w-full h-full border-0"
+                />
               </div>
             </div>
           )}
@@ -721,20 +865,34 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
               <div className="h-11 flex items-center justify-between px-3 flex-shrink-0 border-b border-border/20">
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => { setTocOpen(true); setShowNotes(false); }}
+                    onClick={() => {
+                      setTocOpen(true);
+                      setShowNotes(false);
+                    }}
                     className={`text-xs px-2 py-1 rounded transition-colors ${tocOpen && !showNotes ? 'text-foreground bg-accent/10' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     Contents
                   </button>
                   <button
-                    onClick={() => { setShowNotes(true); setTocOpen(false); if (noteData?.data === undefined) mutateNote(); }}
+                    onClick={() => {
+                      setShowNotes(true);
+                      setTocOpen(false);
+                      if (noteData?.data === undefined) mutateNote();
+                    }}
                     className={`text-xs px-2 py-1 rounded transition-colors ${showNotes ? 'text-foreground bg-accent/10' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     Notes
                   </button>
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                  onClick={() => { setTocOpen(false); setShowNotes(false); }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setTocOpen(false);
+                    setShowNotes(false);
+                  }}
+                >
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -751,19 +909,28 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
                           <span className="text-emerald-500">{progress}%</span>
                         </div>
                         <div className="h-0.5 rounded-full bg-border/30 overflow-hidden">
-                          <div className="h-full bg-emerald-500 transition-[width] duration-500" style={{ width: `${progress}%` }} />
+                          <div
+                            className="h-full bg-emerald-500 transition-[width] duration-500"
+                            style={{ width: `${progress}%` }}
+                          />
                         </div>
                       </div>
                       {hasSteps && (
                         <div>
                           <div className="flex justify-between text-[11px] mb-1.5">
-                            <span className="text-muted-foreground">Module</span>
-                            <span className="text-emerald-400">{currentStep + 1} / {totalContentSteps}</span>
+                            <span className="text-muted-foreground">
+                              Module
+                            </span>
+                            <span className="text-emerald-400">
+                              {currentStep + 1} / {totalContentSteps}
+                            </span>
                           </div>
                           <div className="h-0.5 rounded-full bg-border/30 overflow-hidden">
                             <div
                               className="h-full bg-emerald-400 transition-[width] duration-300"
-                              style={{ width: `${Math.round(((currentStep + 1) / totalContentSteps) * 100)}%` }}
+                              style={{
+                                width: `${Math.round(((currentStep + 1) / totalContentSteps) * 100)}%`,
+                              }}
                             />
                           </div>
                         </div>
@@ -777,21 +944,32 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
                       return (
                         <button
                           key={section.id}
-                          onClick={() => router.push(`/learn/tracks/${trackId}/modules/${tm.moduleId}`)}
+                          onClick={() =>
+                            router.push(
+                              `/learn/tracks/${trackId}/modules/${tm.moduleId}`
+                            )
+                          }
                           className={`w-full flex items-center gap-2.5 px-4 py-2 text-left transition-colors group ${
                             isCurrent ? 'bg-accent/10' : 'hover:bg-accent/5'
                           }`}
                         >
                           {/* check / dot */}
                           <div className="shrink-0 w-4 h-4 flex items-center justify-center">
-                            {isCompleted
-                              ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                              : <div className={`w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-foreground' : 'bg-border'}`} />
-                            }
+                            {isCompleted ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                            ) : (
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-foreground' : 'bg-border'}`}
+                              />
+                            )}
                           </div>
-                          <span className={`text-xs leading-snug truncate ${
-                            isCurrent ? 'text-foreground font-medium' : 'text-muted-foreground group-hover:text-foreground'
-                          }`}>
+                          <span
+                            className={`text-xs leading-snug truncate ${
+                              isCurrent
+                                ? 'text-foreground font-medium'
+                                : 'text-muted-foreground group-hover:text-foreground'
+                            }`}
+                          >
                             {tm.module.title}
                           </span>
                         </button>
@@ -822,7 +1000,6 @@ const TrackModuleDetailPage: NextPageWithLayout = () => {
             </div>
           )}
         </div>
-
       </SidebarInset>
     </SidebarProvider>
   );
@@ -834,9 +1011,9 @@ export const getServerSideProps = async (
   const { locale } = context;
   return {
     props: {
-      ...(locale ? await serverSideTranslations(locale, ['common']) : {})
-}
-};
+      ...(locale ? await serverSideTranslations(locale, ['common']) : {}),
+    },
+  };
 };
 
 TrackModuleDetailPage.getLayout = function getLayout(page: ReactElement) {

@@ -50,7 +50,7 @@ export default async function handler(
         where: {
           userId: user.id,
           skillPathId: {
-            in: skillPaths.map(sp => sp.id),
+            in: skillPaths.map((sp) => sp.id),
           },
         },
         select: {
@@ -59,12 +59,14 @@ export default async function handler(
       });
     }
 
-    const enrollmentSet = new Set(enrollments.map(e => e.skillPathId));
+    const enrollmentSet = new Set(enrollments.map((e) => e.skillPathId));
 
     // 사용자가 완료한 모듈 목록 가져오기
     let completedModuleIds: Set<string> = new Set();
     if (user) {
-      const allModuleIds = skillPaths.flatMap(sp => sp.modules.map(m => m.moduleId));
+      const allModuleIds = skillPaths.flatMap((sp) =>
+        sp.modules.map((m) => m.moduleId)
+      );
       const completions = await prisma.userModuleCompletion.findMany({
         where: {
           userId: user.id,
@@ -76,17 +78,18 @@ export default async function handler(
           moduleId: true,
         },
       });
-      completedModuleIds = new Set(completions.map(c => c.moduleId));
+      completedModuleIds = new Set(completions.map((c) => c.moduleId));
     }
 
     // 응답 데이터 구성
     const tracksWithDetails = skillPaths.map((skillPath) => {
       const moduleCount = skillPath.modules.length;
       const isEnrolled = enrollmentSet.has(skillPath.id);
-      
+
       // Track이 완료되었는지 확인 (모든 모듈이 완료되었는지)
-      const allModulesCompleted = moduleCount > 0 && 
-        skillPath.modules.every(spm => completedModuleIds.has(spm.moduleId));
+      const allModulesCompleted =
+        moduleCount > 0 &&
+        skillPath.modules.every((spm) => completedModuleIds.has(spm.moduleId));
 
       return {
         id: skillPath.id,
@@ -107,8 +110,8 @@ export default async function handler(
     });
   } catch (error: any) {
     console.error('[API /learn/tracks] Error:', error);
-    res.status(500).json({ 
-      error: { message: error.message || 'Failed to fetch tracks' }
+    res.status(500).json({
+      error: { message: error.message || 'Failed to fetch tracks' },
     });
   }
 }

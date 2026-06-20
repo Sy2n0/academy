@@ -88,7 +88,7 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     res.json({
-      data: allSettings.map(settings => ({
+      data: allSettings.map((settings) => ({
         id: settings.id,
         name: settings.name,
         codeName: settings.codeName,
@@ -109,18 +109,20 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   // 활성 설정을 가져오기 (없으면 가장 최근 설정)
-  const settings = await prisma.playgroundSettings.findFirst({
-    where: {
-      isActive: true,
-    },
-    orderBy: {
-      updatedAt: 'desc',
-    },
-  }) || await prisma.playgroundSettings.findFirst({
-    orderBy: {
-      updatedAt: 'desc',
-    },
-  });
+  const settings =
+    (await prisma.playgroundSettings.findFirst({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    })) ||
+    (await prisma.playgroundSettings.findFirst({
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    }));
 
   if (!settings) {
     // 설정이 없으면 기본값 반환
@@ -168,7 +170,10 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (!prisma.playgroundSettings) {
-      throw new ApiError(500, 'PlaygroundSettings model is not available. Please restart the server.');
+      throw new ApiError(
+        500,
+        'PlaygroundSettings model is not available. Please restart the server.'
+      );
     }
 
     let settings;
@@ -216,7 +221,9 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
 
     res.json({
       data: {
-        message: validatedData.id ? 'Playground settings edited successfully' : 'Playground settings updated successfully',
+        message: validatedData.id
+          ? 'Playground settings edited successfully'
+          : 'Playground settings updated successfully',
         id: settings.id,
         name: settings.name,
         codeName: settings.codeName,
@@ -234,18 +241,23 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
     });
   } catch (error: any) {
     console.error('Error in handlePUT:', error);
-    
+
     // Zod validation error
     if (error.name === 'ZodError') {
-      const errorMessages = error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const errorMessages = error.errors
+        .map((e: any) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ');
       throw new ApiError(400, `Validation error: ${errorMessages}`);
     }
-    
+
     // Prisma error
     if (error.code === 'P2002') {
-      throw new ApiError(409, 'A setting with this configuration already exists');
+      throw new ApiError(
+        409,
+        'A setting with this configuration already exists'
+      );
     }
-    
+
     throw error;
   }
 };
@@ -292,12 +304,12 @@ const handlePATCH = async (req: NextApiRequest, res: NextApiResponse) => {
     });
   } catch (error: any) {
     console.error('Error in handlePATCH:', error);
-    
+
     // Prisma error
     if (error.code === 'P2025') {
       throw new ApiError(404, 'Setting not found');
     }
-    
+
     throw error;
   }
 };

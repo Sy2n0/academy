@@ -50,8 +50,8 @@ MinIO는 기본적으로 브라우저를 콘솔(9001)로 보냅니다. **같은 
    - **Docker** 예:  
      `-e "MINIO_BROWSER_REDIRECT_URL=https://bucket.hub-h4ck.com/console"`
    - **systemd/직접 실행** 예:  
-     `MINIO_BROWSER_REDIRECT_URL=https://bucket.hub-h4ck.com/console`  
-   MinIO 재시작 후에는 `https://bucket.hub-h4ck.com/` 접속 시 `:9001`이 아닌 `https://bucket.hub-h4ck.com/console`로만 이동해야 합니다.
+      `MINIO_BROWSER_REDIRECT_URL=https://bucket.hub-h4ck.com/console`  
+     MinIO 재시작 후에는 `https://bucket.hub-h4ck.com/` 접속 시 `:9001`이 아닌 `https://bucket.hub-h4ck.com/console`로만 이동해야 합니다.
 
 ### MinIO 서버 시작 (Docker)
 

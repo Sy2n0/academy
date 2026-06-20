@@ -92,10 +92,14 @@ const TeamSettings = ({ team }: { team: Team }) => {
               <div className="flex justify-end">
                 <Button
                   type="submit"
-                  disabled={!formik.isValid || !formik.dirty || formik.isSubmitting}
+                  disabled={
+                    !formik.isValid || !formik.dirty || formik.isSubmitting
+                  }
                   size="md"
                 >
-                  {formik.isSubmitting ? t('loading') || 'Loading...' : t('save-changes')}
+                  {formik.isSubmitting
+                    ? t('loading') || 'Loading...'
+                    : t('save-changes')}
                 </Button>
               </div>
             </Card.Footer>

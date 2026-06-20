@@ -14,13 +14,17 @@ const assignSchema = z.object({
   userEmail: z.string().email().optional(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const session = await getSession(req, res);
     const currentUser = await getUserBySession(session);
 
     if (!currentUser) throw new ApiError(401, 'Unauthorized');
-    if (!isAdmin(currentUser.role)) throw new ApiError(403, 'Only admins can manage badge assignments');
+    if (!isAdmin(currentUser.role))
+      throw new ApiError(403, 'Only admins can manage badge assignments');
 
     await ensureBadgeInfrastructure();
 
@@ -36,7 +40,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
       default:
         res.setHeader('Allow', 'GET, POST, DELETE');
-        res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+        res
+          .status(405)
+          .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
   } catch (error: any) {
     const message = error.message || 'Something went wrong';
@@ -104,7 +110,11 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
   });
 };
 
-const handlePOST = async (req: NextApiRequest, res: NextApiResponse, createdById: string) => {
+const handlePOST = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  createdById: string
+) => {
   const parsed = assignSchema.parse(req.body);
 
   let targetUserId = parsed.userId;
@@ -130,7 +140,9 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse, createdById
 };
 
 const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
-  const id = (typeof req.query.id === 'string' ? req.query.id : req.body?.id) as string | undefined;
+  const id = (
+    typeof req.query.id === 'string' ? req.query.id : req.body?.id
+  ) as string | undefined;
   if (!id) throw new ApiError(400, 'Assignment id is required');
 
   await prisma.$executeRaw`DELETE FROM "UserBadgeAssignment" WHERE "id" = ${id}`;

@@ -1,6 +1,7 @@
 import { type ReactElement } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
+import Link from 'next/link';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
@@ -58,7 +59,10 @@ const AdminLearnPage: NextPageWithLayout = () => {
                 </div>
 
                 <div className="grid auto-rows-min gap-6 md:grid-cols-3">
-                  <a href="/admin/learn/modules" className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6 hover:border-accent/50 transition-colors block">
+                  <Link
+                    href="/admin/learn/modules"
+                    className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6 hover:border-accent/50 transition-colors block"
+                  >
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4">
                       MODULES
                     </h3>
@@ -70,9 +74,12 @@ const AdminLearnPage: NextPageWithLayout = () => {
                         View Modules →
                       </span>
                     </div>
-                  </a>
+                  </Link>
 
-                  <a href="/admin/learn/tracks" className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6 hover:border-accent/50 transition-colors block">
+                  <Link
+                    href="/admin/learn/tracks"
+                    className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6 hover:border-accent/50 transition-colors block"
+                  >
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4">
                       TRACKS
                     </h3>
@@ -84,9 +91,12 @@ const AdminLearnPage: NextPageWithLayout = () => {
                         View Tracks →
                       </span>
                     </div>
-                  </a>
+                  </Link>
 
-                  <a href="/admin/learn/attachments" className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6 hover:border-accent/50 transition-colors block">
+                  <Link
+                    href="/admin/learn/attachments"
+                    className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6 hover:border-accent/50 transition-colors block"
+                  >
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4">
                       ASSIGNMENTS
                     </h3>
@@ -98,7 +108,7 @@ const AdminLearnPage: NextPageWithLayout = () => {
                         View Assignments →
                       </span>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </SidebarInset>

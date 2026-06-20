@@ -9,7 +9,9 @@ export interface TestRunOptions {
   testPattern?: string;
 }
 
-export async function startTestRun(options: TestRunOptions = {}): Promise<string> {
+export async function startTestRun(
+  options: TestRunOptions = {}
+): Promise<string> {
   const { trigger = 'manual', commit, branch, testPattern } = options;
 
   const run = await prisma.testRun.create({
@@ -31,7 +33,10 @@ export async function startTestRun(options: TestRunOptions = {}): Promise<string
   return run.id;
 }
 
-async function executeTests(runId: string, testPattern?: string): Promise<void> {
+async function executeTests(
+  runId: string,
+  testPattern?: string
+): Promise<void> {
   const appDir = path.resolve(process.cwd());
   const startedAt = Date.now();
 
@@ -71,7 +76,11 @@ async function executeTests(runId: string, testPattern?: string): Promise<void> 
   } catch {
     await prisma.testRun.update({
       where: { id: runId },
-      data: { status: 'ERROR', duration, results: { raw: output.slice(0, 2000) } },
+      data: {
+        status: 'ERROR',
+        duration,
+        results: { raw: output.slice(0, 2000) },
+      },
     });
     return;
   }

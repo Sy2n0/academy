@@ -29,15 +29,22 @@ export default async function handler(
         return await handlePOST(req, res);
       default:
         res.setHeader('Allow', 'GET, POST');
-        res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+        res
+          .status(405)
+          .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
   } catch (error: any) {
-    res.status(error.status ?? 500).json({ error: { message: error.message ?? 'Something went wrong' } });
+    res
+      .status(error.status ?? 500)
+      .json({ error: { message: error.message ?? 'Something went wrong' } });
   }
 }
 
 const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
-  const limit = Math.min(parseInt((req.query.limit as string) ?? '20', 10), 100);
+  const limit = Math.min(
+    parseInt((req.query.limit as string) ?? '20', 10),
+    100
+  );
   const page = Math.max(parseInt((req.query.page as string) ?? '1', 10), 1);
   const skip = (page - 1) * limit;
 

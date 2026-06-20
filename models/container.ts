@@ -126,7 +126,9 @@ export async function stopContainerInstance(instanceId: string): Promise<void> {
 /**
  * 컨테이너 인스턴스 삭제
  */
-export async function removeContainerInstance(instanceId: string): Promise<void> {
+export async function removeContainerInstance(
+  instanceId: string
+): Promise<void> {
   const instance = await prisma.containerInstance.findUnique({
     where: { id: instanceId },
   });
@@ -195,7 +197,7 @@ export async function syncContainerStatuses(): Promise<void> {
   for (const instance of runningInstances) {
     try {
       const status = await getContainerStatus(instance.containerId);
-      
+
       if (status.status !== 'running' && instance.status === 'running') {
         await prisma.containerInstance.update({
           where: { id: instance.id },

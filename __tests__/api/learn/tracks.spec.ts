@@ -23,30 +23,64 @@ import { getUserBySession } from 'models/user';
 import { prisma } from '@/lib/prisma';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
-const mockGetUserBySession = getUserBySession as jest.MockedFunction<typeof getUserBySession>;
+const mockGetUserBySession = getUserBySession as jest.MockedFunction<
+  typeof getUserBySession
+>;
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'GET', headers: {}, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'GET',
+    headers: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 // modules 포함한 skillPath 구조
 const mockSkillPaths = [
-  { id: 'sp1', title: 'Web Hacking', description: '', type: 'OFFENSIVE', difficulty: 'Medium', duration: 60, imageUrl: null, modules: [] },
-  { id: 'sp2', title: 'Forensics', description: '', type: 'DEFENSIVE', difficulty: 'Easy', duration: 30, imageUrl: null, modules: [] },
+  {
+    id: 'sp1',
+    title: 'Web Hacking',
+    description: '',
+    type: 'OFFENSIVE',
+    difficulty: 'Medium',
+    duration: 60,
+    imageUrl: null,
+    modules: [],
+  },
+  {
+    id: 'sp2',
+    title: 'Forensics',
+    description: '',
+    type: 'DEFENSIVE',
+    difficulty: 'Easy',
+    duration: 30,
+    imageUrl: null,
+    modules: [],
+  },
 ];
 
 beforeEach(() => {
   jest.clearAllMocks();
-  (mockPrisma.skillPath.findMany as jest.Mock).mockResolvedValue(mockSkillPaths);
-  (mockPrisma.userSkillPathEnrollment.findMany as jest.Mock).mockResolvedValue([]);
+  (mockPrisma.skillPath.findMany as jest.Mock).mockResolvedValue(
+    mockSkillPaths
+  );
+  (mockPrisma.userSkillPathEnrollment.findMany as jest.Mock).mockResolvedValue(
+    []
+  );
   (mockPrisma.userModuleCompletion.findMany as jest.Mock).mockResolvedValue([]);
 });
 
@@ -92,9 +126,9 @@ describe('GET /api/learn/tracks - 로그인', () => {
   beforeEach(() => {
     mockGetSession.mockResolvedValue({ user: mockUser } as any);
     mockGetUserBySession.mockResolvedValue(mockUser as any);
-    (mockPrisma.userSkillPathEnrollment.findMany as jest.Mock).mockResolvedValue([
-      { skillPathId: 'sp1' },
-    ]);
+    (
+      mockPrisma.userSkillPathEnrollment.findMany as jest.Mock
+    ).mockResolvedValue([{ skillPathId: 'sp1' }]);
   });
 
   it('등록된 skill path는 isEnrolled: true를 반환한다', async () => {

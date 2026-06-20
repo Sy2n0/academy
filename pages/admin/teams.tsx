@@ -34,7 +34,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
-import { Users, Search, Copy, Check, TrendingUp, Plus, UserPlus, X } from 'lucide-react';
+import {
+  Users,
+  Search,
+  Copy,
+  Check,
+  TrendingUp,
+  Plus,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -94,7 +103,11 @@ const TeamManagement: NextPageWithLayout = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [createForm, setCreateForm] = useState({ name: '', slug: '', inviteCode: '' });
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    slug: '',
+    inviteCode: '',
+  });
 
   const [memberTeam, setMemberTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<
@@ -112,7 +125,8 @@ const TeamManagement: NextPageWithLayout = () => {
     try {
       const res = await fetch(`/api/admin/teams/${teamId}/members`);
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error?.message || 'Failed to load members');
+      if (!res.ok)
+        throw new Error(json?.error?.message || 'Failed to load members');
       setMembers(json.data.members);
     } catch (err: any) {
       toast.error(err?.message || 'Failed to load members');
@@ -172,7 +186,8 @@ const TeamManagement: NextPageWithLayout = () => {
         body: JSON.stringify({ userId }),
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error?.message || 'Failed to add member');
+      if (!res.ok)
+        throw new Error(json?.error?.message || 'Failed to add member');
       toast.success('Member added');
       await loadMembers(memberTeam.id);
       mutate();
@@ -220,7 +235,9 @@ const TeamManagement: NextPageWithLayout = () => {
         body: JSON.stringify({
           name: createForm.name.trim(),
           slug: createForm.slug.trim(),
-          ...(createForm.inviteCode.trim() ? { inviteCode: createForm.inviteCode.trim() } : {}),
+          ...(createForm.inviteCode.trim()
+            ? { inviteCode: createForm.inviteCode.trim() }
+            : {}),
         }),
       });
       if (!res.ok) {
@@ -297,7 +314,10 @@ const TeamManagement: NextPageWithLayout = () => {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <h1 className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2" style={{ fontStyle: 'italic' }}>
+                        <h1
+                          className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2"
+                          style={{ fontStyle: 'italic' }}
+                        >
                           TEAM MANAGEMENT
                         </h1>
                         <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
@@ -341,7 +361,9 @@ const TeamManagement: NextPageWithLayout = () => {
 
                       {filteredTeams.length === 0 ? (
                         <p className="font-mono text-sm text-muted-foreground text-center py-8">
-                          {searchQuery ? 'No teams found matching your search.' : 'No teams found.'}
+                          {searchQuery
+                            ? 'No teams found matching your search.'
+                            : 'No teams found.'}
                         </p>
                       ) : (
                         <div className="space-y-3">
@@ -377,7 +399,10 @@ const TeamManagement: NextPageWithLayout = () => {
                                     </div>
                                   )}
                                   <span className="font-mono text-[10px] text-muted-foreground">
-                                    Created: {new Date(team.createdAt).toLocaleDateString()}
+                                    Created:{' '}
+                                    {new Date(
+                                      team.createdAt
+                                    ).toLocaleDateString()}
                                   </span>
                                 </div>
                               </div>
@@ -398,7 +423,9 @@ const TeamManagement: NextPageWithLayout = () => {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleCopyInviteCode(team.inviteCode)}
+                                    onClick={() =>
+                                      handleCopyInviteCode(team.inviteCode)
+                                    }
                                     className="h-6 w-6 p-0"
                                   >
                                     {copiedCode === team.inviteCode ? (
@@ -432,10 +459,14 @@ const TeamManagement: NextPageWithLayout = () => {
 
           <form onSubmit={onCreateTeam} className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">Name</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider">
+                Name
+              </Label>
               <Input
                 value={createForm.name}
-                onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, name: e.target.value }))
+                }
                 placeholder="e.g. KUCIS_2026"
                 maxLength={120}
                 className="font-mono text-xs"
@@ -443,7 +474,9 @@ const TeamManagement: NextPageWithLayout = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">Slug</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider">
+                Slug
+              </Label>
               <Input
                 value={createForm.slug}
                 onChange={(e) => {
@@ -457,17 +490,23 @@ const TeamManagement: NextPageWithLayout = () => {
                 className="font-mono text-xs"
               />
               <p className="font-mono text-[10px] text-muted-foreground">
-                Letters, numbers, underscores, and dashes only. Spaces become underscores.
+                Letters, numbers, underscores, and dashes only. Spaces become
+                underscores.
               </p>
             </div>
 
             <div className="space-y-2">
               <Label className="font-mono text-xs uppercase tracking-wider">
-                Invite Code <span className="normal-case text-muted-foreground">(optional)</span>
+                Invite Code{' '}
+                <span className="normal-case text-muted-foreground">
+                  (optional)
+                </span>
               </Label>
               <Input
                 value={createForm.inviteCode}
-                onChange={(e) => setCreateForm((f) => ({ ...f, inviteCode: e.target.value }))}
+                onChange={(e) =>
+                  setCreateForm((f) => ({ ...f, inviteCode: e.target.value }))
+                }
                 placeholder="Auto-generated if blank"
                 maxLength={64}
                 className="font-mono text-xs"
@@ -475,7 +514,9 @@ const TeamManagement: NextPageWithLayout = () => {
             </div>
 
             {createError && (
-              <p className="font-mono text-[11px] text-red-400">{createError}</p>
+              <p className="font-mono text-[11px] text-red-400">
+                {createError}
+              </p>
             )}
 
             <DialogFooter className="gap-2">
@@ -521,7 +562,9 @@ const TeamManagement: NextPageWithLayout = () => {
                 Current Members ({members.length})
               </Label>
               {memberLoading ? (
-                <p className="font-mono text-xs text-muted-foreground py-3">Loading...</p>
+                <p className="font-mono text-xs text-muted-foreground py-3">
+                  Loading...
+                </p>
               ) : members.length === 0 ? (
                 <p className="font-mono text-xs text-muted-foreground py-3">
                   No members yet.
@@ -534,7 +577,9 @@ const TeamManagement: NextPageWithLayout = () => {
                       className="flex items-center justify-between gap-3 px-3 py-2 border border-border/30 rounded bg-background/40"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="font-mono text-xs text-foreground truncate">{m.name}</p>
+                        <p className="font-mono text-xs text-foreground truncate">
+                          {m.name}
+                        </p>
                         <p className="font-mono text-[10px] text-muted-foreground truncate">
                           {m.email} · {m.role}
                         </p>
@@ -555,7 +600,9 @@ const TeamManagement: NextPageWithLayout = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">Add Member</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider">
+                Add Member
+              </Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
@@ -569,21 +616,29 @@ const TeamManagement: NextPageWithLayout = () => {
 
               <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
                 {userSearchLoading ? (
-                  <p className="font-mono text-xs text-muted-foreground py-2">Searching...</p>
+                  <p className="font-mono text-xs text-muted-foreground py-2">
+                    Searching...
+                  </p>
                 ) : userResults.length === 0 ? (
                   <p className="font-mono text-xs text-muted-foreground py-2">
-                    {userSearch.trim() ? 'No users found.' : 'Start typing to search users.'}
+                    {userSearch.trim()
+                      ? 'No users found.'
+                      : 'Start typing to search users.'}
                   </p>
                 ) : (
                   userResults.map((u) => {
-                    const alreadyMember = members.some((m) => m.userId === u.id);
+                    const alreadyMember = members.some(
+                      (m) => m.userId === u.id
+                    );
                     return (
                       <div
                         key={u.id}
                         className="flex items-center justify-between gap-3 px-3 py-2 border border-border/30 rounded bg-background/40"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="font-mono text-xs text-foreground truncate">{u.name}</p>
+                          <p className="font-mono text-xs text-foreground truncate">
+                            {u.name}
+                          </p>
                           <p className="font-mono text-[10px] text-muted-foreground truncate">
                             {u.email}
                           </p>

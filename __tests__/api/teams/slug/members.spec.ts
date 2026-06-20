@@ -16,7 +16,10 @@ jest.mock('models/team', () => ({
   countTeamMembers: jest.fn(),
 }));
 jest.mock('models/user', () => ({ throwIfNotAllowed: jest.fn() }));
-jest.mock('models/teamMember', () => ({ updateTeamMember: jest.fn(), countTeamMembers: jest.fn() }));
+jest.mock('models/teamMember', () => ({
+  updateTeamMember: jest.fn(),
+  countTeamMembers: jest.fn(),
+}));
 jest.mock('@/lib/rbac', () => ({ validateMembershipOperation: jest.fn() }));
 jest.mock('@/lib/retraced', () => ({ sendAudit: jest.fn() }));
 jest.mock('@/lib/svix', () => ({ sendEvent: jest.fn() }));
@@ -32,18 +35,35 @@ jest.mock('@/lib/zod', () => ({
 }));
 
 import handler from '../../../../pages/api/teams/[slug]/members';
-import { throwIfNoTeamAccess, getTeamMembers, removeTeamMember } from 'models/team';
+import {
+  throwIfNoTeamAccess,
+  getTeamMembers,
+  removeTeamMember,
+} from 'models/team';
 import { throwIfNotAllowed } from 'models/user';
 import { updateTeamMember } from 'models/teamMember';
 import { validateMembershipOperation } from '@/lib/rbac';
 import { validateWithSchema } from '@/lib/zod';
 
-const mockThrowIfNoTeamAccess = throwIfNoTeamAccess as jest.MockedFunction<typeof throwIfNoTeamAccess>;
-const mockThrowIfNotAllowed = throwIfNotAllowed as jest.MockedFunction<typeof throwIfNotAllowed>;
-const mockGetTeamMembers = getTeamMembers as jest.MockedFunction<typeof getTeamMembers>;
-const mockRemoveTeamMember = removeTeamMember as jest.MockedFunction<typeof removeTeamMember>;
-const mockUpdateTeamMember = updateTeamMember as jest.MockedFunction<typeof updateTeamMember>;
-const mockValidateMembership = validateMembershipOperation as jest.MockedFunction<typeof validateMembershipOperation>;
+const mockThrowIfNoTeamAccess = throwIfNoTeamAccess as jest.MockedFunction<
+  typeof throwIfNoTeamAccess
+>;
+const mockThrowIfNotAllowed = throwIfNotAllowed as jest.MockedFunction<
+  typeof throwIfNotAllowed
+>;
+const mockGetTeamMembers = getTeamMembers as jest.MockedFunction<
+  typeof getTeamMembers
+>;
+const mockRemoveTeamMember = removeTeamMember as jest.MockedFunction<
+  typeof removeTeamMember
+>;
+const mockUpdateTeamMember = updateTeamMember as jest.MockedFunction<
+  typeof updateTeamMember
+>;
+const mockValidateMembership =
+  validateMembershipOperation as jest.MockedFunction<
+    typeof validateMembershipOperation
+  >;
 const mockValidateWithSchema = validateWithSchema as jest.Mock;
 
 const ownerTeamMember = {
@@ -55,20 +75,30 @@ const ownerTeamMember = {
 };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'GET', headers: {}, query: { slug: 'example' }, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'GET',
+    headers: {},
+    query: { slug: 'example' },
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockThrowIfNoTeamAccess.mockResolvedValue(ownerTeamMember as any);
-  mockThrowIfNotAllowed.mockReturnValue(undefined);
+  mockThrowIfNotAllowed.mockReturnValue(undefined as never);
   mockValidateMembership.mockResolvedValue(undefined);
 });
 
@@ -105,7 +135,13 @@ describe('DELETE /api/teams/[slug]/members', () => {
     mockRemoveTeamMember.mockResolvedValue({ id: 'user-2' } as any);
 
     const { res, json } = makeRes();
-    await handler(makeReq({ method: 'DELETE', query: { slug: 'example', memberId: 'user-2' } }), res);
+    await handler(
+      makeReq({
+        method: 'DELETE',
+        query: { slug: 'example', memberId: 'user-2' },
+      }),
+      res
+    );
 
     expect(mockRemoveTeamMember).toHaveBeenCalledWith('team-1', 'user-2');
     expect(json).toHaveBeenCalledWith({ data: {} });
@@ -114,23 +150,40 @@ describe('DELETE /api/teams/[slug]/members', () => {
   it('존재하지 않는 멤버 삭제 시 404를 반환한다', async () => {
     mockRemoveTeamMember.mockResolvedValue(null);
     const { res, status } = makeRes();
-    await handler(makeReq({ method: 'DELETE', query: { slug: 'example', memberId: 'ghost' } }), res);
+    await handler(
+      makeReq({
+        method: 'DELETE',
+        query: { slug: 'example', memberId: 'ghost' },
+      }),
+      res
+    );
     expect(status).toHaveBeenCalledWith(404);
   });
 });
 
 describe('PATCH /api/teams/[slug]/members - 역할 변경', () => {
   beforeEach(() => {
-    mockValidateWithSchema.mockReturnValue({ memberId: 'user-2', role: 'ADMIN' });
-    mockUpdateTeamMember.mockResolvedValue({ id: 'user-2', role: 'ADMIN' } as any);
+    mockValidateWithSchema.mockReturnValue({
+      memberId: 'user-2',
+      role: 'ADMIN',
+    });
+    mockUpdateTeamMember.mockResolvedValue({
+      id: 'user-2',
+      role: 'ADMIN',
+    } as any);
   });
 
   it('멤버 역할을 변경한다', async () => {
     const { res, json } = makeRes();
-    await handler(makeReq({ method: 'PATCH', body: { memberId: 'user-2', role: 'ADMIN' } }), res);
+    await handler(
+      makeReq({ method: 'PATCH', body: { memberId: 'user-2', role: 'ADMIN' } }),
+      res
+    );
 
     expect(mockValidateMembership).toHaveBeenCalled();
     expect(mockUpdateTeamMember).toHaveBeenCalled();
-    expect(json).toHaveBeenCalledWith({ data: { id: 'user-2', role: 'ADMIN' } });
+    expect(json).toHaveBeenCalledWith({
+      data: { id: 'user-2', role: 'ADMIN' },
+    });
   });
 });

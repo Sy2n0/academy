@@ -1,16 +1,27 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
+# Dependabot version updates.
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Strategy: weekly cadence + aggressive grouping so minor/patch bumps arrive as
+# a few batched PRs instead of dozens. Major bumps stay ungrouped so they get
+# individual review. Patch/minor PRs are auto-merged by dependabot-automerge.yml
+# once CI passes (requires branch protection to gate on checks).
 version: 2
 updates:
-  - package-ecosystem: 'npm' # See documentation for possible values
-    directory: '/' # Location of package manifests
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: 'daily'
-    open-pull-requests-limit: 10
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+      timezone: 'Asia/Seoul'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
     groups:
+      # Framework-specific groups (kept from before) take precedence.
       typescript-eslint:
         patterns:
           - '@typescript-eslint/*'
@@ -26,7 +37,31 @@ updates:
         patterns:
           - '@prisma/client'
           - 'prisma'
+      # Catch-all: batch the long tail of non-major updates.
+      production-minor-patch:
+        applies-to: version-updates
+        dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
+      development-minor-patch:
+        applies-to: version-updates
+        dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
+
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
       interval: 'weekly'
+      day: 'monday'
+    labels:
+      - 'dependencies'
+      - 'ci'
+    commit-message:
+      prefix: 'ci'
+    groups:
+      github-actions:
+        patterns:
+          - '*'

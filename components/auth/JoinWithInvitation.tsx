@@ -162,7 +162,9 @@ const JoinWithInvitation = ({
             className="w-full"
             size="md"
           >
-            {formik.isSubmitting ? t('loading') || 'Loading...' : t('create-account')}
+            {formik.isSubmitting
+              ? t('loading') || 'Loading...'
+              : t('create-account')}
           </Button>
           <AgreeMessage text={t('create-account')} />
         </div>

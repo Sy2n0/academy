@@ -8,7 +8,13 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const SEVERITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'] as const;
-const STATUSES = ['OPEN', 'TRIAGED', 'IN_REVIEW', 'ACCEPTED', 'CLOSED'] as const;
+const STATUSES = [
+  'OPEN',
+  'TRIAGED',
+  'IN_REVIEW',
+  'ACCEPTED',
+  'CLOSED',
+] as const;
 const TARGETS = ['cFS', 'CF', 'CryptoLib', 'SBN'] as const;
 
 const updateReportSchema = z.object({
@@ -20,7 +26,10 @@ const updateReportSchema = z.object({
   status: z.enum(STATUSES).optional(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const session = await getSession(req, res);
     const currentUser = await getUserBySession(session);
@@ -47,7 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
       default:
         res.setHeader('Allow', 'PATCH, DELETE');
-        res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+        res
+          .status(405)
+          .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
   } catch (error: any) {
     const message = error.message || 'Something went wrong';
@@ -56,7 +67,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-const handlePATCH = async (req: NextApiRequest, res: NextApiResponse, id: string) => {
+const handlePATCH = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) => {
   const parsed = updateReportSchema.parse(req.body);
   const data: typeof parsed = { ...parsed };
   if (typeof parsed.reportedTo === 'string') {

@@ -16,6 +16,22 @@ const exceptionList = [
   'invalid-credentials',
   'no-credentials',
   'token-not-found',
+  // Kept but not referenced by a literal t('...') call (page <title>s, 404
+  // page copy, and starter-kit leftovers). Whitelisted instead of deleted so
+  // they remain available for dynamic/SSR usage.
+  'team',
+  'email-placeholder',
+  'homepage-title',
+  'sign-up-title',
+  'login-title',
+  'forgot-password-title',
+  'resend-token-title',
+  'invitation-title',
+  'x',
+  'page-not-found',
+  'sorry-not-found',
+  'error-404',
+  'go-home',
 ];
 
 const allStrings = {};
@@ -30,15 +46,15 @@ files.forEach((file) => {
   if (file.isDirectory()) {
     return;
   }
-  if (file.path.includes('node_modules')) {
+  // Node >=20.12/21.2 renamed Dirent.path to Dirent.parentPath; keep both for
+  // compatibility across Node versions (CI runs 22, local may run 24+).
+  const fileDir = file.parentPath ?? file.path;
+  if (fileDir.includes('node_modules')) {
     return;
   }
 
   if (['.ts', '.tsx'].includes(path.extname(file.name).toLowerCase())) {
-    const fileContent = fs.readFileSync(
-      path.join(file.path, file.name),
-      'utf8'
-    );
+    const fileContent = fs.readFileSync(path.join(fileDir, file.name), 'utf8');
 
     (fileContent.match(regExp) || []).forEach((match) => {
       const id = match.replace("t('", '').replace("'", '');
@@ -46,7 +62,7 @@ files.forEach((file) => {
       if (!localeFile[id]) {
         error = true;
         console.error(
-          `Missing key: ${path.join(file.path, file.name)} - ${id}`
+          `Missing key: ${path.join(fileDir, file.name)} - ${id}`
         );
       }
     });
@@ -57,7 +73,7 @@ files.forEach((file) => {
       if (!localeFile[id]) {
         error = true;
         console.error(
-          `Missing key: ${path.join(file.path, file.name)} - ${id}`
+          `Missing key: ${path.join(fileDir, file.name)} - ${id}`
         );
       }
     });
@@ -75,7 +91,7 @@ files.forEach((file) => {
           if (!localeFile[id]) {
             error = true;
             console.error(
-              `Missing key: ${path.join(file.path, file.name)} - ${id}`
+              `Missing key: ${path.join(fileDir, file.name)} - ${id}`
             );
           }
         });

@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 // String type을 MachineType enum으로 매핑
 const typeMapping = {
-  'static': 'STATIC_CONTAINER',
+  static: 'STATIC_CONTAINER',
   'dynamic-container': 'DYNAMIC_CONTAINER',
   'static-attachment': 'STATIC_ATTACHMENT',
   'dynamic-attachment': 'DYNAMIC_ATTACHMENT',
@@ -35,7 +35,7 @@ async function migrateMachineType() {
     for (const machine of machines) {
       const newType = typeMapping[machine.type] || 'STATIC_CONTAINER';
       console.log(`Migrating ${machine.title}: ${machine.type} -> ${newType}`);
-      
+
       await prisma.$executeRaw`
         UPDATE "Machine"
         SET "type_new" = ${newType}

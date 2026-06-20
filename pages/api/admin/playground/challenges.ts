@@ -103,16 +103,23 @@ const buildAttachmentsPayload = (
 ): ParsedAttachment[] => {
   const normalizedCategory = normalizeCategory(category);
   const isProgramming = normalizedCategory === 'programming';
-  const normalizedAttachments: ParsedAttachment[] = (attachments || []).map((item) => {
-    const scope: AttachmentScope = item.scope === 'programming_answer' ? 'programming_answer' : 'public';
-    return {
-      ...item,
-      scope,
-    };
-  });
+  const normalizedAttachments: ParsedAttachment[] = (attachments || []).map(
+    (item) => {
+      const scope: AttachmentScope =
+        item.scope === 'programming_answer' ? 'programming_answer' : 'public';
+      return {
+        ...item,
+        scope,
+      };
+    }
+  );
 
-  const publicAttachments = normalizedAttachments.filter((item) => item.scope !== 'programming_answer');
-  const answerAttachment = normalizedAttachments.find((item) => item.scope === 'programming_answer');
+  const publicAttachments = normalizedAttachments.filter(
+    (item) => item.scope !== 'programming_answer'
+  );
+  const answerAttachment = normalizedAttachments.find(
+    (item) => item.scope === 'programming_answer'
+  );
 
   if (!isProgramming) {
     return publicAttachments;
@@ -124,7 +131,8 @@ const buildAttachmentsPayload = (
 };
 
 const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
-  const codeNameParam = typeof req.query.codeName === 'string' ? req.query.codeName : '';
+  const codeNameParam =
+    typeof req.query.codeName === 'string' ? req.query.codeName : '';
 
   const where = codeNameParam
     ? {
@@ -146,7 +154,10 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
 
 const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
   const payload = challengeCreateSchema.parse(req.body);
-  const attachmentsPayload = buildAttachmentsPayload(payload.category, payload.attachments as ParsedAttachment[] | undefined);
+  const attachmentsPayload = buildAttachmentsPayload(
+    payload.category,
+    payload.attachments as ParsedAttachment[] | undefined
+  );
 
   const challenge = await prisma.playgroundChallenge.create({
     data: {
@@ -174,7 +185,10 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
 
 const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
   const payload = challengeUpdateSchema.parse(req.body);
-  const attachmentsPayload = buildAttachmentsPayload(payload.category, payload.attachments as ParsedAttachment[] | undefined);
+  const attachmentsPayload = buildAttachmentsPayload(
+    payload.category,
+    payload.attachments as ParsedAttachment[] | undefined
+  );
 
   const challenge = await prisma.playgroundChallenge.update({
     where: { id: payload.id },

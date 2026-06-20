@@ -44,23 +44,24 @@ SELECT * FROM users WHERE username = 'admin' AND password = 'password123'
 
 [run:python]
 def check_sql_injection(input_string):
-    dangerous_keywords = ["'", "OR", "UNION", "--", ";", "DROP"]
-    for keyword in dangerous_keywords:
-        if keyword.upper() in input_string.upper():
-            return True, f"⚠️ Dangerous keyword detected: {keyword}"
-    return False, "✓ Input appears safe"
+dangerous_keywords = ["'", "OR", "UNION", "--", ";", "DROP"]
+for keyword in dangerous_keywords:
+if keyword.upper() in input_string.upper():
+return True, f"⚠️ Dangerous keyword detected: {keyword}"
+return False, "✓ Input appears safe"
 
 # 테스트
+
 test_inputs = [
-    "admin",
-    "admin' OR '1'='1",
-    "'; DROP TABLE users; --"
+"admin",
+"admin' OR '1'='1",
+"'; DROP TABLE users; --"
 ]
 
 for test in test_inputs:
-    is_vulnerable, message = check_sql_injection(test)
-    print(f"Input: {test}")
-    print(f"Result: {message}\n")
+is_vulnerable, message = check_sql_injection(test)
+print(f"Input: {test}")
+print(f"Result: {message}\n")
 [/run]
 
 ## 4. XSS 공격 이해
@@ -113,7 +114,7 @@ Cross-Site Scripting (XSS)은 악의적인 스크립트를 웹 페이지에 삽�
 
 [terminal]
 echo "SQL Injection Test"
-echo "SELECT * FROM users WHERE id = '1' OR '1'='1'"
+echo "SELECT \* FROM users WHERE id = '1' OR '1'='1'"
 [/terminal]
 
 ## 10. JSON 데이터 처리

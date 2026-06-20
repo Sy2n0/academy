@@ -4,25 +4,41 @@ import { getUserBySession } from 'models/user';
 import { prisma } from '@/lib/prisma';
 import { ScoreType } from '@prisma/client';
 
-const normalize = (value: string) => value.trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+const normalize = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[-_\s]+/g, ' ');
 const normalizeCodeName = (value: string) => value.trim().toLowerCase();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+    return res
+      .status(405)
+      .json({ error: { message: `Method ${req.method} Not Allowed` } });
   }
 
   try {
-    const seasonParam = typeof req.query.season === 'string' ? decodeURIComponent(req.query.season).trim() : '';
+    const seasonParam =
+      typeof req.query.season === 'string'
+        ? decodeURIComponent(req.query.season).trim()
+        : '';
     if (!seasonParam) {
-      return res.json({ data: { rank: null, points: 0, solvedChallengeIds: [] as string[] } });
+      return res.json({
+        data: { rank: null, points: 0, solvedChallengeIds: [] as string[] },
+      });
     }
 
     const session = await getSession(req, res);
     const user = await getUserBySession(session);
     if (!user) {
-      return res.json({ data: { rank: null, points: 0, solvedChallengeIds: [] as string[] } });
+      return res.json({
+        data: { rank: null, points: 0, solvedChallengeIds: [] as string[] },
+      });
     }
 
     const allSettings = await prisma.playgroundSettings.findMany({
@@ -35,10 +51,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const matchedSettings = allSettings.find((item) => {
       const codeName = normalize(item.codeName || '');
       const season = normalize(item.season || '');
-      return codeName === normalizedSeasonParam || season === normalizedSeasonParam;
+      return (
+        codeName === normalizedSeasonParam || season === normalizedSeasonParam
+      );
     });
 
-    const targetCodeName = normalizeCodeName(matchedSettings?.codeName || seasonParam);
+    const targetCodeName = normalizeCodeName(
+      matchedSettings?.codeName || seasonParam
+    );
 
     const userScores = await prisma.scoreHistory.findMany({
       where: {
@@ -62,15 +82,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!score.metadata || typeof score.metadata !== 'object') continue;
       const metadata = score.metadata as Record<string, unknown>;
 
-      const codeName = typeof metadata.playgroundCodeName === 'string'
-        ? normalizeCodeName(metadata.playgroundCodeName)
-        : '';
+      const codeName =
+        typeof metadata.playgroundCodeName === 'string'
+          ? normalizeCodeName(metadata.playgroundCodeName)
+          : '';
 
       if (codeName !== targetCodeName) continue;
 
       points += score.earnedPoints || 0;
 
-      const challengeId = typeof metadata.challengeId === 'string' ? metadata.challengeId : '';
+      const challengeId =
+        typeof metadata.challengeId === 'string' ? metadata.challengeId : '';
       if (challengeId) {
         solvedSet.add(challengeId);
       }
@@ -95,12 +117,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const score of seasonScores) {
       if (!score.metadata || typeof score.metadata !== 'object') continue;
       const metadata = score.metadata as Record<string, unknown>;
-      const codeName = typeof metadata.playgroundCodeName === 'string'
-        ? normalizeCodeName(metadata.playgroundCodeName)
-        : '';
+      const codeName =
+        typeof metadata.playgroundCodeName === 'string'
+          ? normalizeCodeName(metadata.playgroundCodeName)
+          : '';
       if (codeName !== targetCodeName) continue;
 
-      pointsByUser.set(score.userId, (pointsByUser.get(score.userId) || 0) + (score.earnedPoints || 0));
+      pointsByUser.set(
+        score.userId,
+        (pointsByUser.get(score.userId) || 0) + (score.earnedPoints || 0)
+      );
     }
 
     let rank: number | null = null;
@@ -124,6 +150,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     console.error('Error fetching playground progress:', error);
-    return res.status(500).json({ error: { message: 'Failed to fetch playground progress' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Failed to fetch playground progress' } });
   }
 }

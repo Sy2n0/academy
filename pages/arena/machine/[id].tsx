@@ -12,18 +12,18 @@ import {
 } from '@/components/ui/sidebar';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { 
+import {
   Heart,
   Share2,
-  Flag, 
-  Square, 
-  Download, 
+  Flag,
+  Square,
+  Download,
   Link as LinkIcon,
   Cloud,
   ArrowUpDown,
   Clock,
   Hash,
-  Lock
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,14 +102,18 @@ const MachineDetail: NextPageWithLayout = () => {
   const [selectedMode, setSelectedMode] = useState<'adventure'>('adventure');
   const [showVpnModal, setShowVpnModal] = useState(false);
   const [showHashModal, setShowHashModal] = useState(false);
-  const [hashInfo, setHashInfo] = useState<{ sha256: string; size: number } | null>(null);
+  const [hashInfo, setHashInfo] = useState<{
+    sha256: string;
+    size: number;
+  } | null>(null);
   const [loadingHash, setLoadingHash] = useState(false);
 
   // 컨테이너 인스턴스 조회 (사용자별)
-  const { data: containerData, mutate: mutateContainer } = useSWR<ContainerResponse>(
-    id && session ? `/api/machines/${id}/container` : null,
-    fetcher
-  );
+  const { data: containerData, mutate: mutateContainer } =
+    useSWR<ContainerResponse>(
+      id && session ? `/api/machines/${id}/container` : null,
+      fetcher
+    );
 
   const machine = data?.data?.machine;
   const container = containerData?.data?.instance;
@@ -165,7 +169,9 @@ const MachineDetail: NextPageWithLayout = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error?.message || '컨테이너 시작에 실패했습니다');
+        throw new Error(
+          result.error?.message || '컨테이너 시작에 실패했습니다'
+        );
       }
 
       toast.success('Container started successfully');
@@ -185,7 +191,8 @@ const MachineDetail: NextPageWithLayout = () => {
     try {
       const response = await fetch(`/api/machines/${id}/hash`);
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error?.message || 'Hash 계산 실패');
+      if (!response.ok)
+        throw new Error(result.error?.message || 'Hash 계산 실패');
       setHashInfo(result.data);
     } catch (error: any) {
       toast.error(error.message || 'Hash 계산 실패');
@@ -209,7 +216,9 @@ const MachineDetail: NextPageWithLayout = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error?.message || '컨테이너 중지에 실패했습니다');
+        throw new Error(
+          result.error?.message || '컨테이너 중지에 실패했습니다'
+        );
       }
 
       toast.success('Container stopped successfully');
@@ -235,8 +244,10 @@ const MachineDetail: NextPageWithLayout = () => {
   const getDifficulty = () => {
     if (!machine) return 'Easy';
     const category = machine.category?.toLowerCase() || '';
-    if (category.includes('easy') || category.includes('beginner')) return 'Easy';
-    if (category.includes('medium') || category.includes('intermediate')) return 'Medium';
+    if (category.includes('easy') || category.includes('beginner'))
+      return 'Easy';
+    if (category.includes('medium') || category.includes('intermediate'))
+      return 'Medium';
     if (category.includes('hard') || category.includes('expert')) return 'Hard';
     return 'Easy';
   };
@@ -247,7 +258,6 @@ const MachineDetail: NextPageWithLayout = () => {
     // containerImage나 description에서 OS 추정 가능
     return 'Linux';
   };
-
 
   return (
     <>
@@ -269,11 +279,15 @@ const MachineDetail: NextPageWithLayout = () => {
               <div className="flex-1 overflow-y-auto">
                 {isLoading ? (
                   <div className="text-center py-20">
-                    <p className="font-mono text-sm text-muted-foreground">Loading challenge details...</p>
+                    <p className="font-mono text-sm text-muted-foreground">
+                      Loading challenge details...
+                    </p>
                   </div>
                 ) : error || !machine ? (
                   <div className="text-center py-20">
-                    <p className="font-mono text-sm text-destructive">문제 상세 정보를 불러오지 못했습니다</p>
+                    <p className="font-mono text-sm text-destructive">
+                      문제 상세 정보를 불러오지 못했습니다
+                    </p>
                   </div>
                 ) : (
                   <div className="max-w-7xl mx-auto px-6 py-8">
@@ -359,11 +373,7 @@ const MachineDetail: NextPageWithLayout = () => {
                           <div className="flex items-center gap-2">
                             {machine.attachmentUrl ? (
                               <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  asChild
-                                >
+                                <Button variant="outline" size="sm" asChild>
                                   <a href={`/api/machines/${id}/download`}>
                                     <Download className="h-4 w-4 mr-2" />
                                     Download File
@@ -387,10 +397,12 @@ const MachineDetail: NextPageWithLayout = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Cloud className="h-5 w-5 text-muted-foreground" />
-                              <span className="text-sm text-foreground">EU Machines 1</span>
+                              <span className="text-sm text-foreground">
+                                EU Machines 1
+                              </span>
                             </div>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => setShowVpnModal(true)}
                             >
@@ -404,15 +416,28 @@ const MachineDetail: NextPageWithLayout = () => {
                               <div className="p-4 border border-border/30 rounded-lg bg-background/40">
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">IP Address:</span>
-                                    <code className="text-sm font-mono font-bold text-foreground">{container.ipAddress}</code>
+                                    <span className="text-sm text-muted-foreground">
+                                      IP Address:
+                                    </span>
+                                    <code className="text-sm font-mono font-bold text-foreground">
+                                      {container.ipAddress}
+                                    </code>
                                   </div>
-                                  {Object.entries(container.ports).map(([name, port]) => (
-                                    <div key={name} className="flex items-center justify-between">
-                                      <span className="text-sm text-muted-foreground">Port:</span>
-                                      <code className="text-sm font-mono font-bold text-foreground">{port}</code>
-                                    </div>
-                                  ))}
+                                  {Object.entries(container.ports).map(
+                                    ([name, port]) => (
+                                      <div
+                                        key={name}
+                                        className="flex items-center justify-between"
+                                      >
+                                        <span className="text-sm text-muted-foreground">
+                                          Port:
+                                        </span>
+                                        <code className="text-sm font-mono font-bold text-foreground">
+                                          {port}
+                                        </code>
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               </div>
                               <Button
@@ -423,7 +448,9 @@ const MachineDetail: NextPageWithLayout = () => {
                                 className="w-full h-12"
                               >
                                 <Square className="h-4 w-4 mr-2" />
-                                {stoppingContainer ? 'Stopping...' : 'Stop Machine'}
+                                {stoppingContainer
+                                  ? 'Stopping...'
+                                  : 'Stop Machine'}
                               </Button>
                             </div>
                           ) : (
@@ -433,7 +460,9 @@ const MachineDetail: NextPageWithLayout = () => {
                               size="lg"
                               className="w-full h-12 bg-green-500 hover:bg-green-600 text-white"
                             >
-                              {startingContainer ? 'Starting...' : 'Start Machine'}
+                              {startingContainer
+                                ? 'Starting...'
+                                : 'Start Machine'}
                             </Button>
                           )}
 
@@ -445,8 +474,13 @@ const MachineDetail: NextPageWithLayout = () => {
                         {/* Flag Submission */}
                         {session && (
                           <div className="space-y-2">
-                            <label className="text-sm font-medium text-foreground">Submit Root Flag</label>
-                            <form onSubmit={handleSubmitFlag} className="flex gap-2">
+                            <label className="text-sm font-medium text-foreground">
+                              Submit Root Flag
+                            </label>
+                            <form
+                              onSubmit={handleSubmitFlag}
+                              className="flex gap-2"
+                            >
                               <Input
                                 type="text"
                                 placeholder="Submit Root Flag"
@@ -472,35 +506,47 @@ const MachineDetail: NextPageWithLayout = () => {
                         <div className="space-y-3 pt-4 border-t border-border/30">
                           {/* User Blood */}
                           <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground whitespace-nowrap">User Blood taken by</span>
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                              User Blood taken by
+                            </span>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2a303c]">
                               <Avatar className="h-6 w-6">
                                 <AvatarFallback className="bg-accent/20 text-accent text-xs">
                                   S
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="text-sm text-foreground font-medium">szymex73</span>
+                              <span className="text-sm text-foreground font-medium">
+                                szymex73
+                              </span>
                             </div>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#8b0000] ml-auto">
                               <Clock className="h-4 w-4 text-white" />
-                              <span className="text-sm font-mono text-white">0H 3M 38S</span>
+                              <span className="text-sm font-mono text-white">
+                                0H 3M 38S
+                              </span>
                             </div>
                           </div>
 
                           {/* System Blood */}
                           <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground whitespace-nowrap">System Blood taken by</span>
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                              System Blood taken by
+                            </span>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2a303c]">
                               <Avatar className="h-6 w-6">
                                 <AvatarFallback className="bg-accent/20 text-accent text-xs">
                                   S
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="text-sm text-foreground font-medium">szymex73</span>
+                              <span className="text-sm text-foreground font-medium">
+                                szymex73
+                              </span>
                             </div>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#8b0000] ml-auto">
                               <Hash className="h-4 w-4 text-white" />
-                              <span className="text-sm font-mono text-white">0H 4M 44S</span>
+                              <span className="text-sm font-mono text-white">
+                                0H 4M 44S
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -515,7 +561,9 @@ const MachineDetail: NextPageWithLayout = () => {
                             {machine.description}
                           </div>
                         ) : (
-                          <p className="text-muted-foreground text-sm">No description provided.</p>
+                          <p className="text-muted-foreground text-sm">
+                            No description provided.
+                          </p>
                         )}
                       </div>
                     )}
@@ -523,7 +571,9 @@ const MachineDetail: NextPageWithLayout = () => {
                     {/* Other Tabs Content */}
                     {activeTab !== 'play' && activeTab !== 'info' && (
                       <div className="py-12 text-center">
-                        <p className="text-muted-foreground">{activeTab} content coming soon...</p>
+                        <p className="text-muted-foreground">
+                          {activeTab} content coming soon...
+                        </p>
                       </div>
                     )}
 
@@ -540,7 +590,10 @@ const MachineDetail: NextPageWithLayout = () => {
                     </Dialog>
 
                     {/* SHA256 Hash Modal */}
-                    <Dialog open={showHashModal} onOpenChange={setShowHashModal}>
+                    <Dialog
+                      open={showHashModal}
+                      onOpenChange={setShowHashModal}
+                    >
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle className="font-mono flex items-center gap-2">
@@ -558,7 +611,9 @@ const MachineDetail: NextPageWithLayout = () => {
                         ) : hashInfo ? (
                           <div className="space-y-3">
                             <div>
-                              <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">SHA256</p>
+                              <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">
+                                SHA256
+                              </p>
                               <code className="block w-full break-all bg-muted/40 px-3 py-2 rounded text-xs font-mono text-foreground select-all">
                                 {hashInfo.sha256}
                               </code>
@@ -574,16 +629,22 @@ const MachineDetail: NextPageWithLayout = () => {
                     {/* Footer */}
                     <div className="mt-12 pt-6 border-t border-border/30 flex items-center justify-between">
                       <div className="text-sm text-muted-foreground">
-                        Released on {new Date(machine.createdAt).toLocaleDateString('en-US', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
+                        Released on{' '}
+                        {new Date(machine.createdAt).toLocaleDateString(
+                          'en-US',
+                          {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          }
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         Created by HUB
                         <div className="h-6 w-6 rounded bg-accent/20 flex items-center justify-center">
-                          <span className="text-xs font-bold text-accent">I</span>
+                          <span className="text-xs font-bold text-accent">
+                            I
+                          </span>
                         </div>
                         InfoSecJack
                       </div>

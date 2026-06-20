@@ -23,7 +23,9 @@ export default async function handler(
 
     if (req.method !== 'GET') {
       res.setHeader('Allow', 'GET');
-      return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+      return res
+        .status(405)
+        .json({ error: { message: `Method ${req.method} Not Allowed` } });
     }
 
     const { id } = req.query;
@@ -37,6 +39,8 @@ export default async function handler(
 
     res.status(200).json({ data: run });
   } catch (error: any) {
-    res.status(error.status ?? 500).json({ error: { message: error.message ?? 'Something went wrong' } });
+    res
+      .status(error.status ?? 500)
+      .json({ error: { message: error.message ?? 'Something went wrong' } });
   }
 }

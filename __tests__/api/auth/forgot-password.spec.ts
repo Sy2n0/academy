@@ -9,16 +9,23 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-jest.mock('@/lib/recaptcha', () => ({ validateRecaptcha: jest.fn().mockResolvedValue(true) }));
+jest.mock('@/lib/recaptcha', () => ({
+  validateRecaptcha: jest.fn().mockResolvedValue(true),
+}));
 jest.mock('@/lib/metrics', () => ({ recordMetric: jest.fn() }));
-jest.mock('@/lib/email/sendPasswordResetEmail', () => ({ sendPasswordResetEmail: jest.fn() }));
+jest.mock('@/lib/email/sendPasswordResetEmail', () => ({
+  sendPasswordResetEmail: jest.fn(),
+}));
 jest.mock('models/user', () => ({ getUser: jest.fn() }));
 jest.mock('models/passwordReset', () => ({ createPasswordReset: jest.fn() }));
 jest.mock('@/lib/zod', () => ({
   forgotPasswordSchema: {
     safeParse: jest.fn((data) => ({
       success: true,
-      data: { email: data.email, recaptchaToken: data.recaptchaToken || 'token' },
+      data: {
+        email: data.email,
+        recaptchaToken: data.recaptchaToken || 'token',
+      },
     })),
   },
   validateWithSchema: jest.fn((schema, data) => {
@@ -34,18 +41,32 @@ import { createPasswordReset } from 'models/passwordReset';
 import { sendPasswordResetEmail } from '@/lib/email/sendPasswordResetEmail';
 
 const mockGetUser = getUser as jest.MockedFunction<typeof getUser>;
-const mockCreatePasswordReset = createPasswordReset as jest.MockedFunction<typeof createPasswordReset>;
-const mockSendEmail = sendPasswordResetEmail as jest.MockedFunction<typeof sendPasswordResetEmail>;
+const mockCreatePasswordReset = createPasswordReset as jest.MockedFunction<
+  typeof createPasswordReset
+>;
+const mockSendEmail = sendPasswordResetEmail as jest.MockedFunction<
+  typeof sendPasswordResetEmail
+>;
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'POST', headers: {}, query: {}, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'POST',
+    headers: {},
+    query: {},
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => jest.clearAllMocks());
@@ -61,26 +82,39 @@ describe('GET /api/auth/forgot-password → 405', () => {
 describe('POST /api/auth/forgot-password - 유효성', () => {
   it('잘못된 이메일 형식은 422를 반환한다', async () => {
     const { res, status } = makeRes();
-    await handler(makeReq({ body: { email: 'not-an-email', recaptchaToken: 'tok' } }), res);
+    await handler(
+      makeReq({ body: { email: 'not-an-email', recaptchaToken: 'tok' } }),
+      res
+    );
     expect(status).toHaveBeenCalledWith(422);
   });
 
   it('존재하지 않는 유저는 422를 반환한다', async () => {
     mockGetUser.mockResolvedValue(null);
     const { res, status } = makeRes();
-    await handler(makeReq({ body: { email: 'noone@example.com', recaptchaToken: 'tok' } }), res);
+    await handler(
+      makeReq({ body: { email: 'noone@example.com', recaptchaToken: 'tok' } }),
+      res
+    );
     expect(status).toHaveBeenCalledWith(422);
   });
 });
 
 describe('POST /api/auth/forgot-password - 성공', () => {
   it('유효한 이메일로 리셋 토큰을 생성하고 이메일을 발송한다', async () => {
-    mockGetUser.mockResolvedValue({ id: 'user-1', email: 'user@example.com', name: 'User' } as any);
+    mockGetUser.mockResolvedValue({
+      id: 'user-1',
+      email: 'user@example.com',
+      name: 'User',
+    } as any);
     mockCreatePasswordReset.mockResolvedValue({} as any);
     mockSendEmail.mockResolvedValue(undefined);
 
     const { res, json } = makeRes();
-    await handler(makeReq({ body: { email: 'user@example.com', recaptchaToken: 'tok' } }), res);
+    await handler(
+      makeReq({ body: { email: 'user@example.com', recaptchaToken: 'tok' } }),
+      res
+    );
 
     expect(mockCreatePasswordReset).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -13,5 +13,5 @@ export function BitmapChevron({ className }: { className?: string }) {
         fill="currentColor"
       />
     </svg>
-  )
+  );
 }

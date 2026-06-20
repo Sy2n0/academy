@@ -7,7 +7,10 @@ import { z } from 'zod';
 
 const createTeamSchema = z.object({
   name: z.string().min(1, 'Team name is required'),
-  slug: z.string().min(1, 'Team slug is required').regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
+  slug: z
+    .string()
+    .min(1, 'Team slug is required')
+    .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
   inviteCode: z.string().optional(),
 });
 

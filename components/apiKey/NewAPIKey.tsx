@@ -111,7 +111,9 @@ const CreateAPIKeyForm = ({
           disabled={!formik.dirty || !formik.isValid || formik.isSubmitting}
           size="md"
         >
-          {formik.isSubmitting ? t('loading') || 'Loading...' : t('create-api-key')}
+          {formik.isSubmitting
+            ? t('loading') || 'Loading...'
+            : t('create-api-key')}
         </Button>
       </Modal.Footer>
     </form>

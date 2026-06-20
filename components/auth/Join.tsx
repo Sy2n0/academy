@@ -91,7 +91,9 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
         console.error('Fetch error:', error);
         // fetch 자체가 실패한 경우 (네트워크 에러 등)
         recaptchaRef.current?.reset();
-        toast.error('Network error occurred. If your account was created, please try logging in.');
+        toast.error(
+          'Network error occurred. If your account was created, please try logging in.'
+        );
         throw error;
       });
 
@@ -108,7 +110,10 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
         recaptchaRef.current?.reset();
         // 파싱 실패했지만 가입은 완료되었을 수 있음
         if (response.ok) {
-          toast.success(t('successfully-joined') || 'Account created successfully. Please try logging in.');
+          toast.success(
+            t('successfully-joined') ||
+              'Account created successfully. Please try logging in.'
+          );
           formik.resetForm();
           setTokenValidation({ status: 'idle' });
           router.push('/auth/login');
@@ -149,20 +154,32 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
     setTokenValidation({ status: 'validating' });
 
     try {
-      const response = await fetch(`${DISCORD_BOT_API_URL}/api/tokens/${encodeURIComponent(token)}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${DISCORD_BOT_API_URL}/api/tokens/${encodeURIComponent(token)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (response.ok) {
-        setTokenValidation({ status: 'valid', message: t('token-valid') || 'Valid token' });
+        setTokenValidation({
+          status: 'valid',
+          message: t('token-valid') || 'Valid token',
+        });
       } else {
-        setTokenValidation({ status: 'invalid', message: t('token-invalid') || 'Invalid token' });
+        setTokenValidation({
+          status: 'invalid',
+          message: t('token-invalid') || 'Invalid token',
+        });
       }
     } catch {
-      setTokenValidation({ status: 'invalid', message: t('token-validation-error') || 'Failed to validate token' });
+      setTokenValidation({
+        status: 'invalid',
+        message: t('token-validation-error') || 'Failed to validate token',
+      });
     }
   };
 
@@ -188,7 +205,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
   }, [formik.values.team, t]);
 
   return (
-    <div className={cn("flex flex-col gap-6")}>
+    <div className={cn('flex flex-col gap-6')}>
       <Card className="border-border/30 bg-card/50 backdrop-blur-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-xl font-[var(--font-bebas)] tracking-tight">
@@ -202,7 +219,10 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
           <form onSubmit={formik.handleSubmit}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="name" className="font-mono text-xs uppercase tracking-wider">
+                <FieldLabel
+                  htmlFor="name"
+                  className="font-mono text-xs uppercase tracking-wider"
+                >
                   {t('name')}
                 </FieldLabel>
                 <Input
@@ -213,8 +233,10 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   value={formik.values.name}
                   onChange={formik.handleChange}
                   className={cn(
-                    "font-mono text-sm",
-                    formik.touched.name && formik.errors.name && "border-destructive"
+                    'font-mono text-sm',
+                    formik.touched.name &&
+                      formik.errors.name &&
+                      'border-destructive'
                   )}
                   required
                 />
@@ -226,7 +248,10 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="team" className="font-mono text-xs uppercase tracking-wider">
+                <FieldLabel
+                  htmlFor="team"
+                  className="font-mono text-xs uppercase tracking-wider"
+                >
                   {t('token') || 'Token'}
                 </FieldLabel>
                 <Input
@@ -237,10 +262,10 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   value={formik.values.team}
                   onChange={formik.handleChange}
                   className={cn(
-                    "font-mono text-sm",
-                    formik.errors.team && "border-destructive",
-                    tokenValidation.status === 'valid' && "border-green-500",
-                    tokenValidation.status === 'invalid' && "border-destructive"
+                    'font-mono text-sm',
+                    formik.errors.team && 'border-destructive',
+                    tokenValidation.status === 'valid' && 'border-green-500',
+                    tokenValidation.status === 'invalid' && 'border-destructive'
                   )}
                   required
                 />
@@ -267,7 +292,10 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="email" className="font-mono text-xs uppercase tracking-wider">
+                <FieldLabel
+                  htmlFor="email"
+                  className="font-mono text-xs uppercase tracking-wider"
+                >
                   {t('email')}
                 </FieldLabel>
                 <Input
@@ -278,8 +306,8 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   value={formik.values.email}
                   onChange={formik.handleChange}
                   className={cn(
-                    "font-mono text-sm",
-                    formik.errors.email && "border-destructive"
+                    'font-mono text-sm',
+                    formik.errors.email && 'border-destructive'
                   )}
                   required
                 />
@@ -293,7 +321,10 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
               <Field>
                 <Field className="grid grid-cols-2 gap-4">
                   <Field>
-                    <FieldLabel htmlFor="password" className="font-mono text-xs uppercase tracking-wider">
+                    <FieldLabel
+                      htmlFor="password"
+                      className="font-mono text-xs uppercase tracking-wider"
+                    >
                       {t('password')}
                     </FieldLabel>
                     <div className="relative">
@@ -304,8 +335,8 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                         value={formik.values.password}
                         onChange={formik.handleChange}
                         className={cn(
-                          "font-mono text-sm pr-10",
-                          formik.errors.password && "border-destructive"
+                          'font-mono text-sm pr-10',
+                          formik.errors.password && 'border-destructive'
                         )}
                         required
                       />
@@ -328,7 +359,10 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                     )}
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="confirm-password" className="font-mono text-xs uppercase tracking-wider">
+                    <FieldLabel
+                      htmlFor="confirm-password"
+                      className="font-mono text-xs uppercase tracking-wider"
+                    >
                       {t('confirm-password') || 'Confirm Password'}
                     </FieldLabel>
                     <Input
@@ -352,14 +386,23 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
               <Field>
                 <Button
                   type="submit"
-                  disabled={!formik.dirty || formik.isSubmitting || tokenValidation.status !== 'valid'}
+                  disabled={
+                    !formik.dirty ||
+                    formik.isSubmitting ||
+                    tokenValidation.status !== 'valid'
+                  }
                   className="w-full font-mono text-xs uppercase tracking-wider"
                 >
-                  {formik.isSubmitting ? t('loading') || 'Loading...' : t('create-account')}
+                  {formik.isSubmitting
+                    ? t('loading') || 'Loading...'
+                    : t('create-account')}
                 </Button>
                 <FieldDescription className="text-center font-mono text-xs">
                   {t('already-have-an-account') || 'Already have an account?'}{' '}
-                  <Link href="/auth/login" className="underline underline-offset-4 hover:text-accent transition-colors">
+                  <Link
+                    href="/auth/login"
+                    className="underline underline-offset-4 hover:text-accent transition-colors"
+                  >
                     {t('sign-in')}
                   </Link>
                 </FieldDescription>

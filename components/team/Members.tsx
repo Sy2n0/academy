@@ -95,7 +95,7 @@ const Members = ({ team }: { team: Team }) => {
             {t('members-description')}
           </p>
         </div>
-        <Button  size="md" onClick={() => setVisible(!visible)}>
+        <Button size="md" onClick={() => setVisible(!visible)}>
           {t('add-member')}
         </Button>
       </div>

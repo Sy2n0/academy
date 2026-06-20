@@ -14,10 +14,14 @@ test.describe('machine flag 제출 플로우', () => {
     await page.goto(`/teams/${team.slug}/machines`);
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText(
+      'Internal Server Error'
+    );
   });
 
-  test('machine이 없을 때 빈 상태를 표시하거나 목록이 렌더링된다', async ({ page }) => {
+  test('machine이 없을 때 빈 상태를 표시하거나 목록이 렌더링된다', async ({
+    page,
+  }) => {
     await page.goto(`/teams/${team.slug}/machines`);
     await page.waitForLoadState('networkidle');
 
@@ -25,8 +29,12 @@ test.describe('machine flag 제출 플로우', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 
-  test('잘못된 machine ID로 접근하면 404 또는 리다이렉트된다', async ({ page }) => {
-    await page.goto(`/teams/${team.slug}/machines/nonexistent-machine-id-12345`);
+  test('잘못된 machine ID로 접근하면 404 또는 리다이렉트된다', async ({
+    page,
+  }) => {
+    await page.goto(
+      `/teams/${team.slug}/machines/nonexistent-machine-id-12345`
+    );
     await page.waitForLoadState('networkidle');
 
     // 404 페이지이거나 machines 목록으로 리다이렉트됨

@@ -9,7 +9,9 @@ export default async function handler(
   try {
     if (req.method !== 'GET') {
       res.setHeader('Allow', 'GET');
-      res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+      res
+        .status(405)
+        .json({ error: { message: `Method ${req.method} Not Allowed` } });
       return;
     }
 
@@ -34,10 +36,12 @@ export default async function handler(
 
     // 현재 사용자가 푼 문제 ID 목록
     const solvedIds = userId
-      ? (await prisma.sandboxSolve.findMany({
-          where: { userId },
-          select: { problemId: true },
-        })).map((s) => s.problemId)
+      ? (
+          await prisma.sandboxSolve.findMany({
+            where: { userId },
+            select: { problemId: true },
+          })
+        ).map((s) => s.problemId)
       : [];
 
     res.status(200).json({ data: { problems, solvedIds } });

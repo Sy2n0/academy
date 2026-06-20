@@ -32,10 +32,14 @@ export default async function handler(
     }
   } catch (error: any) {
     if (error instanceof ApiError) {
-      return res.status(error.status).json({ error: { message: error.message } });
+      return res
+        .status(error.status)
+        .json({ error: { message: error.message } });
     }
     console.error('[API /admin/learn/modules] Error:', error);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }
 
@@ -52,7 +56,17 @@ async function handleGET(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
-  const { title, description, content, category, difficulty, duration, tier, type, imageUrl } = req.body;
+  const {
+    title,
+    description,
+    content,
+    category,
+    difficulty,
+    duration,
+    tier,
+    type,
+    imageUrl,
+  } = req.body;
 
   if (!title || !title.trim()) {
     throw new ApiError(400, 'Title is required');

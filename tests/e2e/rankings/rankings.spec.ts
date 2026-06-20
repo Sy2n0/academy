@@ -16,7 +16,9 @@ test.describe('rankings 페이지', () => {
     await expect(page).toHaveURL('/rankings');
     // 페이지가 500/404 오류 없이 로드됨을 확인
     await expect(page.locator('body')).not.toContainText('500');
-    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+    await expect(page.locator('body')).not.toContainText(
+      'Internal Server Error'
+    );
   });
 
   test('rankings 페이지에 순위 테이블 또는 목록이 표시된다', async ({
@@ -38,8 +40,8 @@ test.describe('rankings 페이지', () => {
     await page.goto('/rankings');
 
     // 로그인 페이지 또는 홈으로 리다이렉트 확인
-    await page.waitForURL((url) =>
-      url.pathname.includes('/auth/login') || url.pathname === '/'
+    await page.waitForURL(
+      (url) => url.pathname.includes('/auth/login') || url.pathname === '/'
     );
   });
 });

@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function updateUserRole() {
   const args = process.argv.slice(2);
-  
+
   if (args.length < 2) {
     console.log('Usage: ts-node update-user-role.ts <email> <role>');
     console.log('Roles: USER, LAB, ADMIN');

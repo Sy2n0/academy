@@ -12,10 +12,15 @@ import crypto from 'crypto';
 
 const normalize = (value: string) => value.trim().toLowerCase();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+    return res
+      .status(405)
+      .json({ error: { message: `Method ${req.method} Not Allowed` } });
   }
 
   try {
@@ -23,16 +28,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const user = await getUserBySession(session);
 
     if (!user) {
-      return res.status(401).json({ error: { message: '로그인이 필요합니다.' } });
+      return res
+        .status(401)
+        .json({ error: { message: '로그인이 필요합니다.' } });
     }
 
-    const challengeId = typeof req.body?.challengeId === 'string' ? req.body.challengeId : '';
-    const submittedFlag = typeof req.body?.flag === 'string' ? req.body.flag : '';
+    const challengeId =
+      typeof req.body?.challengeId === 'string' ? req.body.challengeId : '';
+    const submittedFlag =
+      typeof req.body?.flag === 'string' ? req.body.flag : '';
 
     if (!challengeId || !submittedFlag.trim()) {
-      return res.status(400).json({ error: { message: 'challengeId와 flag는 필수입니다.' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'challengeId와 flag는 필수입니다.' } });
     }
-
 
     // Fetch challenge and its playground settings (for endDate)
     const challenge = await prisma.playgroundChallenge.findUnique({
@@ -50,7 +60,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!challenge || !challenge.isActive) {
-      return res.status(404).json({ error: { message: 'Challenge를 찾을 수 없습니다.' } });
+      return res
+        .status(404)
+        .json({ error: { message: 'Challenge를 찾을 수 없습니다.' } });
     }
 
     // Fetch playground settings to check endDate
@@ -61,16 +73,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (playgroundSettings && playgroundSettings.endDate) {
       const now = new Date();
-      let endDate = new Date(playgroundSettings.endDate);
+      const endDate = new Date(playgroundSettings.endDate);
       // endDate가 시간까지 포함되어 있지 않으면(즉, 00:00:00이거나 09:00:00 등), 하루의 끝으로 보정
       if (
         playgroundSettings.endDate.length === 10 || // YYYY-MM-DD
-        (endDate.getHours() === 0 && endDate.getMinutes() === 0 && endDate.getSeconds() === 0)
+        (endDate.getHours() === 0 &&
+          endDate.getMinutes() === 0 &&
+          endDate.getSeconds() === 0)
       ) {
         endDate.setHours(23, 59, 59, 999);
       }
       if (now > endDate) {
-        return res.status(403).json({ error: { message: `이 Playground(${playgroundSettings.name})는 종료되어 제출할 수 없습니다.` } });
+        return res.status(403).json({
+          error: {
+            message: `이 Playground(${playgroundSettings.name})는 종료되어 제출할 수 없습니다.`,
+          },
+        });
       }
     }
 
@@ -86,11 +104,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const isEnrolled = enrolledPlaygrounds.some(
-      (entry) => normalize(entry.playground.codeName || '') === normalize(challenge.playgroundCodeName || '')
+      (entry) =>
+        normalize(entry.playground.codeName || '') ===
+        normalize(challenge.playgroundCodeName || '')
     );
 
     if (!isEnrolled && !isAdmin(user.role)) {
-      return res.status(403).json({ error: { message: '해당 Playground 참가자만 제출할 수 있습니다.' } });
+      return res.status(403).json({
+        error: { message: '해당 Playground 참가자만 제출할 수 있습니다.' },
+      });
     }
 
     const normalizedSubmittedFlag = submittedFlag.trim();
@@ -183,7 +205,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Discord notification for first blood
     if (firstBlood && DISCORD_WEBHOOK_URL) {
-      const discordMessage = `:drop_of_blood: **FIRST BLOOD!** :drop_of_blood:\n` +
+      const discordMessage =
+        `:drop_of_blood: **FIRST BLOOD!** :drop_of_blood:\n` +
         `Challenge: **${challenge.title}**\n` +
         `User: **${user.name}** (${user.email})`;
       sendDiscordWebhook(DISCORD_WEBHOOK_URL, discordMessage);
@@ -201,6 +224,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     console.error('Error submitting playground flag:', error);
-    return res.status(500).json({ error: { message: 'Flag 제출 중 오류가 발생했습니다.' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Flag 제출 중 오류가 발생했습니다.' } });
   }
 }

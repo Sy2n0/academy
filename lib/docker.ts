@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import * as net from 'net';
 import Docker from 'dockerode';
 
 const execAsync = promisify(exec);
@@ -24,7 +25,7 @@ export async function createContainer(
   try {
     // 포트 바인딩 설정
     const portBindings: Record<string, Array<{ HostPort: string }>> = {};
-    const exposedPorts: Record<string, {}> = {};
+    const exposedPorts: Record<string, object> = {};
 
     ports.forEach(({ host, container }) => {
       const key = `${container}/tcp`;
@@ -33,7 +34,9 @@ export async function createContainer(
     });
 
     // 환경 변수 설정
-    const envVars = Object.entries(env).map(([key, value]) => `${key}=${value}`);
+    const envVars = Object.entries(env).map(
+      ([key, value]) => `${key}=${value}`
+    );
 
     // 컨테이너 생성 옵션
     const createOptions: Docker.ContainerCreateOptions = {
@@ -132,7 +135,6 @@ export async function getContainerStatus(containerId: string): Promise<{
  */
 function isPortInUse(port: number): Promise<boolean> {
   return new Promise((resolve) => {
-    const net = require('net');
     const server = net.createServer();
     server.once('error', () => resolve(true));
     server.once('listening', () => {
@@ -145,7 +147,10 @@ function isPortInUse(port: number): Promise<boolean> {
 /**
  * 20000~30000 사이에서 랜덤으로 사용 가능한 포트 찾기
  */
-export async function findAvailablePort(startPort: number = 20000, endPort: number = 30000): Promise<number> {
+export async function findAvailablePort(
+  startPort: number = 20000,
+  endPort: number = 30000
+): Promise<number> {
   const range = endPort - startPort;
   const tried = new Set<number>();
 

@@ -139,7 +139,8 @@ a {
 
 /* Grid background pattern */
 .grid-bg {
-  background-image: linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+  background-image:
+    linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
     linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
   background-size: 60px 60px;
 }

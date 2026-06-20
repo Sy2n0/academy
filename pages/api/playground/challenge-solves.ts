@@ -3,7 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { ScoreType } from '@prisma/client';
 
 const normalizeCodeName = (value: string) =>
-  value.trim().toLowerCase().replace(/[-_\s]+/g, ' ');
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[-_\s]+/g, ' ');
 
 type SolveItem = {
   id: string;
@@ -11,24 +14,38 @@ type SolveItem = {
   createdAt: string;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+    return res
+      .status(405)
+      .json({ error: { message: `Method ${req.method} Not Allowed` } });
   }
 
   try {
-    const challengeId = typeof req.query.challengeId === 'string' ? req.query.challengeId : '';
-    const seasonParam = typeof req.query.season === 'string' ? decodeURIComponent(req.query.season).trim() : '';
-    const challengeTitle = typeof req.query.title === 'string' ? req.query.title.trim() : '';
+    const challengeId =
+      typeof req.query.challengeId === 'string' ? req.query.challengeId : '';
+    const seasonParam =
+      typeof req.query.season === 'string'
+        ? decodeURIComponent(req.query.season).trim()
+        : '';
+    const challengeTitle =
+      typeof req.query.title === 'string' ? req.query.title.trim() : '';
 
     if (!challengeId && !challengeTitle) {
-      return res.status(400).json({ error: { message: 'challengeId or title is required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'challengeId or title is required' } });
     }
 
     let targetCodeName = '';
     if (seasonParam) {
-      const allSettings = await prisma.playgroundSettings.findMany({ orderBy: { updatedAt: 'desc' } });
+      const allSettings = await prisma.playgroundSettings.findMany({
+        orderBy: { updatedAt: 'desc' },
+      });
       const normalizedSeason = normalizeCodeName(seasonParam);
       const matched = allSettings.find((item) => {
         const codeName = normalizeCodeName(item.codeName || '');
@@ -62,14 +79,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!entry.metadata || typeof entry.metadata !== 'object') continue;
 
       const metadata = entry.metadata as Record<string, unknown>;
-      const metadataChallengeId = typeof metadata.challengeId === 'string' ? metadata.challengeId : '';
-      const metadataChallengeTitle = typeof metadata.challengeTitle === 'string' ? metadata.challengeTitle : '';
-      const metadataCodeName = typeof metadata.playgroundCodeName === 'string'
-        ? normalizeCodeName(metadata.playgroundCodeName)
-        : '';
+      const metadataChallengeId =
+        typeof metadata.challengeId === 'string' ? metadata.challengeId : '';
+      const metadataChallengeTitle =
+        typeof metadata.challengeTitle === 'string'
+          ? metadata.challengeTitle
+          : '';
+      const metadataCodeName =
+        typeof metadata.playgroundCodeName === 'string'
+          ? normalizeCodeName(metadata.playgroundCodeName)
+          : '';
 
-      const challengeMatchedById = challengeId ? metadataChallengeId === challengeId : false;
-      const challengeMatchedByTitle = challengeTitle ? metadataChallengeTitle === challengeTitle : false;
+      const challengeMatchedById = challengeId
+        ? metadataChallengeId === challengeId
+        : false;
+      const challengeMatchedByTitle = challengeTitle
+        ? metadataChallengeTitle === challengeTitle
+        : false;
       const challengeMatched = challengeMatchedById || challengeMatchedByTitle;
 
       if (!challengeMatched) continue;
@@ -90,6 +116,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ data: solves });
   } catch (error) {
     console.error('Error fetching challenge solves:', error);
-    return res.status(500).json({ error: { message: 'Failed to fetch challenge solves' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Failed to fetch challenge solves' } });
   }
 }

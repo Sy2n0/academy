@@ -1,5 +1,8 @@
 import type { NextPageWithLayout } from 'types';
-import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
+import type {
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { type ReactElement } from 'react';
 import Head from 'next/head';
@@ -27,8 +30,14 @@ import { ensureBadgeInfrastructure } from '@/lib/badges';
 
 type BadgesProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
-const BadgesPage: NextPageWithLayout<BadgesProps> = ({ user, earnedBadges }) => {
-  const roleBadgeVariant = user.role === UserRole.ADMIN || user.role === 'ADMIN' ? 'destructive' : 'secondary';
+const BadgesPage: NextPageWithLayout<BadgesProps> = ({
+  user,
+  earnedBadges,
+}) => {
+  const roleBadgeVariant =
+    user.role === UserRole.ADMIN || user.role === 'ADMIN'
+      ? 'destructive'
+      : 'secondary';
 
   return (
     <>
@@ -82,20 +91,40 @@ const BadgesPage: NextPageWithLayout<BadgesProps> = ({ user, earnedBadges }) => 
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                       {earnedBadges.map((badge) => (
-                        <div key={badge.codeName} className="rounded-lg border border-border/30 bg-background/60 p-3">
+                        <div
+                          key={badge.codeName}
+                          className="rounded-lg border border-border/30 bg-background/60 p-3"
+                        >
                           <div className="aspect-square w-full rounded-md overflow-hidden border border-border/30 bg-muted/20 mb-2 flex items-center justify-center">
                             {badge.image ? (
-                              <img src={badge.image} alt={badge.badgeName} className="w-full h-full object-cover" />
+                              <img
+                                src={badge.image}
+                                alt={badge.badgeName}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
-                              <span className="font-mono text-xs text-muted-foreground">NO BADGE IMAGE</span>
+                              <span className="font-mono text-xs text-muted-foreground">
+                                NO BADGE IMAGE
+                              </span>
                             )}
                           </div>
                           <div className="space-y-1">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">{badge.codeName}</Badge>
-                            <p className="font-mono text-xs text-foreground truncate">{badge.badgeName}</p>
-                            <p className="font-mono text-[10px] text-muted-foreground truncate">{badge.ctfName}</p>
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0.5"
+                            >
+                              {badge.codeName}
+                            </Badge>
+                            <p className="font-mono text-xs text-foreground truncate">
+                              {badge.badgeName}
+                            </p>
+                            <p className="font-mono text-[10px] text-muted-foreground truncate">
+                              {badge.ctfName}
+                            </p>
                             {badge.description && (
-                              <p className="font-mono text-[10px] text-foreground/80 leading-4 line-clamp-2">{badge.description}</p>
+                              <p className="font-mono text-[10px] text-foreground/80 leading-4 line-clamp-2">
+                                {badge.description}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -119,7 +148,9 @@ const BadgesPage: NextPageWithLayout<BadgesProps> = ({ user, earnedBadges }) => 
   );
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
   const session = await getSession(context.req, context.res);
   const user = await getUserBySession(session);
   const { locale } = context;
@@ -132,14 +163,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   await ensureBadgeInfrastructure();
 
-  const manualBadges = await prisma.$queryRaw<Array<{
-    badgeId: string;
-    codeName: string;
-    badgeName: string;
-    image: string | null;
-    ctfName: string;
-    description: string | null;
-  }>>`
+  const manualBadges = await prisma.$queryRaw<
+    Array<{
+      badgeId: string;
+      codeName: string;
+      badgeName: string;
+      image: string | null;
+      ctfName: string;
+      description: string | null;
+    }>
+  >`
     SELECT
       bc."id" AS "badgeId",
       bc."slug" AS "codeName",
@@ -153,14 +186,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       AND bc."isActive" = true
   `;
 
-  const playgroundBadges = await prisma.$queryRaw<Array<{
-    badgeId: string;
-    codeName: string;
-    badgeName: string;
-    image: string | null;
-    ctfName: string;
-    description: string | null;
-  }>>`
+  const playgroundBadges = await prisma.$queryRaw<
+    Array<{
+      badgeId: string;
+      codeName: string;
+      badgeName: string;
+      image: string | null;
+      ctfName: string;
+      description: string | null;
+    }>
+  >`
     SELECT
       bc."id" AS "badgeId",
       ps."codeName" AS "codeName",

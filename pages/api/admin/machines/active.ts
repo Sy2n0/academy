@@ -11,12 +11,25 @@ import { MachineType } from '@prisma/client';
 const createMachineSchema = z.object({
   title: z.string().min(1, 'Machine title is required'),
   description: z.string().optional().nullable(),
-  type: z.enum(['STATIC_ATTACHMENT', 'DYNAMIC_ATTACHMENT', 'STATIC_CONTAINER', 'DYNAMIC_CONTAINER']),
+  type: z.enum([
+    'STATIC_ATTACHMENT',
+    'DYNAMIC_ATTACHMENT',
+    'STATIC_CONTAINER',
+    'DYNAMIC_CONTAINER',
+  ]),
   category: z.string().min(1, 'Category is required'),
   maxAttempts: z.number().int().min(0).nullable().optional(),
   score: z.number().int().min(0, 'Score must be a positive number').optional(),
-  difficultyFactor: z.number().min(0, 'Difficulty factor must be positive').optional(),
-  minimumScoreRatio: z.number().int().min(0).max(100, 'Minimum score ratio must be between 0 and 100').optional(),
+  difficultyFactor: z
+    .number()
+    .min(0, 'Difficulty factor must be positive')
+    .optional(),
+  minimumScoreRatio: z
+    .number()
+    .int()
+    .min(0)
+    .max(100, 'Minimum score ratio must be between 0 and 100')
+    .optional(),
   bloodBonus: z.boolean().default(false).optional(),
   containerImage: z.string().optional().nullable(),
   servicePort: z.number().int().min(1).max(65535).nullable().optional(),
@@ -73,13 +86,23 @@ export default async function handler(
 const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     if (!prisma || !prisma.machine) {
-      throw new ApiError(500, 'Machine model is not available. Please restart the server.');
+      throw new ApiError(
+        500,
+        'Machine model is not available. Please restart the server.'
+      );
     }
 
     // 모든 Machine 조회 (디버깅용)
     const allMachines = await prisma.machine.findMany();
     console.log('Total machines in DB:', allMachines.length);
-    console.log('All machines categoryType:', allMachines.map(m => ({ id: m.id, title: m.title, categoryType: m.categoryType })));
+    console.log(
+      'All machines categoryType:',
+      allMachines.map((m) => ({
+        id: m.id,
+        title: m.title,
+        categoryType: m.categoryType,
+      }))
+    );
 
     const machines = await prisma.machine.findMany({
       where: {
@@ -94,7 +117,7 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
 
     res.json({
       data: {
-        machines: machines.map(machine => ({
+        machines: machines.map((machine) => ({
           id: machine.id,
           title: machine.title,
           description: machine.description,
@@ -135,7 +158,10 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (!prisma.machine) {
-      throw new ApiError(500, 'Machine model is not available. Please restart the server.');
+      throw new ApiError(
+        500,
+        'Machine model is not available. Please restart the server.'
+      );
     }
 
     // DB에 Machine 저장
@@ -196,18 +222,23 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
     });
   } catch (error: any) {
     console.error('Error in handlePOST:', error);
-    
+
     // Zod validation error
     if (error.name === 'ZodError') {
-      const errorMessages = error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const errorMessages = error.errors
+        .map((e: any) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ');
       throw new ApiError(400, `Validation error: ${errorMessages}`);
     }
-    
+
     // Prisma error
     if (error.code === 'P2002') {
-      throw new ApiError(409, 'A machine with this configuration already exists');
+      throw new ApiError(
+        409,
+        'A machine with this configuration already exists'
+      );
     }
-    
+
     throw error;
   }
 };

@@ -81,7 +81,10 @@ export function InformationTab({ gameId: _gameId }: InformationTabProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Maximum Team Member */}
         <div className="space-y-2">
-          <Label htmlFor="maxTeamMember" className="font-mono text-sm font-semibold">
+          <Label
+            htmlFor="maxTeamMember"
+            className="font-mono text-sm font-semibold"
+          >
             Maximum Team Member <span className="text-destructive">*</span>
           </Label>
           <p className="font-mono text-xs text-muted-foreground">
@@ -99,14 +102,22 @@ export function InformationTab({ gameId: _gameId }: InformationTabProps) {
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
               <button
                 type="button"
-                onClick={() => setMaxTeamMember(String(Math.max(0, parseInt(maxTeamMember) + 1)))}
+                onClick={() =>
+                  setMaxTeamMember(
+                    String(Math.max(0, parseInt(maxTeamMember) + 1))
+                  )
+                }
                 className="h-3 w-4 flex items-center justify-center text-xs hover:bg-background/60 rounded"
               >
                 ▲
               </button>
               <button
                 type="button"
-                onClick={() => setMaxTeamMember(String(Math.max(0, parseInt(maxTeamMember) - 1)))}
+                onClick={() =>
+                  setMaxTeamMember(
+                    String(Math.max(0, parseInt(maxTeamMember) - 1))
+                  )
+                }
                 className="h-3 w-4 flex items-center justify-center text-xs hover:bg-background/60 rounded"
               >
                 ▼
@@ -117,7 +128,10 @@ export function InformationTab({ gameId: _gameId }: InformationTabProps) {
 
         {/* Team Container Limit */}
         <div className="space-y-2">
-          <Label htmlFor="teamContainerLimit" className="font-mono text-sm font-semibold">
+          <Label
+            htmlFor="teamContainerLimit"
+            className="font-mono text-sm font-semibold"
+          >
             Team Container Limit <span className="text-destructive">*</span>
           </Label>
           <p className="font-mono text-xs text-muted-foreground">
@@ -135,14 +149,22 @@ export function InformationTab({ gameId: _gameId }: InformationTabProps) {
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
               <button
                 type="button"
-                onClick={() => setTeamContainerLimit(String(Math.max(0, parseInt(teamContainerLimit) + 1)))}
+                onClick={() =>
+                  setTeamContainerLimit(
+                    String(Math.max(0, parseInt(teamContainerLimit) + 1))
+                  )
+                }
                 className="h-3 w-4 flex items-center justify-center text-xs hover:bg-background/60 rounded"
               >
                 ▲
               </button>
               <button
                 type="button"
-                onClick={() => setTeamContainerLimit(String(Math.max(0, parseInt(teamContainerLimit) - 1)))}
+                onClick={() =>
+                  setTeamContainerLimit(
+                    String(Math.max(0, parseInt(teamContainerLimit) - 1))
+                  )
+                }
                 className="h-3 w-4 flex items-center justify-center text-xs hover:bg-background/60 rounded"
               >
                 ▼
@@ -153,7 +175,10 @@ export function InformationTab({ gameId: _gameId }: InformationTabProps) {
 
         {/* Invitation Code */}
         <div className="space-y-2">
-          <Label htmlFor="invitationCode" className="font-mono text-sm font-semibold">
+          <Label
+            htmlFor="invitationCode"
+            className="font-mono text-sm font-semibold"
+          >
             Invitation Code
           </Label>
           <p className="font-mono text-xs text-muted-foreground">
@@ -184,7 +209,10 @@ export function InformationTab({ gameId: _gameId }: InformationTabProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Game Details */}
         <div className="space-y-2">
-          <Label htmlFor="gameDetails" className="font-mono text-sm font-semibold">
+          <Label
+            htmlFor="gameDetails"
+            className="font-mono text-sm font-semibold"
+          >
             Game Details
           </Label>
           <p className="font-mono text-xs text-muted-foreground">
@@ -201,9 +229,7 @@ export function InformationTab({ gameId: _gameId }: InformationTabProps) {
 
         {/* Poster */}
         <div className="space-y-2">
-          <Label className="font-mono text-sm font-semibold">
-            Poster
-          </Label>
+          <Label className="font-mono text-sm font-semibold">Poster</Label>
           <div
             className="border-2 border-dashed border-border/50 rounded-lg p-8 text-center cursor-pointer hover:border-accent/50 transition-colors bg-background/40"
             onClick={() => document.getElementById('poster-upload')?.click()}

@@ -4,7 +4,13 @@ import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Link from 'next/link';
 import Head from 'next/head';
-import { Bug, Container, ExternalLink, GalleryVerticalEnd, Satellite } from 'lucide-react';
+import {
+  Bug,
+  Container,
+  ExternalLink,
+  GalleryVerticalEnd,
+  Satellite,
+} from 'lucide-react';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
   Breadcrumb,
@@ -55,7 +61,8 @@ const targets = [
     name: 'cFS',
     repo: 'nasa/cfs',
     href: 'https://github.com/nasa/cfs',
-    detail: 'Core Flight System — reusable flight software architecture for spacecraft.',
+    detail:
+      'Core Flight System — reusable flight software architecture for spacecraft.',
   },
   {
     name: 'CF',
@@ -120,7 +127,8 @@ const KucisProject: NextPageWithLayout = () => {
                     2026 KUCIS
                   </h1>
                   <p className="font-mono text-sm text-muted-foreground max-w-2xl">
-                    Project Name : cFS 기반 위성 시스템 취약점 분석 및 보안 강화 프레임워크 연구
+                    Project Name : cFS 기반 위성 시스템 취약점 분석 및 보안 강화
+                    프레임워크 연구
                   </p>
                 </div>
 

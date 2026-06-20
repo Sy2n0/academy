@@ -69,10 +69,14 @@ export default async function handler(
 
     if (format === 'json') {
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename=submissions.json');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=submissions.json'
+      );
       res.json({ submissions, exportedAt: new Date().toISOString() });
     } else if (format === 'csv') {
-      const csvHeader = 'Date,User,Team,Machine,Flag,Correct,Points,First Blood\n';
+      const csvHeader =
+        'Date,User,Team,Machine,Flag,Correct,Points,First Blood\n';
       const csvRows = submissions
         .map(
           (s) =>
@@ -81,11 +85,17 @@ export default async function handler(
         .join('\n');
 
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=submissions.csv');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=submissions.csv'
+      );
       res.send(csvHeader + csvRows);
     } else {
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename=submissions.json');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=submissions.json'
+      );
       res.json({ submissions, exportedAt: new Date().toISOString() });
     }
   } catch (error: any) {

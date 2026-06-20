@@ -53,7 +53,10 @@ export default async function handler(
 
     if (format === 'json') {
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename=writeups.json');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=writeups.json'
+      );
       res.json({ writeups });
     } else {
       // Markdown 형식으로 다운로드

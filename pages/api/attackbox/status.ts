@@ -48,7 +48,9 @@ export default async function handler(
   const running = await isContainerRunning(row.containerName);
   if (!running) {
     // 죽은 세션 정리
-    await prisma.attackBoxSession.delete({ where: { userId: user.id } }).catch(() => {});
+    await prisma.attackBoxSession
+      .delete({ where: { userId: user.id } })
+      .catch(() => {});
     return res.status(200).json({ data: null });
   }
 

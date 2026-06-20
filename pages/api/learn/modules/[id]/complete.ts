@@ -22,7 +22,9 @@ export default async function handler(
     const { id } = req.query;
 
     if (!id || typeof id !== 'string') {
-      return res.status(400).json({ error: { message: 'Module ID is required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'Module ID is required' } });
     }
 
     // 모듈이 존재하고 활성화되어 있는지 확인
@@ -74,8 +76,8 @@ export default async function handler(
     });
   } catch (error: any) {
     console.error('[API /learn/modules/[id]/complete] Error:', error);
-    res.status(500).json({ 
-      error: { message: error.message || 'Failed to complete module' }
+    res.status(500).json({
+      error: { message: error.message || 'Failed to complete module' },
     });
   }
 }

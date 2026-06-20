@@ -19,8 +19,17 @@ import {
 import { AnimatedNoise } from '@/components/animated-noise';
 import { getSession } from '@/lib/session';
 import { getUserBySession, updateUser } from 'models/user';
-import { getUserScoreStats, getUserRanking, getUserScoreHistory } from 'models/score';
-import { calculateRank, getRankInfo, getRankProgress, getPointsToNextRank } from '@/lib/ranks';
+import {
+  getUserScoreStats,
+  getUserRanking,
+  getUserScoreHistory,
+} from 'models/score';
+import {
+  calculateRank,
+  getRankInfo,
+  getRankProgress,
+  getPointsToNextRank,
+} from '@/lib/ranks';
 import Head from 'next/head';
 
 type DashboardProps = InferGetServerSidePropsType<typeof getServerSideProps>;
@@ -58,12 +67,12 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
     rankInfo.progress >= 100
       ? 'bg-green-500'
       : rankInfo.progress >= 75
-      ? 'bg-lime-500'
-      : rankInfo.progress >= 50
-      ? 'bg-yellow-500'
-      : rankInfo.progress >= 25
-      ? 'bg-orange-500'
-      : 'bg-red-500';
+        ? 'bg-lime-500'
+        : rankInfo.progress >= 50
+          ? 'bg-yellow-500'
+          : rankInfo.progress >= 25
+            ? 'bg-orange-500'
+            : 'bg-red-500';
 
   return (
     <>
@@ -224,7 +233,8 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
                         >
                           <div className="flex-1">
                             <p className="font-mono text-sm text-foreground">
-                              {activity.description || `${activity.type} completed`}
+                              {activity.description ||
+                                `${activity.type} completed`}
                             </p>
                             <p className="font-mono text-xs text-muted-foreground">
                               <ClientDate dateStr={activity.createdAt} />
@@ -232,7 +242,9 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
                           </div>
                           <div className="text-right">
                             <p className="font-mono text-sm">
-                              <span className="text-green-500">+{activity.earnedPoints}</span>{' '}
+                              <span className="text-green-500">
+                                +{activity.earnedPoints}
+                              </span>{' '}
                               <span className="text-white">pts</span>
                             </p>
                             <p className="font-mono text-[10px] text-muted-foreground">

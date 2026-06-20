@@ -66,10 +66,15 @@ interface PlaygroundRankingsProps {
   isUserAdmin: boolean;
 }
 
-const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUserAdmin }) => {
+const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({
+  isUserAdmin,
+}) => {
   const { t } = useTranslation('common');
   const { data: session } = useSession();
-  const { data, error, isLoading, mutate } = useSWR<RankingsResponse>('/api/rankings/playground', fetcher);
+  const { data, error, isLoading, mutate } = useSWR<RankingsResponse>(
+    '/api/rankings/playground',
+    fetcher
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [points, setPoints] = useState('');
@@ -91,9 +96,11 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
 
   // 랭크에 따른 배지 색상
   const getRankBadgeColor = (rank: number) => {
-    if (rank === 1) return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30';
+    if (rank === 1)
+      return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30';
     if (rank === 2) return 'bg-gray-400/20 text-gray-400 border-gray-400/30';
-    if (rank === 3) return 'bg-orange-500/20 text-orange-500 border-orange-500/30';
+    if (rank === 3)
+      return 'bg-orange-500/20 text-orange-500 border-orange-500/30';
     return 'bg-muted/20 text-muted-foreground border-border/30';
   };
 
@@ -164,15 +171,21 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                   <Breadcrumb>
                     <BreadcrumbList>
                       <BreadcrumbItem className="hidden md:block">
-                        <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                        <BreadcrumbLink href="/dashboard">
+                          Dashboard
+                        </BreadcrumbLink>
                       </BreadcrumbItem>
                       <BreadcrumbSeparator className="hidden md:block" />
                       <BreadcrumbItem className="hidden md:block">
-                        <BreadcrumbLink href="/rankings">Rankings</BreadcrumbLink>
+                        <BreadcrumbLink href="/rankings">
+                          Rankings
+                        </BreadcrumbLink>
                       </BreadcrumbItem>
                       <BreadcrumbSeparator className="hidden md:block" />
                       <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs">PLAYGROUND RANKINGS</BreadcrumbPage>
+                        <BreadcrumbPage className="font-mono text-xs">
+                          PLAYGROUND RANKINGS
+                        </BreadcrumbPage>
                       </BreadcrumbItem>
                     </BreadcrumbList>
                   </Breadcrumb>
@@ -190,11 +203,15 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                           PLAYGROUND RANKINGS
                         </h1>
                         <p className="font-mono text-sm text-muted-foreground max-w-2xl leading-relaxed">
-                          Playground 종료 후 ADMIN이 직접 추가한 점수를 기반으로 한 랭킹입니다
+                          Playground 종료 후 ADMIN이 직접 추가한 점수를 기반으로
+                          한 랭킹입니다
                         </p>
                       </div>
                       {isUserAdmin && (
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <Dialog
+                          open={isDialogOpen}
+                          onOpenChange={setIsDialogOpen}
+                        >
                           <DialogTrigger asChild>
                             <Button className="font-mono text-xs uppercase tracking-wider shrink-0">
                               <Plus className="h-4 w-4 mr-2" />
@@ -203,20 +220,27 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle className="font-mono">Playground 점수 추가</DialogTitle>
+                              <DialogTitle className="font-mono">
+                                Playground 점수 추가
+                              </DialogTitle>
                               <DialogDescription className="font-mono text-xs">
                                 사용자에게 Playground 점수를 추가합니다
                               </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                               <div className="space-y-2">
-                                <Label htmlFor="userId" className="font-mono text-xs">
+                                <Label
+                                  htmlFor="userId"
+                                  className="font-mono text-xs"
+                                >
                                   사용자 선택
                                 </Label>
                                 <select
                                   id="userId"
                                   value={selectedUserId}
-                                  onChange={(e) => setSelectedUserId(e.target.value)}
+                                  onChange={(e) =>
+                                    setSelectedUserId(e.target.value)
+                                  }
                                   className="w-full px-3 py-2 border border-border rounded-md bg-background font-mono text-sm"
                                 >
                                   <option value="">사용자를 선택하세요</option>
@@ -228,7 +252,10 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                                 </select>
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor="points" className="font-mono text-xs">
+                                <Label
+                                  htmlFor="points"
+                                  className="font-mono text-xs"
+                                >
                                   점수
                                 </Label>
                                 <Input
@@ -241,20 +268,27 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor="description" className="font-mono text-xs">
+                                <Label
+                                  htmlFor="description"
+                                  className="font-mono text-xs"
+                                >
                                   설명 (선택사항)
                                 </Label>
                                 <Input
                                   id="description"
                                   value={description}
-                                  onChange={(e) => setDescription(e.target.value)}
+                                  onChange={(e) =>
+                                    setDescription(e.target.value)
+                                  }
                                   placeholder="설명을 입력하세요"
                                   className="font-mono"
                                 />
                               </div>
                               <Button
                                 onClick={handleAddScore}
-                                disabled={isSubmitting || !selectedUserId || !points}
+                                disabled={
+                                  isSubmitting || !selectedUserId || !points
+                                }
                                 className="w-full font-mono text-xs uppercase tracking-wider"
                               >
                                 {isSubmitting ? '추가 중...' : '점수 추가'}
@@ -272,13 +306,18 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <Avatar className="h-14 w-14 border-2 border-accent/30">
-                            <AvatarImage src={session.user.image || undefined} alt={session.user.name || 'User'} />
+                            <AvatarImage
+                              src={session.user.image || undefined}
+                              alt={session.user.name || 'User'}
+                            />
                             <AvatarFallback className="bg-muted text-foreground font-mono text-lg">
                               {getInitials(session.user.name)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">Your Playground Ranking</p>
+                            <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">
+                              Your Playground Ranking
+                            </p>
                             <p className="font-[var(--font-bebas)] text-3xl text-foreground">
                               #{userRanking}
                             </p>
@@ -286,17 +325,28 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                         </div>
                         <div className="flex items-center gap-8">
                           <div className="text-right">
-                            <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">Total Points</p>
+                            <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">
+                              Total Points
+                            </p>
                             <p className="font-mono text-2xl font-bold text-foreground">
                               {formatPoints(
-                                rankings.find((r) => r.id === session.user?.id)?.points || 0
+                                rankings.find((r) => r.id === session.user?.id)
+                                  ?.points || 0
                               )}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">First Blood</p>
+                            <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">
+                              First Blood
+                            </p>
                             <p className="font-mono text-xl font-semibold text-accent">
-                              {rankings.find((r) => r.id === session.user?.id) ? ((rankings.find((r) => r.id === session.user?.id) as any)?.firstBloodCount || 0) : 0}
+                              {rankings.find((r) => r.id === session.user?.id)
+                                ? (
+                                    rankings.find(
+                                      (r) => r.id === session.user?.id
+                                    ) as any
+                                  )?.firstBloodCount || 0
+                                : 0}
                             </p>
                           </div>
                         </div>
@@ -307,22 +357,28 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                   {/* Rankings Card Grid */}
                   {isLoading ? (
                     <div className="text-center py-20">
-                      <p className="font-mono text-sm text-muted-foreground">Loading rankings...</p>
+                      <p className="font-mono text-sm text-muted-foreground">
+                        Loading rankings...
+                      </p>
                     </div>
                   ) : error ? (
                     <div className="text-center py-20">
-                      <p className="font-mono text-sm text-destructive">랭킹을 불러오지 못했습니다</p>
+                      <p className="font-mono text-sm text-destructive">
+                        랭킹을 불러오지 못했습니다
+                      </p>
                     </div>
                   ) : rankings.length === 0 ? (
                     <div className="text-center py-20">
-                      <p className="font-mono text-sm text-muted-foreground">No rankings available</p>
+                      <p className="font-mono text-sm text-muted-foreground">
+                        No rankings available
+                      </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                       {rankings.map((user, index) => {
                         const rank = index + 1;
                         const isCurrentUser = session?.user?.id === user.id;
-                        
+
                         return (
                           <div
                             key={user.id}
@@ -331,12 +387,20 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                                 ? 'border-accent/50 bg-accent/5 hover:border-accent/70 hover:shadow-lg hover:shadow-accent/10'
                                 : 'border-border/30 bg-background/40 hover:border-border/50 hover:bg-background/60'
                             } ${rank <= 3 ? 'ring-2 ring-offset-2 ring-offset-background' : ''} ${
-                              rank === 1 ? 'ring-yellow-500/30' : rank === 2 ? 'ring-gray-400/30' : rank === 3 ? 'ring-orange-500/30' : ''
+                              rank === 1
+                                ? 'ring-yellow-500/30'
+                                : rank === 2
+                                  ? 'ring-gray-400/30'
+                                  : rank === 3
+                                    ? 'ring-orange-500/30'
+                                    : ''
                             }`}
                           >
                             {/* Rank Badge */}
                             <div className="absolute top-4 right-4">
-                              <div className={`flex items-center justify-center w-10 h-10 rounded-full font-[var(--font-bebas)] text-lg font-bold ${getRankBadgeColor(rank)}`}>
+                              <div
+                                className={`flex items-center justify-center w-10 h-10 rounded-full font-[var(--font-bebas)] text-lg font-bold ${getRankBadgeColor(rank)}`}
+                              >
                                 {rank}
                               </div>
                             </div>
@@ -344,19 +408,24 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({ isUse
                             {/* User Info */}
                             <div className="flex flex-col items-center text-center pt-2">
                               <Avatar className="h-16 w-16 mb-4 border-2 border-border/30">
-                                <AvatarImage src={user.image || undefined} alt={user.name} />
+                                <AvatarImage
+                                  src={user.image || undefined}
+                                  alt={user.name}
+                                />
                                 <AvatarFallback className="bg-muted text-foreground font-mono text-base">
                                   {getInitials(user.name)}
                                 </AvatarFallback>
                               </Avatar>
-                              
+
                               <h3 className="font-mono text-base font-semibold text-foreground mb-1 truncate w-full">
                                 {user.name}
                                 {isCurrentUser && (
-                                  <span className="ml-2 text-xs text-accent font-normal">(You)</span>
+                                  <span className="ml-2 text-xs text-accent font-normal">
+                                    (You)
+                                  </span>
                                 )}
                               </h3>
-                              
+
                               <p className="font-mono text-xs text-muted-foreground mb-4 truncate w-full">
                                 {user.email}
                               </p>
@@ -410,7 +479,7 @@ export const getServerSideProps = async (
 ) => {
   const { locale } = context;
   const session = await getSession(context.req, context.res);
-  
+
   let isUserAdmin = false;
   if (session?.user?.id) {
     const user = await getUserBySession(session);

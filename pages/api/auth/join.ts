@@ -43,7 +43,7 @@ export default async function handler(
       name: error.name,
       timestamp: new Date().toISOString(),
     };
-    
+
     console.error('=== Join API Error ===');
     console.error(JSON.stringify(errorDetails, null, 2));
     console.error('========================');
@@ -51,11 +51,13 @@ export default async function handler(
     // 응답이 이미 전송되었는지 확인
     if (!res.headersSent) {
       // 클라이언트에 상세 에러 정보 전달 (개발 환경에서만)
-      res.status(status).json({ 
-        error: { 
+      res.status(status).json({
+        error: {
           message,
-          ...(process.env.NODE_ENV === 'development' ? { details: errorDetails } : {})
-        } 
+          ...(process.env.NODE_ENV === 'development'
+            ? { details: errorDetails }
+            : {}),
+        },
       });
     } else {
       console.error('Response already sent, cannot send error response');
@@ -158,7 +160,7 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
       console.error('Response headers already sent!');
       return;
     }
-    
+
     res.status(201).json({
       data: {
         confirmEmail: false, // 이메일 인증 없이 바로 로그인 가능
@@ -167,7 +169,10 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('Success response sent for user:', user.email);
   } catch (error) {
     console.error('Error sending response:', error);
-    console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    console.error(
+      'Error details:',
+      JSON.stringify(error, Object.getOwnPropertyNames(error))
+    );
     // 응답 전송 실패해도 가입은 완료되었으므로 에러만 로깅
   }
 };

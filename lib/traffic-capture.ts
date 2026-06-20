@@ -19,40 +19,46 @@ export class TrafficCaptureProxy {
    */
   private setupWebSocketProxy(): void {
     this.io.on('connection', (socket) => {
-      socket.on('proxy:connect', async (data: {
-        containerId: string;
-        targetHost: string;
-        targetPort: number;
-      }) => {
-        try {
-          // TCP 연결을 WebSocket을 통해 프록시
-          const proxyId = `${data.containerId}-${Date.now()}`;
-          
-          socket.emit('proxy:connected', { proxyId });
-          
-          // 프록시 연결 저장
-          this.connections.set(proxyId, {
-            socket,
-            containerId: data.containerId,
-            targetHost: data.targetHost,
-            targetPort: data.targetPort,
-            startTime: new Date(),
-          });
+      socket.on(
+        'proxy:connect',
+        async (data: {
+          containerId: string;
+          targetHost: string;
+          targetPort: number;
+        }) => {
+          try {
+            // TCP 연결을 WebSocket을 통해 프록시
+            const proxyId = `${data.containerId}-${Date.now()}`;
 
-          // 데이터 전송 핸들러
-          socket.on('proxy:data', (proxyData: { proxyId: string; data: Buffer }) => {
-            // 실제 TCP 연결로 데이터 전송 (구현 필요)
-            // 여기서는 WebSocket을 통해 데이터를 전달
-            this.handleProxyData(proxyData.proxyId, proxyData.data);
-          });
+            socket.emit('proxy:connected', { proxyId });
 
-          socket.on('disconnect', () => {
-            this.connections.delete(proxyId);
-          });
-        } catch (error: any) {
-          socket.emit('proxy:error', { message: error.message });
+            // 프록시 연결 저장
+            this.connections.set(proxyId, {
+              socket,
+              containerId: data.containerId,
+              targetHost: data.targetHost,
+              targetPort: data.targetPort,
+              startTime: new Date(),
+            });
+
+            // 데이터 전송 핸들러
+            socket.on(
+              'proxy:data',
+              (proxyData: { proxyId: string; data: Buffer }) => {
+                // 실제 TCP 연결로 데이터 전송 (구현 필요)
+                // 여기서는 WebSocket을 통해 데이터를 전달
+                this.handleProxyData(proxyData.proxyId, proxyData.data);
+              }
+            );
+
+            socket.on('disconnect', () => {
+              this.connections.delete(proxyId);
+            });
+          } catch (error: any) {
+            socket.emit('proxy:error', { message: error.message });
+          }
         }
-      });
+      );
     });
   }
 
@@ -79,11 +85,14 @@ export class TrafficCaptureProxy {
   /**
    * 트래픽 캡처 및 저장
    */
-  private async captureTraffic(containerId: string, data: Buffer): Promise<void> {
+  private async captureTraffic(
+    containerId: string,
+    data: Buffer
+  ): Promise<void> {
     // 트래픽을 파일이나 DB에 저장
     // EventLog에 기록
     const { prisma } = await import('@/lib/prisma');
-    
+
     await prisma.eventLog.create({
       data: {
         type: 'traffic_capture',

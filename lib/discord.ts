@@ -1,4 +1,3 @@
-
 /**
  * Send a Discord webhook notification
  */

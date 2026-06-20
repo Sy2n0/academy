@@ -21,7 +21,9 @@ export default async function handler(
 
   const assignmentId = req.query.id as string;
   if (!assignmentId) {
-    return res.status(400).json({ error: { message: 'Assignment ID required' } });
+    return res
+      .status(400)
+      .json({ error: { message: 'Assignment ID required' } });
   }
 
   try {
@@ -35,19 +37,31 @@ export default async function handler(
       where: { id: assignmentId },
     });
     if (!assignment || !assignment.isActive) {
-      return res.status(404).json({ error: { message: 'Assignment not found' } });
+      return res
+        .status(404)
+        .json({ error: { message: 'Assignment not found' } });
     }
 
     const [enrolledTrackIds, completedModuleIds] = await Promise.all([
-      prisma.userSkillPathEnrollment.findMany({ where: { userId: user.id }, select: { skillPathId: true } }).then((r) => r.map((x) => x.skillPathId)),
-      prisma.userModuleCompletion.findMany({ where: { userId: user.id }, select: { moduleId: true } }).then((r) => r.map((x) => x.moduleId)),
+      prisma.userSkillPathEnrollment
+        .findMany({ where: { userId: user.id }, select: { skillPathId: true } })
+        .then((r) => r.map((x) => x.skillPathId)),
+      prisma.userModuleCompletion
+        .findMany({ where: { userId: user.id }, select: { moduleId: true } })
+        .then((r) => r.map((x) => x.moduleId)),
     ]);
     const eligible =
       assignment.targetType === 'ALL' ||
-      (assignment.targetType === 'TRACK' && assignment.targetId && enrolledTrackIds.includes(assignment.targetId)) ||
-      (assignment.targetType === 'MODULE' && assignment.targetId && completedModuleIds.includes(assignment.targetId));
+      (assignment.targetType === 'TRACK' &&
+        assignment.targetId &&
+        enrolledTrackIds.includes(assignment.targetId)) ||
+      (assignment.targetType === 'MODULE' &&
+        assignment.targetId &&
+        completedModuleIds.includes(assignment.targetId));
     if (!eligible) {
-      return res.status(403).json({ error: { message: 'Not eligible to submit this assignment' } });
+      return res
+        .status(403)
+        .json({ error: { message: 'Not eligible to submit this assignment' } });
     }
 
     const uploadDir = path.join(os.tmpdir(), 'hub-academy-upload');
@@ -55,7 +69,7 @@ export default async function handler(
 
     const { IncomingForm } = await import('formidable');
     const form = new IncomingForm({
-      maxFileSize: 500 * 1024 * 1024,   // 500MB
+      maxFileSize: 500 * 1024 * 1024, // 500MB
       maxTotalFileSize: 500 * 1024 * 1024,
       uploadDir,
       keepExtensions: true,
@@ -72,22 +86,29 @@ export default async function handler(
 
     const fileSize = (file as { size?: number }).size ?? 0;
     if (fileSize <= 0) {
-      return res.status(400).json({ error: { message: 'Empty file is not allowed' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'Empty file is not allowed' } });
     }
 
     const filepath = (file as { filepath?: string }).filepath;
     if (!filepath || typeof filepath !== 'string') {
-      return res.status(400).json({ error: { message: 'File data not available' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'File data not available' } });
     }
 
-    const originalFilename = (file as { originalFilename?: string }).originalFilename ?? 'file';
+    const originalFilename =
+      (file as { originalFilename?: string }).originalFilename ?? 'file';
     const mimetype = (file as { mimetype?: string }).mimetype;
     let buffer: Buffer;
     try {
       buffer = await fs.readFile(filepath);
     } catch (readErr) {
       console.error('[upload] readFile failed', readErr);
-      return res.status(500).json({ error: { message: 'Failed to read uploaded file' } });
+      return res
+        .status(500)
+        .json({ error: { message: 'Failed to read uploaded file' } });
     }
 
     let url: string;
@@ -113,7 +134,8 @@ export default async function handler(
     return res.status(500).json({
       error: {
         message: process.env.NODE_ENV === 'development' ? msg : 'Upload failed',
-        ...(process.env.NODE_ENV === 'development' && stack && { detail: stack }),
+        ...(process.env.NODE_ENV === 'development' &&
+          stack && { detail: stack }),
       },
     });
   }

@@ -30,7 +30,10 @@ export default async function handler(
 // Fetch all sessions for the current user
 const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getSession(req, res);
-  const sessionToken = await getCookie(getSessionTokenCookieNameForRequest(req), { req, res });
+  const sessionToken = await getCookie(
+    getSessionTokenCookieNameForRequest(req),
+    { req, res }
+  );
 
   let sessions = await findManySessions({
     where: {

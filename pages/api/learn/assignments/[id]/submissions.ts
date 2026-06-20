@@ -3,14 +3,19 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: { message: 'Method not allowed' } });
   }
 
   const assignmentId = req.query.id as string;
   if (!assignmentId) {
-    return res.status(400).json({ error: { message: 'Assignment ID required' } });
+    return res
+      .status(400)
+      .json({ error: { message: 'Assignment ID required' } });
   }
 
   const session = await getSession(req, res);
@@ -39,6 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (e) {
     console.error('[API /learn/assignments/[id]/submissions]', e);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }

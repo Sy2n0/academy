@@ -59,7 +59,7 @@ const Login: NextPageWithLayout<
   const [message, setMessage] = useState<Message>({ text: null, status: null });
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
-  
+
   // csrfToken이 null이면 undefined로 변환
   const csrfTokenValue = csrfToken || undefined;
 
@@ -144,16 +144,20 @@ const Login: NextPageWithLayout<
       <main className="relative min-h-screen bg-background">
         <AnimatedNoise opacity={0.03} />
         <div className="grid-bg fixed inset-0 opacity-30" aria-hidden="true" />
-        
+
         <div className="relative z-10">
           <div className="w-full pt-4">
             <Navbar hideAuthButtons />
           </div>
-          
+
           <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center px-6 py-12 md:px-12">
             <div className="w-full max-w-md space-y-6">
               {message.text && message.status && (
-                <Alert variant={message.status === 'error' ? 'destructive' : 'default'}>
+                <Alert
+                  variant={
+                    message.status === 'error' ? 'destructive' : 'default'
+                  }
+                >
                   <AlertDescription className="font-mono text-xs">
                     {t(message.text)}
                   </AlertDescription>
@@ -174,7 +178,10 @@ const Login: NextPageWithLayout<
                     <form onSubmit={formik.handleSubmit}>
                       <FieldGroup>
                         <Field>
-                          <FieldLabel htmlFor="email" className="font-mono text-xs uppercase tracking-wider">
+                          <FieldLabel
+                            htmlFor="email"
+                            className="font-mono text-xs uppercase tracking-wider"
+                          >
                             {t('email')}
                           </FieldLabel>
                           <Input
@@ -185,8 +192,10 @@ const Login: NextPageWithLayout<
                             value={formik.values.email}
                             onChange={formik.handleChange}
                             className={cn(
-                              "font-mono text-sm",
-                              formik.touched.email && formik.errors.email && "border-destructive"
+                              'font-mono text-sm',
+                              formik.touched.email &&
+                                formik.errors.email &&
+                                'border-destructive'
                             )}
                             required
                           />
@@ -199,7 +208,10 @@ const Login: NextPageWithLayout<
 
                         <Field>
                           <div className="flex items-center justify-between">
-                            <FieldLabel htmlFor="password" className="font-mono text-xs uppercase tracking-wider">
+                            <FieldLabel
+                              htmlFor="password"
+                              className="font-mono text-xs uppercase tracking-wider"
+                            >
                               {t('password')}
                             </FieldLabel>
                             <Link
@@ -218,14 +230,18 @@ const Login: NextPageWithLayout<
                               value={formik.values.password}
                               onChange={formik.handleChange}
                               className={cn(
-                                "font-mono text-sm pr-10",
-                                formik.touched.password && formik.errors.password && "border-destructive"
+                                'font-mono text-sm pr-10',
+                                formik.touched.password &&
+                                  formik.errors.password &&
+                                  'border-destructive'
                               )}
                               required
                             />
                             <button
                               type="button"
-                              onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                              onClick={() =>
+                                setIsPasswordVisible(!isPasswordVisible)
+                              }
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                             >
                               {isPasswordVisible ? (
@@ -235,11 +251,12 @@ const Login: NextPageWithLayout<
                               )}
                             </button>
                           </div>
-                          {formik.touched.password && formik.errors.password && (
-                            <FieldDescription className="text-destructive font-mono text-xs">
-                              {formik.errors.password}
-                            </FieldDescription>
-                          )}
+                          {formik.touched.password &&
+                            formik.errors.password && (
+                              <FieldDescription className="text-destructive font-mono text-xs">
+                                {formik.errors.password}
+                              </FieldDescription>
+                            )}
                         </Field>
 
                         <div className="mt-2">
@@ -256,7 +273,9 @@ const Login: NextPageWithLayout<
                             disabled={!formik.dirty || formik.isSubmitting}
                             className="w-full font-mono text-xs uppercase tracking-wider"
                           >
-                            {formik.isSubmitting ? t('loading') || 'Loading...' : t('sign-in')}
+                            {formik.isSubmitting
+                              ? t('loading') || 'Loading...'
+                              : t('sign-in')}
                           </Button>
                         </Field>
                       </FieldGroup>
@@ -277,7 +296,11 @@ const Login: NextPageWithLayout<
                       </div>
 
                       {authProviders.email && (
-                        <Button asChild variant="outline" className="w-full font-mono text-xs uppercase tracking-wider">
+                        <Button
+                          asChild
+                          variant="outline"
+                          className="w-full font-mono text-xs uppercase tracking-wider"
+                        >
                           <Link href={`/auth/magic-link${params}`}>
                             {t('sign-in-with-email')}
                           </Link>
@@ -285,7 +308,11 @@ const Login: NextPageWithLayout<
                       )}
 
                       {authProviders.saml && (
-                        <Button asChild variant="outline" className="w-full font-mono text-xs uppercase tracking-wider">
+                        <Button
+                          asChild
+                          variant="outline"
+                          className="w-full font-mono text-xs uppercase tracking-wider"
+                        >
                           <Link href="/auth/sso">
                             {t('continue-with-saml-sso')}
                           </Link>

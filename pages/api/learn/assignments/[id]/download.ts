@@ -14,7 +14,9 @@ export default async function handler(
 
   const assignmentId = req.query.id as string;
   if (!assignmentId) {
-    return res.status(400).json({ error: { message: 'Missing assignment id' } });
+    return res
+      .status(400)
+      .json({ error: { message: 'Missing assignment id' } });
   }
 
   const session = await getSession(req, res);
@@ -34,7 +36,9 @@ export default async function handler(
   }
 
   if (attachmentUrl.startsWith('/api/storage/')) {
-    const base = process.env.NEXT_PUBLIC_APP_URL || `http://${req.headers.host || 'localhost'}`;
+    const base =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      `http://${req.headers.host || 'localhost'}`;
     const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
     const sep = attachmentUrl.includes('?') ? '&' : '?';
     const redirectUrl = `${base}${basePath}${attachmentUrl}${sep}download=1`;
@@ -47,15 +51,21 @@ export default async function handler(
     const pathname = decodeURIComponent(u.pathname).replace(/^\/+/, '');
     const parts = pathname.split('/');
     if (parts.length < 2) {
-      return res.status(400).json({ error: { message: 'Invalid attachment URL' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'Invalid attachment URL' } });
     }
     const bucket = parts[0];
     const key = parts.slice(1).join('/');
     const filename = key.split('/').pop() || 'attachment';
-    const downloadUrl = await getFileUrl(bucket, key, { downloadFilename: filename });
+    const downloadUrl = await getFileUrl(bucket, key, {
+      downloadFilename: filename,
+    });
     res.redirect(302, downloadUrl);
   } catch (e) {
     console.error('[API learn/assignments download]', e);
-    return res.status(500).json({ error: { message: 'Failed to generate download URL' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Failed to generate download URL' } });
   }
 }

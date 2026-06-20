@@ -13,7 +13,13 @@ import { Copy, Check, Hash, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // 암호화/인코딩 블록
-export const CryptoBlock = ({ type, data }: { type?: string; data?: string }) => {
+export const CryptoBlock = ({
+  type,
+  data,
+}: {
+  type?: string;
+  data?: string;
+}) => {
   const [input, setInput] = useState(data || '');
   const [output, setOutput] = useState('');
   const [cryptoType, setCryptoType] = useState(type || 'base64');
@@ -28,7 +34,11 @@ export const CryptoBlock = ({ type, data }: { type?: string; data?: string }) =>
             setOutput(btoa(input));
             break;
           case 'hex':
-            setOutput(Array.from(input).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join(''));
+            setOutput(
+              Array.from(input)
+                .map((c) => c.charCodeAt(0).toString(16).padStart(2, '0'))
+                .join('')
+            );
             break;
           case 'url':
             setOutput(encodeURIComponent(input));
@@ -49,7 +59,12 @@ export const CryptoBlock = ({ type, data }: { type?: string; data?: string }) =>
             setOutput(atob(input));
             break;
           case 'hex':
-            setOutput(input.match(/.{1,2}/g)?.map(hex => String.fromCharCode(parseInt(hex, 16))).join('') || '');
+            setOutput(
+              input
+                .match(/.{1,2}/g)
+                ?.map((hex) => String.fromCharCode(parseInt(hex, 16)))
+                .join('') || ''
+            );
             break;
           case 'url':
             setOutput(decodeURIComponent(input));
@@ -90,7 +105,10 @@ export const CryptoBlock = ({ type, data }: { type?: string; data?: string }) =>
               <SelectItem value="sha256">SHA256</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={operation} onValueChange={(v: 'encode' | 'decode') => setOperation(v)}>
+          <Select
+            value={operation}
+            onValueChange={(v: 'encode' | 'decode') => setOperation(v)}
+          >
             <SelectTrigger className="font-mono text-xs w-24">
               <SelectValue />
             </SelectTrigger>
@@ -103,7 +121,9 @@ export const CryptoBlock = ({ type, data }: { type?: string; data?: string }) =>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Input</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Input
+          </label>
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -113,14 +133,20 @@ export const CryptoBlock = ({ type, data }: { type?: string; data?: string }) =>
         </div>
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="font-mono text-xs text-muted-foreground">Output</label>
+            <label className="font-mono text-xs text-muted-foreground">
+              Output
+            </label>
             <Button
               variant="ghost"
               size="sm"
               onClick={copyToClipboard}
               className="font-mono text-xs h-6"
             >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              {copied ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
             </Button>
           </div>
           <Textarea
@@ -132,7 +158,11 @@ export const CryptoBlock = ({ type, data }: { type?: string; data?: string }) =>
         </div>
       </div>
       <Button onClick={process} className="font-mono text-xs mt-3 w-full">
-        {operation === 'encode' ? <Lock className="h-3 w-3 mr-2" /> : <Unlock className="h-3 w-3 mr-2" />}
+        {operation === 'encode' ? (
+          <Lock className="h-3 w-3 mr-2" />
+        ) : (
+          <Unlock className="h-3 w-3 mr-2" />
+        )}
         {operation === 'encode' ? 'Encode' : 'Decode'}
       </Button>
     </div>
@@ -149,10 +179,10 @@ export const HexDumpBlock = ({ data }: { data?: string }) => {
     let output = '';
     for (let i = 0; i < bytes.length; i += 16) {
       const hex = Array.from(bytes.slice(i, i + 16))
-        .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+        .map((b) => b.toString(16).padStart(2, '0').toUpperCase())
         .join(' ');
       const ascii = Array.from(bytes.slice(i, i + 16))
-        .map(b => (b >= 32 && b < 127) ? String.fromCharCode(b) : '.')
+        .map((b) => (b >= 32 && b < 127 ? String.fromCharCode(b) : '.'))
         .join('');
       const offset = i.toString(16).padStart(8, '0').toUpperCase();
       output += `${offset}  ${hex.padEnd(48)}  |${ascii}|\n`;
@@ -163,14 +193,18 @@ export const HexDumpBlock = ({ data }: { data?: string }) => {
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">Hex Dump Viewer</h3>
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          Hex Dump Viewer
+        </h3>
         <Button onClick={generateHexDump} className="font-mono text-xs">
           Generate
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Input</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Input
+          </label>
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -179,7 +213,9 @@ export const HexDumpBlock = ({ data }: { data?: string }) => {
           />
         </div>
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Hex Dump</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Hex Dump
+          </label>
           <pre className="font-mono text-xs bg-background/60 p-3 rounded border border-border/30 min-h-[200px] overflow-x-auto text-foreground">
             {hexView || 'Click Generate to view hex dump'}
           </pre>
@@ -191,7 +227,9 @@ export const HexDumpBlock = ({ data }: { data?: string }) => {
 
 // SQL Injection 테스트 블록
 export const SqlInjectionBlock = ({ query }: { query?: string }) => {
-  const [sqlQuery, setSqlQuery] = useState(query || "SELECT * FROM users WHERE id = '");
+  const [sqlQuery, setSqlQuery] = useState(
+    query || "SELECT * FROM users WHERE id = '"
+  );
   const [injection, setInjection] = useState("1' OR '1'='1");
   const [result, setResult] = useState<any>(null);
   const [vulnerable, setVulnerable] = useState<boolean | null>(null);
@@ -199,25 +237,35 @@ export const SqlInjectionBlock = ({ query }: { query?: string }) => {
   const testInjection = () => {
     const fullQuery = sqlQuery + injection + "'";
     setResult({ query: fullQuery });
-    
+
     // 간단한 취약점 감지 시뮬레이션
-    const dangerous = ['OR', 'UNION', '--', ';', 'DROP', 'DELETE', 'UPDATE'].some(
-      keyword => injection.toUpperCase().includes(keyword)
-    );
+    const dangerous = [
+      'OR',
+      'UNION',
+      '--',
+      ';',
+      'DROP',
+      'DELETE',
+      'UPDATE',
+    ].some((keyword) => injection.toUpperCase().includes(keyword));
     setVulnerable(dangerous);
   };
 
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">SQL Injection Test</h3>
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          SQL Injection Test
+        </h3>
         <Button onClick={testInjection} className="font-mono text-xs">
           Test
         </Button>
       </div>
       <div className="space-y-3">
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">SQL Query</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            SQL Query
+          </label>
           <Input
             value={sqlQuery}
             onChange={(e) => setSqlQuery(e.target.value)}
@@ -226,7 +274,9 @@ export const SqlInjectionBlock = ({ query }: { query?: string }) => {
           />
         </div>
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Injection Payload</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Injection Payload
+          </label>
           <Input
             value={injection}
             onChange={(e) => setInjection(e.target.value)}
@@ -236,13 +286,19 @@ export const SqlInjectionBlock = ({ query }: { query?: string }) => {
         </div>
         {result && (
           <div className="p-3 bg-background/60 rounded border border-border/30">
-            <div className="font-mono text-xs text-muted-foreground mb-2">Final Query:</div>
+            <div className="font-mono text-xs text-muted-foreground mb-2">
+              Final Query:
+            </div>
             <pre className="font-mono text-xs text-foreground whitespace-pre-wrap break-words">
               {result.query}
             </pre>
             {vulnerable !== null && (
-              <div className={`mt-2 font-mono text-xs ${vulnerable ? 'text-red-500' : 'text-green-500'}`}>
-                {vulnerable ? '⚠ Vulnerable to SQL Injection!' : '✓ Query appears safe'}
+              <div
+                className={`mt-2 font-mono text-xs ${vulnerable ? 'text-red-500' : 'text-green-500'}`}
+              >
+                {vulnerable
+                  ? '⚠ Vulnerable to SQL Injection!'
+                  : '✓ Query appears safe'}
               </div>
             )}
           </div>
@@ -254,7 +310,9 @@ export const SqlInjectionBlock = ({ query }: { query?: string }) => {
 
 // XSS 페이로드 테스트 블록
 export const XssTestBlock = ({ payload }: { payload?: string }) => {
-  const [xssPayload, setXssPayload] = useState(payload || '<script>alert("XSS")</script>');
+  const [xssPayload, setXssPayload] = useState(
+    payload || '<script>alert("XSS")</script>'
+  );
   const [rendered, setRendered] = useState('');
   const [safe, setSafe] = useState<boolean | null>(null);
 
@@ -265,9 +323,9 @@ export const XssTestBlock = ({ payload }: { payload?: string }) => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#x27;');
-    
+
     setRendered(sanitized);
-    
+
     // XSS 패턴 감지
     const dangerous = /<script|javascript:|onerror=|onload=/i.test(xssPayload);
     setSafe(!dangerous);
@@ -276,14 +334,18 @@ export const XssTestBlock = ({ payload }: { payload?: string }) => {
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">XSS Payload Test</h3>
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          XSS Payload Test
+        </h3>
         <Button onClick={testXss} className="font-mono text-xs">
           Test
         </Button>
       </div>
       <div className="space-y-3">
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">XSS Payload</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            XSS Payload
+          </label>
           <Textarea
             value={xssPayload}
             onChange={(e) => setXssPayload(e.target.value)}
@@ -293,13 +355,19 @@ export const XssTestBlock = ({ payload }: { payload?: string }) => {
         </div>
         {rendered && (
           <div className="p-3 bg-background/60 rounded border border-border/30">
-            <div className="font-mono text-xs text-muted-foreground mb-2">Sanitized Output:</div>
+            <div className="font-mono text-xs text-muted-foreground mb-2">
+              Sanitized Output:
+            </div>
             <div className="font-mono text-xs text-foreground whitespace-pre-wrap break-words">
               {rendered}
             </div>
             {safe !== null && (
-              <div className={`mt-2 font-mono text-xs ${safe ? 'text-green-500' : 'text-red-500'}`}>
-                {safe ? '✓ Payload is sanitized' : '⚠ Dangerous payload detected!'}
+              <div
+                className={`mt-2 font-mono text-xs ${safe ? 'text-green-500' : 'text-red-500'}`}
+              >
+                {safe
+                  ? '✓ Payload is sanitized'
+                  : '⚠ Dangerous payload detected!'}
               </div>
             )}
           </div>
@@ -310,49 +378,73 @@ export const XssTestBlock = ({ payload }: { payload?: string }) => {
 };
 
 // 포트 스캐너 시뮬레이터
-export const PortScannerBlock = ({ target, ports }: { target?: string; ports?: string }) => {
+export const PortScannerBlock = ({
+  target,
+  ports,
+}: {
+  target?: string;
+  ports?: string;
+}) => {
   const [host, setHost] = useState(target || 'localhost');
   const [portRange, setPortRange] = useState(ports || '1-100');
   const [scanning, setScanning] = useState(false);
-  const [results, setResults] = useState<Array<{ port: number; status: 'open' | 'closed' | 'filtered' }>>([]);
+  const [results, setResults] = useState<
+    Array<{ port: number; status: 'open' | 'closed' | 'filtered' }>
+  >([]);
 
   const scanPorts = async () => {
     setScanning(true);
     setResults([]);
-    
+
     const [start, end] = portRange.split('-').map(Number);
-    const portsToScan = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    
+    const portsToScan = Array.from(
+      { length: end - start + 1 },
+      (_, i) => start + i
+    );
+
     // 시뮬레이션 (실제로는 서버에서 처리)
-    const simulatedResults = portsToScan.map(port => {
+    const simulatedResults = portsToScan.map((port) => {
       // 랜덤하게 일부 포트만 열림으로 표시
       const isOpen = Math.random() > 0.9;
       return {
         port,
-        status: isOpen ? 'open' : (Math.random() > 0.5 ? 'closed' : 'filtered') as 'open' | 'closed' | 'filtered',
+        status: isOpen
+          ? 'open'
+          : ((Math.random() > 0.5 ? 'closed' : 'filtered') as
+              | 'open'
+              | 'closed'
+              | 'filtered'),
       };
     });
 
     // 애니메이션 효과를 위해 순차적으로 표시
     for (let i = 0; i < simulatedResults.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       setResults([...simulatedResults.slice(0, i + 1)]);
     }
-    
+
     setScanning(false);
   };
 
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">Port Scanner</h3>
-        <Button onClick={scanPorts} disabled={scanning} className="font-mono text-xs">
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          Port Scanner
+        </h3>
+        <Button
+          onClick={scanPorts}
+          disabled={scanning}
+          className="font-mono text-xs"
+        >
           {scanning ? 'Scanning...' : 'Scan'}
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-4 mb-3">
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Target</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Target
+          </label>
           <Input
             value={host}
             onChange={(e) => setHost(e.target.value)}
@@ -361,7 +453,9 @@ export const PortScannerBlock = ({ target, ports }: { target?: string; ports?: s
           />
         </div>
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Port Range</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Port Range
+          </label>
           <Input
             value={portRange}
             onChange={(e) => setPortRange(e.target.value)}
@@ -373,7 +467,8 @@ export const PortScannerBlock = ({ target, ports }: { target?: string; ports?: s
       {results.length > 0 && (
         <div className="p-3 bg-background/60 rounded border border-border/30 max-h-60 overflow-y-auto">
           <div className="font-mono text-xs text-muted-foreground mb-2">
-            Scan Results ({results.filter(r => r.status === 'open').length} open):
+            Scan Results ({results.filter((r) => r.status === 'open').length}{' '}
+            open):
           </div>
           <div className="space-y-1">
             {results.map((result) => (
@@ -383,8 +478,8 @@ export const PortScannerBlock = ({ target, ports }: { target?: string; ports?: s
                   result.status === 'open'
                     ? 'bg-green-500/20 text-green-500'
                     : result.status === 'filtered'
-                    ? 'bg-yellow-500/20 text-yellow-500'
-                    : 'bg-background/40 text-muted-foreground'
+                      ? 'bg-yellow-500/20 text-yellow-500'
+                      : 'bg-background/40 text-muted-foreground'
                 }`}
               >
                 Port {result.port}: {result.status.toUpperCase()}
@@ -402,7 +497,11 @@ export const LogAnalyzerBlock = ({ logs }: { logs?: string }) => {
   const [logData, setLogData] = useState(logs || '');
   const [filter, setFilter] = useState('');
   const [filteredLogs, setFilteredLogs] = useState<string[]>([]);
-  const [stats, setStats] = useState<{ total: number; errors: number; warnings: number }>({
+  const [stats, setStats] = useState<{
+    total: number;
+    errors: number;
+    warnings: number;
+  }>({
     total: 0,
     errors: 0,
     warnings: 0,
@@ -411,28 +510,34 @@ export const LogAnalyzerBlock = ({ logs }: { logs?: string }) => {
   const analyzeLogs = () => {
     const lines = logData.split('\n').filter(Boolean);
     const filtered = filter
-      ? lines.filter(line => line.toLowerCase().includes(filter.toLowerCase()))
+      ? lines.filter((line) =>
+          line.toLowerCase().includes(filter.toLowerCase())
+        )
       : lines;
 
     setFilteredLogs(filtered);
     setStats({
       total: lines.length,
-      errors: lines.filter(l => /error|fail|exception/i.test(l)).length,
-      warnings: lines.filter(l => /warn|warning/i.test(l)).length,
+      errors: lines.filter((l) => /error|fail|exception/i.test(l)).length,
+      warnings: lines.filter((l) => /warn|warning/i.test(l)).length,
     });
   };
 
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">Log Analyzer</h3>
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          Log Analyzer
+        </h3>
         <Button onClick={analyzeLogs} className="font-mono text-xs">
           Analyze
         </Button>
       </div>
       <div className="space-y-3">
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Filter</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Filter
+          </label>
           <Input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -443,22 +548,34 @@ export const LogAnalyzerBlock = ({ logs }: { logs?: string }) => {
         <div className="grid grid-cols-3 gap-2">
           <div className="p-2 bg-background/60 rounded border border-border/30">
             <div className="font-mono text-xs text-muted-foreground">Total</div>
-            <div className="font-mono text-sm text-foreground">{stats.total}</div>
+            <div className="font-mono text-sm text-foreground">
+              {stats.total}
+            </div>
           </div>
           <div className="p-2 bg-background/60 rounded border border-border/30">
-            <div className="font-mono text-xs text-muted-foreground">Errors</div>
+            <div className="font-mono text-xs text-muted-foreground">
+              Errors
+            </div>
             <div className="font-mono text-sm text-red-500">{stats.errors}</div>
           </div>
           <div className="p-2 bg-background/60 rounded border border-border/30">
-            <div className="font-mono text-xs text-muted-foreground">Warnings</div>
-            <div className="font-mono text-sm text-yellow-500">{stats.warnings}</div>
+            <div className="font-mono text-xs text-muted-foreground">
+              Warnings
+            </div>
+            <div className="font-mono text-sm text-yellow-500">
+              {stats.warnings}
+            </div>
           </div>
         </div>
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Logs</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Logs
+          </label>
           <div className="p-3 bg-background/60 rounded border border-border/30 max-h-60 overflow-y-auto">
             <pre className="font-mono text-xs text-foreground whitespace-pre-wrap">
-              {filteredLogs.length > 0 ? filteredLogs.join('\n') : logData || 'Enter logs to analyze'}
+              {filteredLogs.length > 0
+                ? filteredLogs.join('\n')
+                : logData || 'Enter logs to analyze'}
             </pre>
           </div>
         </div>
@@ -489,14 +606,18 @@ export const PacketAnalyzerBlock = ({ packet }: { packet?: string }) => {
   return (
     <div className="my-4 border border-border/30 rounded-lg p-4 bg-background/40">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-mono text-sm font-semibold text-foreground">Packet Analyzer</h3>
+        <h3 className="font-mono text-sm font-semibold text-foreground">
+          Packet Analyzer
+        </h3>
         <Button onClick={analyzePacket} className="font-mono text-xs">
           Analyze
         </Button>
       </div>
       <div className="space-y-3">
         <div>
-          <label className="font-mono text-xs text-muted-foreground mb-2 block">Packet Data</label>
+          <label className="font-mono text-xs text-muted-foreground mb-2 block">
+            Packet Data
+          </label>
           <Textarea
             value={packetData}
             onChange={(e) => setPacketData(e.target.value)}
@@ -506,7 +627,9 @@ export const PacketAnalyzerBlock = ({ packet }: { packet?: string }) => {
         </div>
         {analyzed && (
           <div className="p-3 bg-background/60 rounded border border-border/30">
-            <div className="font-mono text-xs text-muted-foreground mb-2">Analysis:</div>
+            <div className="font-mono text-xs text-muted-foreground mb-2">
+              Analysis:
+            </div>
             <pre className="font-mono text-xs text-foreground">
               {JSON.stringify(analyzed, null, 2)}
             </pre>

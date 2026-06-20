@@ -60,7 +60,6 @@ const Teams = () => {
             </p>
           </div>
           <Button
-            
             size="md"
             onClick={() => setCreateTeamVisible(!createTeamVisible)}
           >

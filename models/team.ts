@@ -136,7 +136,7 @@ export async function getTeamScoreHistory(
     select: { userId: true },
   });
 
-  const userIds = teamMembers.map(m => m.userId);
+  const userIds = teamMembers.map((m) => m.userId);
 
   if (userIds.length === 0) {
     return [];
@@ -154,17 +154,20 @@ export async function getTeamScoreHistory(
   });
 
   // 날짜별로 그룹화
-  const dailyScores = new Map<string, {
-    date: Date;
-    machinePoints: number;
-    trackPoints: number;
-    playgroundPoints: number;
-    solvedCount: number;
-  }>();
+  const dailyScores = new Map<
+    string,
+    {
+      date: Date;
+      machinePoints: number;
+      trackPoints: number;
+      playgroundPoints: number;
+      solvedCount: number;
+    }
+  >();
 
-  scoreHistory.forEach(score => {
+  scoreHistory.forEach((score) => {
     const dateKey = score.createdAt.toISOString().split('T')[0];
-    
+
     if (!dailyScores.has(dateKey)) {
       dailyScores.set(dateKey, {
         date: new Date(dateKey),
@@ -176,7 +179,7 @@ export async function getTeamScoreHistory(
     }
 
     const daily = dailyScores.get(dateKey)!;
-    
+
     if (score.type === 'MACHINE') {
       daily.machinePoints += score.earnedPoints;
     } else if (score.type === 'TRACK') {
@@ -184,7 +187,7 @@ export async function getTeamScoreHistory(
     } else if (score.type === 'PLAYGROUND') {
       daily.playgroundPoints += score.earnedPoints;
     }
-    
+
     daily.solvedCount += 1;
   });
 
@@ -196,11 +199,12 @@ export async function getTeamScoreHistory(
 
   const result = Array.from(dailyScores.values())
     .sort((a, b) => a.date.getTime() - b.date.getTime())
-    .map(daily => {
+    .map((daily) => {
       cumulativeMachine += daily.machinePoints;
       cumulativeTrack += daily.trackPoints;
       cumulativePlayground += daily.playgroundPoints;
-      cumulativeTotal = cumulativeMachine + cumulativeTrack + cumulativePlayground;
+      cumulativeTotal =
+        cumulativeMachine + cumulativeTrack + cumulativePlayground;
 
       return {
         date: daily.date,
@@ -220,8 +224,13 @@ export async function getTeamScoreHistory(
  * 팀 정보 가져오기
  */
 export async function getTeam(teamId: string): Promise<any>;
-export async function getTeam(key: { id?: string; slug?: string }): Promise<any>;
-export async function getTeam(teamKey: string | { id?: string; slug?: string }) {
+export async function getTeam(key: {
+  id?: string;
+  slug?: string;
+}): Promise<any>;
+export async function getTeam(
+  teamKey: string | { id?: string; slug?: string }
+) {
   const where =
     typeof teamKey === 'string'
       ? { id: teamKey }
@@ -276,7 +285,7 @@ export async function getUserTeams(userId: string) {
     },
   });
 
-  return teamMembers.map(tm => ({
+  return teamMembers.map((tm) => ({
     ...tm.team,
     role: tm.role,
     joinedAt: tm.createdAt,

@@ -49,7 +49,14 @@ import {
 } from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/router';
-import { Plus, Edit, Trash2, ArrowLeft, Search, GripVertical } from 'lucide-react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  ArrowLeft,
+  Search,
+  GripVertical,
+} from 'lucide-react';
 import useSWR from 'swr';
 
 interface Track {
@@ -91,10 +98,9 @@ const AdminTracksPage: NextPageWithLayout = () => {
   });
 
   // 모든 Module 가져오기
-  const { data: modulesData } = useSWR<{ data: Array<{ id: string; title: string }> }>(
-    '/api/admin/learn/modules',
-    fetcher
-  );
+  const { data: modulesData } = useSWR<{
+    data: Array<{ id: string; title: string }>;
+  }>('/api/admin/learn/modules', fetcher);
 
   const allModules = modulesData?.data || [];
   const [moduleSearchQuery, setModuleSearchQuery] = useState('');
@@ -104,12 +110,12 @@ const AdminTracksPage: NextPageWithLayout = () => {
   const filteredModules = allModules.filter((module) =>
     module.title.toLowerCase().includes(moduleSearchQuery.toLowerCase())
   );
-  
+
   // 선택된 Module 목록 (순서 유지)
   const selectedModules = newTrack.moduleIds
     .map((id) => allModules.find((m) => m.id === id))
     .filter((m): m is { id: string; title: string } => m !== undefined);
-  
+
   // 선택되지 않은 Module 목록
   const unselectedModules = filteredModules.filter(
     (module) => !newTrack.moduleIds.includes(module.id)
@@ -227,7 +233,10 @@ const AdminTracksPage: NextPageWithLayout = () => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/admin/learn" className="font-mono text-xs uppercase tracking-wider">
+                  <BreadcrumbLink
+                    href="/admin/learn"
+                    className="font-mono text-xs uppercase tracking-wider"
+                  >
                     Learn
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -262,7 +271,10 @@ const AdminTracksPage: NextPageWithLayout = () => {
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
-                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                <Dialog
+                  open={isCreateModalOpen}
+                  onOpenChange={setIsCreateModalOpen}
+                >
                   <DialogTrigger asChild>
                     <Button className="font-mono text-xs bg-accent hover:bg-accent/90 text-foreground">
                       <Plus className="h-4 w-4 mr-2" />
@@ -277,25 +289,38 @@ const AdminTracksPage: NextPageWithLayout = () => {
                     </DialogHeader>
                     <div className="space-y-4 mt-4 flex-1 overflow-y-auto pr-2 min-h-0">
                       <div>
-                        <Label htmlFor="title" className="font-mono text-sm font-semibold">
+                        <Label
+                          htmlFor="title"
+                          className="font-mono text-sm font-semibold"
+                        >
                           Title <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="title"
                           value={newTrack.title}
-                          onChange={(e) => setNewTrack({ ...newTrack, title: e.target.value })}
+                          onChange={(e) =>
+                            setNewTrack({ ...newTrack, title: e.target.value })
+                          }
                           className="font-mono text-sm mt-1"
                           placeholder="Enter track title"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="description" className="font-mono text-sm font-semibold">
+                        <Label
+                          htmlFor="description"
+                          className="font-mono text-sm font-semibold"
+                        >
                           Description
                         </Label>
                         <Textarea
                           id="description"
                           value={newTrack.description}
-                          onChange={(e) => setNewTrack({ ...newTrack, description: e.target.value })}
+                          onChange={(e) =>
+                            setNewTrack({
+                              ...newTrack,
+                              description: e.target.value,
+                            })
+                          }
                           className="font-mono text-sm mt-1"
                           placeholder="Enter track description"
                           rows={4}
@@ -303,32 +328,53 @@ const AdminTracksPage: NextPageWithLayout = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="type" className="font-mono text-sm font-semibold">
+                          <Label
+                            htmlFor="type"
+                            className="font-mono text-sm font-semibold"
+                          >
                             Type <span className="text-destructive">*</span>
                           </Label>
                           <Select
                             value={newTrack.type}
-                            onValueChange={(value) => setNewTrack({ ...newTrack, type: value })}
+                            onValueChange={(value) =>
+                              setNewTrack({ ...newTrack, type: value })
+                            }
                           >
                             <SelectTrigger className="font-mono text-sm mt-1">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Binary Exploitation">Binary Exploitation</SelectItem>
-                              <SelectItem value="Web Exploitation">Web Exploitation</SelectItem>
-                              <SelectItem value="Reverse Engineering">Reverse Engineering</SelectItem>
-                              <SelectItem value="Digital Forensic">Digital Forensic</SelectItem>
-                              <SelectItem value="Cryptography">Cryptography</SelectItem>
+                              <SelectItem value="Binary Exploitation">
+                                Binary Exploitation
+                              </SelectItem>
+                              <SelectItem value="Web Exploitation">
+                                Web Exploitation
+                              </SelectItem>
+                              <SelectItem value="Reverse Engineering">
+                                Reverse Engineering
+                              </SelectItem>
+                              <SelectItem value="Digital Forensic">
+                                Digital Forensic
+                              </SelectItem>
+                              <SelectItem value="Cryptography">
+                                Cryptography
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="difficulty" className="font-mono text-sm font-semibold">
-                            Difficulty <span className="text-destructive">*</span>
+                          <Label
+                            htmlFor="difficulty"
+                            className="font-mono text-sm font-semibold"
+                          >
+                            Difficulty{' '}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <Select
                             value={newTrack.difficulty}
-                            onValueChange={(value) => setNewTrack({ ...newTrack, difficulty: value })}
+                            onValueChange={(value) =>
+                              setNewTrack({ ...newTrack, difficulty: value })
+                            }
                           >
                             <SelectTrigger className="font-mono text-sm mt-1">
                               <SelectValue />
@@ -343,25 +389,41 @@ const AdminTracksPage: NextPageWithLayout = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="duration" className="font-mono text-sm font-semibold">
+                          <Label
+                            htmlFor="duration"
+                            className="font-mono text-sm font-semibold"
+                          >
                             Duration
                           </Label>
                           <Input
                             id="duration"
                             value={newTrack.duration}
-                            onChange={(e) => setNewTrack({ ...newTrack, duration: e.target.value })}
+                            onChange={(e) =>
+                              setNewTrack({
+                                ...newTrack,
+                                duration: e.target.value,
+                              })
+                            }
                             className="font-mono text-sm mt-1"
                             placeholder="e.g., 6d 2h, 2d"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="imageUrl" className="font-mono text-sm font-semibold">
+                          <Label
+                            htmlFor="imageUrl"
+                            className="font-mono text-sm font-semibold"
+                          >
                             Image URL
                           </Label>
                           <Input
                             id="imageUrl"
                             value={newTrack.imageUrl}
-                            onChange={(e) => setNewTrack({ ...newTrack, imageUrl: e.target.value })}
+                            onChange={(e) =>
+                              setNewTrack({
+                                ...newTrack,
+                                imageUrl: e.target.value,
+                              })
+                            }
                             className="font-mono text-sm mt-1"
                             placeholder="Enter image URL"
                           />
@@ -379,10 +441,16 @@ const AdminTracksPage: NextPageWithLayout = () => {
                                     const target = e.target as HTMLImageElement;
                                     target.style.display = 'none';
                                     const parent = target.parentElement;
-                                    if (parent && !parent.querySelector('.error-message')) {
-                                      const errorDiv = document.createElement('div');
-                                      errorDiv.className = 'w-full h-40 flex items-center justify-center error-message';
-                                      errorDiv.innerHTML = '<p class="font-mono text-xs text-destructive">이미지를 불러오지 못했습니다</p>';
+                                    if (
+                                      parent &&
+                                      !parent.querySelector('.error-message')
+                                    ) {
+                                      const errorDiv =
+                                        document.createElement('div');
+                                      errorDiv.className =
+                                        'w-full h-40 flex items-center justify-center error-message';
+                                      errorDiv.innerHTML =
+                                        '<p class="font-mono text-xs text-destructive">이미지를 불러오지 못했습니다</p>';
                                       parent.appendChild(errorDiv);
                                     }
                                   }}
@@ -396,13 +464,15 @@ const AdminTracksPage: NextPageWithLayout = () => {
                         <Label className="font-mono text-sm font-semibold mb-2 block">
                           Modules
                         </Label>
-                        
+
                         {/* 검색 입력 */}
                         <div className="relative mb-3">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             value={moduleSearchQuery}
-                            onChange={(e) => setModuleSearchQuery(e.target.value)}
+                            onChange={(e) =>
+                              setModuleSearchQuery(e.target.value)
+                            }
                             className="font-mono text-sm pl-9"
                             placeholder="Search modules..."
                           />
@@ -429,17 +499,30 @@ const AdminTracksPage: NextPageWithLayout = () => {
                                   }}
                                   onDrop={(e) => {
                                     e.preventDefault();
-                                    if (!draggedModuleId || draggedModuleId === module.id) return;
-                                    
-                                    const draggedIndex = newTrack.moduleIds.indexOf(draggedModuleId);
+                                    if (
+                                      !draggedModuleId ||
+                                      draggedModuleId === module.id
+                                    )
+                                      return;
+
+                                    const draggedIndex =
+                                      newTrack.moduleIds.indexOf(
+                                        draggedModuleId
+                                      );
                                     const targetIndex = index;
-                                    
+
                                     if (draggedIndex === -1) return;
-                                    
-                                    const newModuleIds = [...newTrack.moduleIds];
+
+                                    const newModuleIds = [
+                                      ...newTrack.moduleIds,
+                                    ];
                                     newModuleIds.splice(draggedIndex, 1);
-                                    newModuleIds.splice(targetIndex, 0, draggedModuleId);
-                                    
+                                    newModuleIds.splice(
+                                      targetIndex,
+                                      0,
+                                      draggedModuleId
+                                    );
+
                                     setNewTrack({
                                       ...newTrack,
                                       moduleIds: newModuleIds,
@@ -450,7 +533,9 @@ const AdminTracksPage: NextPageWithLayout = () => {
                                     setDraggedModuleId(null);
                                   }}
                                   className={`flex items-center gap-2 p-2 rounded bg-accent/10 border border-accent/20 cursor-move hover:bg-accent/20 transition-colors ${
-                                    draggedModuleId === module.id ? 'opacity-50' : ''
+                                    draggedModuleId === module.id
+                                      ? 'opacity-50'
+                                      : ''
                                   }`}
                                 >
                                   <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -465,7 +550,9 @@ const AdminTracksPage: NextPageWithLayout = () => {
                                     onClick={() => {
                                       setNewTrack({
                                         ...newTrack,
-                                        moduleIds: newTrack.moduleIds.filter((id) => id !== module.id),
+                                        moduleIds: newTrack.moduleIds.filter(
+                                          (id) => id !== module.id
+                                        ),
                                       });
                                     }}
                                   >
@@ -485,7 +572,9 @@ const AdminTracksPage: NextPageWithLayout = () => {
                           <div className="border border-border/30 rounded-md p-2 max-h-40 overflow-y-auto">
                             {unselectedModules.length === 0 ? (
                               <p className="font-mono text-xs text-muted-foreground text-center py-4">
-                                {moduleSearchQuery ? 'No modules found' : 'No modules available'}
+                                {moduleSearchQuery
+                                  ? 'No modules found'
+                                  : 'No modules available'}
                               </p>
                             ) : (
                               <div className="space-y-1">
@@ -496,14 +585,21 @@ const AdminTracksPage: NextPageWithLayout = () => {
                                     onClick={() => {
                                       setNewTrack({
                                         ...newTrack,
-                                        moduleIds: [...newTrack.moduleIds, module.id],
+                                        moduleIds: [
+                                          ...newTrack.moduleIds,
+                                          module.id,
+                                        ],
                                       });
                                       setModuleSearchQuery('');
                                     }}
                                     className="w-full flex items-center gap-2 p-2 rounded hover:bg-accent/10 cursor-pointer text-left transition-colors"
                                   >
-                                    <span className="font-mono text-sm text-foreground">{module.title}</span>
-                                    <span className="ml-auto text-xs text-muted-foreground">+ Add</span>
+                                    <span className="font-mono text-sm text-foreground">
+                                      {module.title}
+                                    </span>
+                                    <span className="ml-auto text-xs text-muted-foreground">
+                                      + Add
+                                    </span>
                                   </button>
                                 ))}
                               </div>
@@ -538,14 +634,18 @@ const AdminTracksPage: NextPageWithLayout = () => {
             {/* Loading State */}
             {isLoading && (
               <div className="text-center py-12">
-                <p className="font-mono text-sm text-muted-foreground">Loading tracks...</p>
+                <p className="font-mono text-sm text-muted-foreground">
+                  Loading tracks...
+                </p>
               </div>
             )}
 
             {/* Error State */}
             {error && (
               <div className="text-center py-12">
-                <p className="font-mono text-sm text-destructive">트랙 목록을 불러오지 못했습니다</p>
+                <p className="font-mono text-sm text-destructive">
+                  트랙 목록을 불러오지 못했습니다
+                </p>
               </div>
             )}
 
@@ -557,30 +657,56 @@ const AdminTracksPage: NextPageWithLayout = () => {
                     <TableRow>
                       <TableHead className="font-mono text-xs">Title</TableHead>
                       <TableHead className="font-mono text-xs">Type</TableHead>
-                      <TableHead className="font-mono text-xs">Difficulty</TableHead>
-                      <TableHead className="font-mono text-xs">Duration</TableHead>
-                      <TableHead className="font-mono text-xs">Modules</TableHead>
-                      <TableHead className="font-mono text-xs">Enrollments</TableHead>
-                      <TableHead className="font-mono text-xs">Status</TableHead>
-                      <TableHead className="font-mono text-xs">Actions</TableHead>
+                      <TableHead className="font-mono text-xs">
+                        Difficulty
+                      </TableHead>
+                      <TableHead className="font-mono text-xs">
+                        Duration
+                      </TableHead>
+                      <TableHead className="font-mono text-xs">
+                        Modules
+                      </TableHead>
+                      <TableHead className="font-mono text-xs">
+                        Enrollments
+                      </TableHead>
+                      <TableHead className="font-mono text-xs">
+                        Status
+                      </TableHead>
+                      <TableHead className="font-mono text-xs">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {tracks.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={8} className="text-center py-12">
-                          <p className="font-mono text-sm text-muted-foreground">No tracks found</p>
+                          <p className="font-mono text-sm text-muted-foreground">
+                            No tracks found
+                          </p>
                         </TableCell>
                       </TableRow>
                     ) : (
                       tracks.map((track) => (
                         <TableRow key={track.id}>
-                          <TableCell className="font-mono text-sm">{track.title}</TableCell>
-                          <TableCell className="font-mono text-sm">{track.type}</TableCell>
-                          <TableCell className="font-mono text-sm">{track.difficulty}</TableCell>
-                          <TableCell className="font-mono text-sm">{track.duration || 'N/A'}</TableCell>
-                          <TableCell className="font-mono text-sm">{track.moduleCount}</TableCell>
-                          <TableCell className="font-mono text-sm">{track.enrollmentCount}</TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {track.title}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {track.type}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {track.difficulty}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {track.duration || 'N/A'}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {track.moduleCount}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {track.enrollmentCount}
+                          </TableCell>
                           <TableCell className="font-mono text-sm">
                             <span
                               className={`px-2 py-1 rounded text-xs ${

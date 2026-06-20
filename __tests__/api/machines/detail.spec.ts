@@ -23,19 +23,35 @@ import { prisma } from '@/lib/prisma';
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 const mockMachine = {
-  id: 'machine-1', name: 'Easy Box', isActive: true, categoryType: 'active',
-  points: 100, difficulty: 'Easy', type: null, staticFlags: [],
+  id: 'machine-1',
+  name: 'Easy Box',
+  isActive: true,
+  categoryType: 'active',
+  points: 100,
+  difficulty: 'Easy',
+  type: null,
+  staticFlags: [],
 };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'GET', headers: {}, query: { id: 'machine-1' }, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'GET',
+    headers: {},
+    query: { id: 'machine-1' },
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {

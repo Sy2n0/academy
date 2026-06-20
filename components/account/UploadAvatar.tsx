@@ -91,7 +91,7 @@ const UploadAvatar = ({ user }: { user: Partial<User> }) => {
     });
 
     toast.success(t('successfully-updated'));
-    
+
     // 페이지 새로고침하여 모든 컴포넌트에 반영 (세션 콜백에서 DB에서 최신 정보를 가져오므로 반영됨)
     router.replace(router.asPath);
   };
@@ -133,7 +133,7 @@ const UploadAvatar = ({ user }: { user: Partial<User> }) => {
             />
             <div
               className={cn(
-                "absolute z-[3] flex h-full w-full flex-col items-center justify-center rounded-full transition-all",
+                'absolute z-[3] flex h-full w-full flex-col items-center justify-center rounded-full transition-all',
                 dragActive
                   ? 'cursor-copy border-2 border-accent bg-accent/10 opacity-100'
                   : '',
@@ -144,8 +144,10 @@ const UploadAvatar = ({ user }: { user: Partial<User> }) => {
             >
               <Upload
                 className={cn(
-                  "h-6 w-6 text-muted-foreground transition-all duration-75",
-                  dragActive ? 'scale-110 text-accent' : 'group-hover:scale-110 group-active:scale-95'
+                  'h-6 w-6 text-muted-foreground transition-all duration-75',
+                  dragActive
+                    ? 'scale-110 text-accent'
+                    : 'group-hover:scale-110 group-active:scale-95'
                 )}
               />
             </div>
@@ -178,7 +180,7 @@ const UploadAvatar = ({ user }: { user: Partial<User> }) => {
         <div className="flex justify-end">
           <Button
             type="submit"
-            disabled={(!image || image === user.image) || loading}
+            disabled={!image || image === user.image || loading}
             className="font-mono text-xs uppercase tracking-wider"
           >
             {loading ? t('loading') || 'Loading...' : t('save-changes')}

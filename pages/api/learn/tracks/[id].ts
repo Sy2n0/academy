@@ -18,12 +18,14 @@ export default async function handler(
     const { id } = req.query;
 
     if (!id || typeof id !== 'string') {
-      return res.status(400).json({ error: { message: 'Track ID is required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'Track ID is required' } });
     }
 
     // Track 정보 가져오기
     const skillPath = await prisma.skillPath.findUnique({
-      where: { 
+      where: {
         id,
         isActive: true,
       },
@@ -107,8 +109,8 @@ export default async function handler(
     });
   } catch (error: any) {
     console.error('[API /learn/tracks/[id]] Error:', error);
-    res.status(500).json({ 
-      error: { message: error.message || 'Failed to fetch track' }
+    res.status(500).json({
+      error: { message: error.message || 'Failed to fetch track' },
     });
   }
 }

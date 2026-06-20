@@ -25,7 +25,11 @@ export async function awardPoints(
 
   // 수학적 점수 계산: 사용자의 현재 총점에 따라 점수 조정
   // 랭크는 항상 올라가기만 하도록, 사용자별로 고정된 점수 체계 사용
-  const earnedPoints = calculateEarnedPoints(basePoints, type, user.totalPoints);
+  const earnedPoints = calculateEarnedPoints(
+    basePoints,
+    type,
+    user.totalPoints
+  );
 
   // 트랜잭션으로 점수 추가 및 랭크 업데이트
   const result = await prisma.$transaction(async (tx) => {
@@ -122,14 +126,17 @@ export async function getUserScoreStats(userId: string) {
         base: totalHistory._sum.basePoints || 0,
         count: totalHistory._count,
       },
-      byType: byType.reduce((acc, item) => {
-        acc[item.type] = {
-          earned: item._sum.earnedPoints || 0,
-          base: item._sum.basePoints || 0,
-          count: item._count,
-        };
-        return acc;
-      }, {} as Record<ScoreType, { earned: number; base: number; count: number }>),
+      byType: byType.reduce(
+        (acc, item) => {
+          acc[item.type] = {
+            earned: item._sum.earnedPoints || 0,
+            base: item._sum.basePoints || 0,
+            count: item._count,
+          };
+          return acc;
+        },
+        {} as Record<ScoreType, { earned: number; base: number; count: number }>
+      ),
     };
   } catch (error) {
     console.error('Error in getUserScoreStats:', error);
@@ -140,7 +147,10 @@ export async function getUserScoreStats(userId: string) {
         base: 0,
         count: 0,
       },
-      byType: {} as Record<ScoreType, { earned: number; base: number; count: number }>,
+      byType: {} as Record<
+        ScoreType,
+        { earned: number; base: number; count: number }
+      >,
     };
   }
 }
@@ -192,17 +202,20 @@ export async function getRankings(limit: number = 100) {
   });
 
   // 타입별 점수를 사용자별로 그룹화
-  const scoresByUser = typeScores.reduce((acc, item) => {
-    if (!acc[item.userId]) {
-      acc[item.userId] = {
-        MACHINE: 0,
-        TRACK: 0,
-        PLAYGROUND: 0,
-      };
-    }
-    acc[item.userId][item.type] = item._sum.earnedPoints || 0;
-    return acc;
-  }, {} as Record<string, { MACHINE: number; TRACK: number; PLAYGROUND: number }>);
+  const scoresByUser = typeScores.reduce(
+    (acc, item) => {
+      if (!acc[item.userId]) {
+        acc[item.userId] = {
+          MACHINE: 0,
+          TRACK: 0,
+          PLAYGROUND: 0,
+        };
+      }
+      acc[item.userId][item.type] = item._sum.earnedPoints || 0;
+      return acc;
+    },
+    {} as Record<string, { MACHINE: number; TRACK: number; PLAYGROUND: number }>
+  );
 
   // 사용자 정보에 타입별 점수 추가
   const result = users.map((user) => ({
@@ -317,7 +330,11 @@ export async function getRankingsByType(type: ScoreType, limit: number = 100) {
       const firstBloodCount = allScores.filter((score) => {
         if (score.metadata && typeof score.metadata === 'object') {
           const metadata = score.metadata as Record<string, any>;
-          return metadata.firstBlood === true || metadata.first_blood === true || metadata.firstBlood === 'true';
+          return (
+            metadata.firstBlood === true ||
+            metadata.first_blood === true ||
+            metadata.firstBlood === 'true'
+          );
         }
         return false;
       }).length;
@@ -325,7 +342,11 @@ export async function getRankingsByType(type: ScoreType, limit: number = 100) {
       // metadata나 description에서 machine 이름 추출
       let machineName: string | null = null;
       if (lastSolve) {
-        if (lastSolve.metadata && typeof lastSolve.metadata === 'object' && 'machineName' in lastSolve.metadata) {
+        if (
+          lastSolve.metadata &&
+          typeof lastSolve.metadata === 'object' &&
+          'machineName' in lastSolve.metadata
+        ) {
           machineName = lastSolve.metadata.machineName as string;
         } else if (lastSolve.description) {
           machineName = lastSolve.description;

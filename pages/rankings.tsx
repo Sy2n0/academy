@@ -48,7 +48,10 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const Rankings: NextPageWithLayout = () => {
   const { t } = useTranslation('common');
   const { data: session } = useSession();
-  const { data, error, isLoading } = useSWR<RankingsResponse>('/api/rankings', fetcher);
+  const { data, error, isLoading } = useSWR<RankingsResponse>(
+    '/api/rankings',
+    fetcher
+  );
 
   const rankings = data?.data?.rankings || [];
   const userRanking = data?.data?.userRanking;
@@ -65,9 +68,11 @@ const Rankings: NextPageWithLayout = () => {
 
   // 랭크에 따른 배지 색상
   const getRankBadgeColor = (rank: number) => {
-    if (rank === 1) return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30';
+    if (rank === 1)
+      return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30';
     if (rank === 2) return 'bg-gray-400/20 text-gray-400 border-gray-400/30';
-    if (rank === 3) return 'bg-orange-500/20 text-orange-500 border-orange-500/30';
+    if (rank === 3)
+      return 'bg-orange-500/20 text-orange-500 border-orange-500/30';
     return 'bg-muted/20 text-muted-foreground border-border/30';
   };
 
@@ -95,11 +100,15 @@ const Rankings: NextPageWithLayout = () => {
                   <Breadcrumb>
                     <BreadcrumbList>
                       <BreadcrumbItem className="hidden md:block">
-                        <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                        <BreadcrumbLink href="/dashboard">
+                          Dashboard
+                        </BreadcrumbLink>
                       </BreadcrumbItem>
                       <BreadcrumbSeparator className="hidden md:block" />
                       <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs">TOTAL RANKINGS</BreadcrumbPage>
+                        <BreadcrumbPage className="font-mono text-xs">
+                          TOTAL RANKINGS
+                        </BreadcrumbPage>
                       </BreadcrumbItem>
                     </BreadcrumbList>
                   </Breadcrumb>
@@ -115,158 +124,182 @@ const Rankings: NextPageWithLayout = () => {
                       TOTAL RANKINGS
                     </h1>
                     <p className="font-mono text-sm text-muted-foreground max-w-2xl">
-                      종합 랭킹: MACHINES, LEARN, PLAYGROUND에서 획득한 모든 점수를 합산하여 순위를 매깁니다.
+                      종합 랭킹: MACHINES, LEARN, PLAYGROUND에서 획득한 모든
+                      점수를 합산하여 순위를 매깁니다.
                     </p>
                   </div>
 
-              {/* User Ranking Info */}
-              {session?.user && userRanking && (
-                <div className="mb-8 p-4 border border-border/30 bg-background/50 backdrop-blur-sm">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={session.user.image || undefined} alt={session.user.name || 'User'} />
-                      <AvatarFallback className="bg-muted text-foreground font-mono">
-                        {getInitials(session.user.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-mono text-xs text-muted-foreground mb-1">Your Ranking</p>
-                      <p className="font-mono text-lg font-semibold text-foreground">
-                        #{userRanking} Place
+                  {/* User Ranking Info */}
+                  {session?.user && userRanking && (
+                    <div className="mb-8 p-4 border border-border/30 bg-background/50 backdrop-blur-sm">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage
+                            src={session.user.image || undefined}
+                            alt={session.user.name || 'User'}
+                          />
+                          <AvatarFallback className="bg-muted text-foreground font-mono">
+                            {getInitials(session.user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-mono text-xs text-muted-foreground mb-1">
+                            Your Ranking
+                          </p>
+                          <p className="font-mono text-lg font-semibold text-foreground">
+                            #{userRanking} Place
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Rankings Table */}
+                  {isLoading ? (
+                    <div className="text-center py-20">
+                      <p className="font-mono text-sm text-muted-foreground">
+                        Loading rankings...
                       </p>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Rankings Table */}
-              {isLoading ? (
-                <div className="text-center py-20">
-                  <p className="font-mono text-sm text-muted-foreground">Loading rankings...</p>
-                </div>
-              ) : error ? (
-                <div className="text-center py-20">
-                  <p className="font-mono text-sm text-destructive">랭킹을 불러오지 못했습니다</p>
-                </div>
-              ) : rankings.length === 0 ? (
-                <div className="text-center py-20">
-                  <p className="font-mono text-sm text-muted-foreground">No rankings available</p>
-                </div>
-              ) : (
-                <div className="border border-border/30 bg-background/50 backdrop-blur-sm">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-border/30">
-                          <th className="px-6 py-4 text-left font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                            Rank
-                          </th>
-                          <th className="px-6 py-4 text-left font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                            User
-                          </th>
-                          <th className="px-6 py-4 text-right font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                            Points Breakdown
-                          </th>
-                          <th className="px-6 py-4 text-right font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                            Rank Level
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rankings.map((user, index) => {
-                          const rank = index + 1;
-                          const isCurrentUser = session?.user?.id === user.id;
-                          
-                          return (
-                            <tr
-                              key={user.id}
-                              className={`border-b border-border/10 transition-colors ${
-                                isCurrentUser
-                                  ? 'bg-accent/5 hover:bg-accent/10'
-                                  : 'hover:bg-background/80'
-                              }`}
-                            >
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                  <span
-                                    className={`inline-flex items-center justify-center w-8 h-8 rounded border font-mono text-xs font-semibold ${getRankBadgeColor(
-                                      rank
-                                    )}`}
-                                  >
-                                    {rank}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-4">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarImage src={user.image || undefined} alt={user.name} />
-                                    <AvatarFallback className="bg-muted text-foreground font-mono text-xs">
-                                      {getInitials(user.name)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <p className="font-mono text-sm font-medium text-foreground">
-                                      {user.name}
-                                      {isCurrentUser && (
-                                        <span className="ml-2 text-xs text-accent">(You)</span>
-                                      )}
-                                    </p>
-                                    <p className="font-mono text-xs text-muted-foreground mt-0.5">
-                                      {user.email}
-                                    </p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center justify-end gap-6">
-                                  <div className="text-right">
-                                    <p className="font-mono text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
-                                      Machine
-                                    </p>
-                                    <p className="font-mono text-sm font-medium text-foreground">
-                                      {formatPoints((user as any).machinePoints || 0)}
-                                    </p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="font-mono text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
-                                      Track
-                                    </p>
-                                    <p className="font-mono text-sm font-medium text-foreground">
-                                      {formatPoints((user as any).trackPoints || 0)}
-                                    </p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="font-mono text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
-                                      Playground
-                                    </p>
-                                    <p className="font-mono text-sm font-medium text-foreground">
-                                      {formatPoints((user as any).playgroundPoints || 0)}
-                                    </p>
-                                  </div>
-                                  <div className="text-right border-l border-border/30 pl-6">
-                                    <p className="font-mono text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
-                                      Total
-                                    </p>
-                                    <p className="font-mono text-base font-semibold text-foreground">
-                                      {formatPoints(user.totalPoints)}
-                                    </p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <span className="inline-flex items-center px-3 py-1 rounded border border-border/30 bg-muted/20 font-mono text-xs text-muted-foreground">
-                                  Rank {user.currentRank}
-                                </span>
-                              </td>
+                  ) : error ? (
+                    <div className="text-center py-20">
+                      <p className="font-mono text-sm text-destructive">
+                        랭킹을 불러오지 못했습니다
+                      </p>
+                    </div>
+                  ) : rankings.length === 0 ? (
+                    <div className="text-center py-20">
+                      <p className="font-mono text-sm text-muted-foreground">
+                        No rankings available
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="border border-border/30 bg-background/50 backdrop-blur-sm">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-border/30">
+                              <th className="px-6 py-4 text-left font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                                Rank
+                              </th>
+                              <th className="px-6 py-4 text-left font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                                User
+                              </th>
+                              <th className="px-6 py-4 text-right font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                                Points Breakdown
+                              </th>
+                              <th className="px-6 py-4 text-right font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                                Rank Level
+                              </th>
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+                          </thead>
+                          <tbody>
+                            {rankings.map((user, index) => {
+                              const rank = index + 1;
+                              const isCurrentUser =
+                                session?.user?.id === user.id;
+
+                              return (
+                                <tr
+                                  key={user.id}
+                                  className={`border-b border-border/10 transition-colors ${
+                                    isCurrentUser
+                                      ? 'bg-accent/5 hover:bg-accent/10'
+                                      : 'hover:bg-background/80'
+                                  }`}
+                                >
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                      <span
+                                        className={`inline-flex items-center justify-center w-8 h-8 rounded border font-mono text-xs font-semibold ${getRankBadgeColor(
+                                          rank
+                                        )}`}
+                                      >
+                                        {rank}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-4">
+                                      <Avatar className="h-10 w-10">
+                                        <AvatarImage
+                                          src={user.image || undefined}
+                                          alt={user.name}
+                                        />
+                                        <AvatarFallback className="bg-muted text-foreground font-mono text-xs">
+                                          {getInitials(user.name)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <p className="font-mono text-sm font-medium text-foreground">
+                                          {user.name}
+                                          {isCurrentUser && (
+                                            <span className="ml-2 text-xs text-accent">
+                                              (You)
+                                            </span>
+                                          )}
+                                        </p>
+                                        <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                                          {user.email}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center justify-end gap-6">
+                                      <div className="text-right">
+                                        <p className="font-mono text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
+                                          Machine
+                                        </p>
+                                        <p className="font-mono text-sm font-medium text-foreground">
+                                          {formatPoints(
+                                            (user as any).machinePoints || 0
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="font-mono text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
+                                          Track
+                                        </p>
+                                        <p className="font-mono text-sm font-medium text-foreground">
+                                          {formatPoints(
+                                            (user as any).trackPoints || 0
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="font-mono text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
+                                          Playground
+                                        </p>
+                                        <p className="font-mono text-sm font-medium text-foreground">
+                                          {formatPoints(
+                                            (user as any).playgroundPoints || 0
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="text-right border-l border-border/30 pl-6">
+                                        <p className="font-mono text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
+                                          Total
+                                        </p>
+                                        <p className="font-mono text-base font-semibold text-foreground">
+                                          {formatPoints(user.totalPoints)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                    <span className="inline-flex items-center px-3 py-1 rounded border border-border/30 bg-muted/20 font-mono text-xs text-muted-foreground">
+                                      Rank {user.currentRank}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Footer Info */}
                   <div className="mt-12 text-center">

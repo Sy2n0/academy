@@ -36,7 +36,15 @@ import {
 import { Switch } from '@/components/ui/switch';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/router';
-import { Server, Plus, Edit, Trash2, Search, Power, PowerOff } from 'lucide-react';
+import {
+  Server,
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  Power,
+  PowerOff,
+} from 'lucide-react';
 import useSWR from 'swr';
 import {
   Dialog,
@@ -122,18 +130,22 @@ const ManageActiveMachines: NextPageWithLayout = () => {
   );
 
   const machines = data?.data?.machines || [];
-  const filteredMachines = machines.filter((machine) =>
-    machine.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    machine.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredMachines = machines.filter(
+    (machine) =>
+      machine.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      machine.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleDelete = async () => {
     if (!selectedMachine) return;
 
     try {
-      const response = await fetch(`/api/admin/machines/active/${selectedMachine.id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/admin/machines/active/${selectedMachine.id}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (!response.ok) {
         throw new Error('머신 삭제에 실패했습니다');
@@ -148,19 +160,27 @@ const ManageActiveMachines: NextPageWithLayout = () => {
     }
   };
 
-  const handleToggleActive = async (machineId: string, currentStatus: boolean) => {
+  const handleToggleActive = async (
+    machineId: string,
+    currentStatus: boolean
+  ) => {
     try {
-      const response = await fetch(`/api/admin/machines/active/${machineId}/toggle`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !currentStatus }),
-      });
+      const response = await fetch(
+        `/api/admin/machines/active/${machineId}/toggle`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isActive: !currentStatus }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('머신 상태 변경에 실패했습니다');
       }
 
-      toast.success(`Machine ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      toast.success(
+        `Machine ${!currentStatus ? 'activated' : 'deactivated'} successfully`
+      );
       mutate();
     } catch (error: any) {
       toast.error(error?.message || '머신 상태 변경에 실패했습니다');
@@ -187,7 +207,10 @@ const ManageActiveMachines: NextPageWithLayout = () => {
                   <Breadcrumb>
                     <BreadcrumbList>
                       <BreadcrumbItem>
-                        <BreadcrumbLink href="/admin/dashboard" className="font-mono text-xs uppercase tracking-wider">
+                        <BreadcrumbLink
+                          href="/admin/dashboard"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
                           Admin
                         </BreadcrumbLink>
                       </BreadcrumbItem>
@@ -210,7 +233,10 @@ const ManageActiveMachines: NextPageWithLayout = () => {
                       <div>
                         <div className="flex items-center gap-3 mb-2">
                           <Server className="h-6 w-6 text-accent" />
-                          <h1 className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground" style={{ fontStyle: 'italic' }}>
+                          <h1
+                            className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground"
+                            style={{ fontStyle: 'italic' }}
+                          >
                             MANAGE ACTIVE MACHINES
                           </h1>
                         </div>
@@ -219,7 +245,9 @@ const ManageActiveMachines: NextPageWithLayout = () => {
                         </p>
                       </div>
                       <Button
-                        onClick={() => router.push('/admin/machines/active/create')}
+                        onClick={() =>
+                          router.push('/admin/machines/active/create')
+                        }
                         className="font-mono text-xs uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground"
                       >
                         <Plus className="h-4 w-4 mr-2" />
@@ -242,16 +270,22 @@ const ManageActiveMachines: NextPageWithLayout = () => {
                     {/* Machines List */}
                     {isLoading ? (
                       <div className="text-center py-12">
-                        <p className="font-mono text-sm text-muted-foreground">Loading machines...</p>
+                        <p className="font-mono text-sm text-muted-foreground">
+                          Loading machines...
+                        </p>
                       </div>
                     ) : error ? (
                       <div className="text-center py-12">
-                        <p className="font-mono text-sm text-destructive">머신 목록을 불러오지 못했습니다</p>
+                        <p className="font-mono text-sm text-destructive">
+                          머신 목록을 불러오지 못했습니다
+                        </p>
                       </div>
                     ) : filteredMachines.length === 0 ? (
                       <div className="text-center py-12 border border-border/30 rounded-lg backdrop-blur-sm bg-background/40">
                         <p className="font-mono text-sm text-muted-foreground">
-                          {searchQuery ? 'No machines found matching your search' : 'No active machines yet'}
+                          {searchQuery
+                            ? 'No machines found matching your search'
+                            : 'No active machines yet'}
                         </p>
                       </div>
                     ) : (
@@ -259,7 +293,11 @@ const ManageActiveMachines: NextPageWithLayout = () => {
                         {filteredMachines.map((machine) => (
                           <div
                             key={machine.id}
-                            onClick={() => router.push(`/admin/machines/active/${machine.id}`)}
+                            onClick={() =>
+                              router.push(
+                                `/admin/machines/active/${machine.id}`
+                              )
+                            }
                             className="group relative p-6 border border-border/30 rounded-xl backdrop-blur-sm bg-background/40 hover:border-accent/50 hover:bg-background/60 transition-all duration-200 cursor-pointer"
                           >
                             <div className="flex items-start justify-between mb-4">
@@ -285,21 +323,34 @@ const ManageActiveMachines: NextPageWithLayout = () => {
 
                             <div className="space-y-2 mb-4">
                               <div className="flex items-center justify-between">
-                                <span className="font-mono text-xs text-muted-foreground">Score</span>
-                                <span className="font-mono text-sm font-semibold text-accent">{machine.score}</span>
+                                <span className="font-mono text-xs text-muted-foreground">
+                                  Score
+                                </span>
+                                <span className="font-mono text-sm font-semibold text-accent">
+                                  {machine.score}
+                                </span>
                               </div>
                               {machine.containerImage && (
                                 <div className="flex items-center justify-between">
-                                  <span className="font-mono text-xs text-muted-foreground">Image</span>
-                                  <span className="font-mono text-xs text-foreground truncate max-w-[200px]" title={machine.containerImage}>
+                                  <span className="font-mono text-xs text-muted-foreground">
+                                    Image
+                                  </span>
+                                  <span
+                                    className="font-mono text-xs text-foreground truncate max-w-[200px]"
+                                    title={machine.containerImage}
+                                  >
                                     {machine.containerImage}
                                   </span>
                                 </div>
                               )}
                               <div className="flex items-center justify-between">
-                                <span className="font-mono text-xs text-muted-foreground">Max Attempts</span>
+                                <span className="font-mono text-xs text-muted-foreground">
+                                  Max Attempts
+                                </span>
                                 <span className="font-mono text-xs text-foreground">
-                                  {machine.maxAttempts === null ? 'Unlimited' : machine.maxAttempts}
+                                  {machine.maxAttempts === null
+                                    ? 'Unlimited'
+                                    : machine.maxAttempts}
                                 </span>
                               </div>
                             </div>
@@ -318,7 +369,12 @@ const ManageActiveMachines: NextPageWithLayout = () => {
                                 Edit
                               </Button>
                               <Button
-                                onClick={() => handleToggleActive(machine.id, machine.isActive)}
+                                onClick={() =>
+                                  handleToggleActive(
+                                    machine.id,
+                                    machine.isActive
+                                  )
+                                }
                                 variant="outline"
                                 size="sm"
                                 className={`font-mono text-xs ${
@@ -326,7 +382,9 @@ const ManageActiveMachines: NextPageWithLayout = () => {
                                     ? 'text-muted-foreground hover:text-foreground'
                                     : 'text-accent hover:text-accent'
                                 }`}
-                                title={machine.isActive ? 'Deactivate' : 'Activate'}
+                                title={
+                                  machine.isActive ? 'Deactivate' : 'Activate'
+                                }
                               >
                                 {machine.isActive ? (
                                   <PowerOff className="h-3 w-3" />
@@ -366,7 +424,8 @@ const ManageActiveMachines: NextPageWithLayout = () => {
               Delete Machine
             </DialogTitle>
             <DialogDescription className="font-mono text-xs text-muted-foreground">
-              Are you sure you want to delete "{selectedMachine?.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{selectedMachine?.title}
+              &quot;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center gap-3 pt-4">

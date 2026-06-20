@@ -106,7 +106,9 @@ const AdminModulesPage: NextPageWithLayout = () => {
           const error = await response.json();
           throw new Error(error.error?.message || '모듈 생성에 실패했습니다');
         } else {
-          throw new Error(`모듈 생성에 실패했습니다: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `모듈 생성에 실패했습니다: ${response.status} ${response.statusText}`
+          );
         }
       }
 
@@ -149,14 +151,17 @@ const AdminModulesPage: NextPageWithLayout = () => {
     }
 
     try {
-      const response = await fetch(`/api/admin/learn/modules/${editingModule.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(newModule),
-      });
+      const response = await fetch(
+        `/api/admin/learn/modules/${editingModule.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(newModule),
+        }
+      );
 
       if (!response.ok) {
         const contentType = response.headers.get('content-type');
@@ -164,7 +169,9 @@ const AdminModulesPage: NextPageWithLayout = () => {
           const error = await response.json();
           throw new Error(error.error?.message || '모듈 수정에 실패했습니다');
         } else {
-          throw new Error(`모듈 수정에 실패했습니다: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `모듈 수정에 실패했습니다: ${response.status} ${response.statusText}`
+          );
         }
       }
 
@@ -203,7 +210,9 @@ const AdminModulesPage: NextPageWithLayout = () => {
           const error = await response.json();
           throw new Error(error.error?.message || '모듈 삭제에 실패했습니다');
         } else {
-          throw new Error(`모듈 삭제에 실패했습니다: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `모듈 삭제에 실패했습니다: ${response.status} ${response.statusText}`
+          );
         }
       }
 
@@ -232,7 +241,10 @@ const AdminModulesPage: NextPageWithLayout = () => {
                   <Breadcrumb>
                     <BreadcrumbList>
                       <BreadcrumbItem>
-                        <BreadcrumbLink href="/admin/learn" className="font-mono text-xs uppercase tracking-wider">
+                        <BreadcrumbLink
+                          href="/admin/learn"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
                           Learn Management
                         </BreadcrumbLink>
                       </BreadcrumbItem>
@@ -306,78 +318,80 @@ const AdminModulesPage: NextPageWithLayout = () => {
                             </tr>
                           ) : (
                             modules.map((module) => (
-                            <tr
-                              key={module.id}
-                              className="border-b border-border/20 hover:bg-background/60 transition-colors"
-                            >
-                              <td className="py-3 px-4">
-                                <div>
-                                  <p className="font-mono text-sm text-foreground">
-                                    {module.title}
-                                  </p>
-                                  <p className="font-mono text-xs text-muted-foreground">
-                                    {module.description}
-                                  </p>
-                                </div>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="font-mono text-xs text-foreground">
-                                  {module.category}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="font-mono text-xs text-foreground">
-                                  {module.difficulty}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="font-mono text-xs text-foreground">
-                                  {module.tier}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="font-mono text-xs text-foreground">
-                                  {module.duration}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <span className="font-mono text-xs text-foreground">
-                                  {module.type}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="font-mono text-xs"
-                                    onClick={() => {
-                                      window.location.href = `/admin/learn/modules/${module.id}/content`;
-                                    }}
-                                  >
-                                    Edit Content
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="font-mono text-xs"
-                                    onClick={() => {
-                                      window.location.href = `/admin/learn/modules/${module.id}/edit`;
-                                    }}
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="font-mono text-xs text-destructive hover:text-destructive"
-                                    onClick={() => handleDeleteModule(module.id)}
-                                  >
-                                    Delete
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
+                              <tr
+                                key={module.id}
+                                className="border-b border-border/20 hover:bg-background/60 transition-colors"
+                              >
+                                <td className="py-3 px-4">
+                                  <div>
+                                    <p className="font-mono text-sm text-foreground">
+                                      {module.title}
+                                    </p>
+                                    <p className="font-mono text-xs text-muted-foreground">
+                                      {module.description}
+                                    </p>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className="font-mono text-xs text-foreground">
+                                    {module.category}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className="font-mono text-xs text-foreground">
+                                    {module.difficulty}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className="font-mono text-xs text-foreground">
+                                    {module.tier}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className="font-mono text-xs text-foreground">
+                                    {module.duration}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className="font-mono text-xs text-foreground">
+                                    {module.type}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="font-mono text-xs"
+                                      onClick={() => {
+                                        window.location.href = `/admin/learn/modules/${module.id}/content`;
+                                      }}
+                                    >
+                                      Edit Content
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="font-mono text-xs"
+                                      onClick={() => {
+                                        window.location.href = `/admin/learn/modules/${module.id}/edit`;
+                                      }}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="font-mono text-xs text-destructive hover:text-destructive"
+                                      onClick={() =>
+                                        handleDeleteModule(module.id)
+                                      }
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
                             ))
                           )}
                         </tbody>
@@ -392,8 +406,8 @@ const AdminModulesPage: NextPageWithLayout = () => {
       </div>
 
       {/* Create/Edit Module Modal */}
-      <Dialog 
-        open={isCreateModalOpen} 
+      <Dialog
+        open={isCreateModalOpen}
         onOpenChange={(open) => {
           setIsCreateModalOpen(open);
           if (!open) {
@@ -416,7 +430,7 @@ const AdminModulesPage: NextPageWithLayout = () => {
               {editingModule ? 'Edit Module' : 'Create New Module'}
             </DialogTitle>
             <DialogDescription className="font-mono text-xs text-muted-foreground">
-              {editingModule 
+              {editingModule
                 ? 'Update the module details'
                 : 'Fill in the details to create a new learning module'}
             </DialogDescription>
@@ -495,7 +509,10 @@ const AdminModulesPage: NextPageWithLayout = () => {
                   <DropdownMenuContent>
                     <DropdownMenuItem
                       onClick={() =>
-                        setNewModule({ ...newModule, difficulty: 'Fundamental' })
+                        setNewModule({
+                          ...newModule,
+                          difficulty: 'Fundamental',
+                        })
                       }
                     >
                       Fundamental
@@ -622,7 +639,9 @@ const AdminModulesPage: NextPageWithLayout = () => {
                 Cancel
               </Button>
               <Button
-                onClick={editingModule ? handleUpdateModule : handleCreateModule}
+                onClick={
+                  editingModule ? handleUpdateModule : handleCreateModule
+                }
                 className="font-mono text-xs uppercase tracking-wider"
               >
                 {editingModule ? 'Update Module' : 'Create Module'}

@@ -106,7 +106,8 @@ const DETAIL_CONTENT: Record<
       '패키지: apt (Ubuntu 공식 저장소)',
       '추가 도구는 필요 시 직접 설치',
     ],
-    notes: '버전별 보안 업데이트 및 지원 기간이 다릅니다. 22.04 LTS를 기본 권장합니다.',
+    notes:
+      '버전별 보안 업데이트 및 지원 기간이 다릅니다. 22.04 LTS를 기본 권장합니다.',
   },
   Parrot: {
     description:
@@ -124,7 +125,8 @@ const DETAIL_CONTENT: Record<
       'AnonSurf, OnionShare',
       '포렌식 도구 (가상화·암호화 지원)',
     ],
-    notes: 'Kali와 유사한 도구 구성이면서 더 가벼운 환경이 필요할 때 적합합니다.',
+    notes:
+      'Kali와 유사한 도구 구성이면서 더 가벼운 환경이 필요할 때 적합합니다.',
   },
 };
 
@@ -132,15 +134,25 @@ const AttackBoxPage: NextPageWithLayout = () => {
   const [detail, setDetail] = useState<DetailBox | null>(null);
   const [detailUbuntuVersion, setDetailUbuntuVersion] = useState('22.04');
   const [runningDetail, setRunningDetail] = useState<string | null>(null);
-  const [connectionInfo, setConnectionInfo] = useState<ConnectionInfo | null>(null);
+  const [connectionInfo, setConnectionInfo] = useState<ConnectionInfo | null>(
+    null
+  );
   const [stopping, setStopping] = useState(false);
   const [viewMode, setViewMode] = useState<'env' | 'running'>('env');
-  const [expandedRunningId, setExpandedRunningId] = useState<string | null>(null);
-
-  const { data: statusData, mutate: mutateStatus } = useSWR<{ data: { boxName: string; host: string; port: number; port8080: number; user: string; containerName: string } | null }>(
-    '/api/attackbox/status',
-    fetcher
+  const [expandedRunningId, setExpandedRunningId] = useState<string | null>(
+    null
   );
+
+  const { data: statusData, mutate: mutateStatus } = useSWR<{
+    data: {
+      boxName: string;
+      host: string;
+      port: number;
+      port8080: number;
+      user: string;
+      containerName: string;
+    } | null;
+  }>('/api/attackbox/status', fetcher);
 
   useEffect(() => {
     const d = statusData?.data;
@@ -192,7 +204,13 @@ const AttackBoxPage: NextPageWithLayout = () => {
         throw new Error(typeof detail === 'string' ? detail : 'Launch failed');
       }
       const actuallyLaunched = data?.launched === true;
-      if (actuallyLaunched && data?.host != null && data?.port != null && data?.username != null && data?.containerName) {
+      if (
+        actuallyLaunched &&
+        data?.host != null &&
+        data?.port != null &&
+        data?.username != null &&
+        data?.containerName
+      ) {
         setConnectionInfo({
           boxName: detail.name,
           host: data.host,
@@ -226,7 +244,9 @@ const AttackBoxPage: NextPageWithLayout = () => {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error?.message ?? 'Stop failed');
-      setConnectionInfo((prev) => (prev?.containerName === containerName ? null : prev));
+      setConnectionInfo((prev) =>
+        prev?.containerName === containerName ? null : prev
+      );
       setExpandedRunningId((prev) => (prev === containerName ? null : prev));
       mutateStatus();
       toast.success('컨테이너가 중지되었습니다.');
@@ -240,14 +260,13 @@ const AttackBoxPage: NextPageWithLayout = () => {
   const isCurrentBoxRunning = detail && connectionInfo?.boxName === detail.name;
   const isRunDisabled = detail?.name !== 'Kali';
 
-  const detailLabel =
-    detail
-      ? detail.name === 'Ubuntu'
-        ? `${detail.name} ${detailUbuntuVersion}`
-        : detail.version
-          ? `${detail.name} ${detail.version}`
-          : detail.name
-      : null;
+  const detailLabel = detail
+    ? detail.name === 'Ubuntu'
+      ? `${detail.name} ${detailUbuntuVersion}`
+      : detail.version
+        ? `${detail.name} ${detail.version}`
+        : detail.name
+    : null;
   const detailContent = detail ? DETAIL_CONTENT[detail.name] : null;
 
   return (
@@ -266,7 +285,10 @@ const AttackBoxPage: NextPageWithLayout = () => {
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href="/dashboard" className="font-mono text-xs uppercase tracking-wider">
+                    <BreadcrumbLink
+                      href="/dashboard"
+                      className="font-mono text-xs uppercase tracking-wider"
+                    >
                       Dashboard
                     </BreadcrumbLink>
                   </BreadcrumbItem>
@@ -286,9 +308,12 @@ const AttackBoxPage: NextPageWithLayout = () => {
               <section className="rounded-xl border border-border/40 bg-card p-5 md:p-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <h1 className="font-mono text-2xl md:text-3xl text-foreground uppercase">Attack Box</h1>
+                    <h1 className="font-mono text-2xl md:text-3xl text-foreground uppercase">
+                      Attack Box
+                    </h1>
                     <p className="font-mono text-xs text-muted-foreground mt-2">
-                      실습용 환경을 실행하고 연결 정보를 확인한 뒤, 필요하면 즉시 종료할 수 있습니다.
+                      실습용 환경을 실행하고 연결 정보를 확인한 뒤, 필요하면
+                      즉시 종료할 수 있습니다.
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -315,20 +340,36 @@ const AttackBoxPage: NextPageWithLayout = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
                   <div className="rounded-md border border-border/50 bg-background/70 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">Active</p>
-                    <p className="font-mono text-lg text-foreground mt-1">{connectionInfo ? '1' : '0'}</p>
+                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                      Active
+                    </p>
+                    <p className="font-mono text-lg text-foreground mt-1">
+                      {connectionInfo ? '1' : '0'}
+                    </p>
                   </div>
                   <div className="rounded-md border border-border/50 bg-background/70 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">Box</p>
-                    <p className="font-mono text-sm text-foreground mt-1 truncate">{connectionInfo?.boxName || '-'}</p>
+                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                      Box
+                    </p>
+                    <p className="font-mono text-sm text-foreground mt-1 truncate">
+                      {connectionInfo?.boxName || '-'}
+                    </p>
                   </div>
                   <div className="rounded-md border border-border/50 bg-background/70 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">SSH</p>
-                    <p className="font-mono text-lg text-foreground mt-1">{connectionInfo ? String(connectionInfo.port) : '-'}</p>
+                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                      SSH
+                    </p>
+                    <p className="font-mono text-lg text-foreground mt-1">
+                      {connectionInfo ? String(connectionInfo.port) : '-'}
+                    </p>
                   </div>
                   <div className="rounded-md border border-border/50 bg-background/70 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">Web</p>
-                    <p className="font-mono text-lg text-foreground mt-1">{connectionInfo ? String(connectionInfo.port8080) : '-'}</p>
+                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
+                      Web
+                    </p>
+                    <p className="font-mono text-lg text-foreground mt-1">
+                      {connectionInfo ? String(connectionInfo.port8080) : '-'}
+                    </p>
                   </div>
                 </div>
               </section>
@@ -336,7 +377,9 @@ const AttackBoxPage: NextPageWithLayout = () => {
               <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,22rem)_1fr] gap-5">
                 <Card className="border-border/40 bg-card/70 overflow-hidden">
                   <div className="px-4 py-3 border-b border-border/30">
-                    <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Environment List</p>
+                    <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                      Environment List
+                    </p>
                   </div>
                   <div className="divide-y divide-border/30">
                     {[
@@ -356,14 +399,25 @@ const AttackBoxPage: NextPageWithLayout = () => {
                         desc: 'Lightweight pentest and forensics',
                       },
                     ].map((env) => (
-                      <div key={env.name} className="px-4 py-3 flex items-center justify-between gap-3">
+                      <div
+                        key={env.name}
+                        className="px-4 py-3 flex items-center justify-between gap-3"
+                      >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-9 h-9 rounded-md border border-border/40 flex items-center justify-center shrink-0 overflow-hidden bg-muted/30">
-                            <img src={BOX_ICON[env.name]} alt={env.name} className="w-full h-full object-contain" />
+                            <img
+                              src={BOX_ICON[env.name]}
+                              alt={env.name}
+                              className="w-full h-full object-contain"
+                            />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-mono text-sm text-foreground">{env.title}</p>
-                            <p className="font-mono text-[11px] text-muted-foreground truncate">{env.desc}</p>
+                            <p className="font-mono text-sm text-foreground">
+                              {env.title}
+                            </p>
+                            <p className="font-mono text-[11px] text-muted-foreground truncate">
+                              {env.desc}
+                            </p>
                           </div>
                         </div>
                         <Button
@@ -380,268 +434,351 @@ const AttackBoxPage: NextPageWithLayout = () => {
                 </Card>
 
                 <div className="min-w-0">
-                  <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-2">Operation Panel</p>
-                {viewMode === 'running' ? (
-                  <Card className="border-border/40 bg-card/70 overflow-hidden">
-                    <div className="p-5 border-b border-border/30">
-                      <h2 className="font-mono font-semibold text-foreground">
-                        Running AttackBox
-                      </h2>
-                      <p className="font-mono text-xs text-muted-foreground mt-0.5">
-                        Inspect active container details and stop when needed.
-                      </p>
-                    </div>
-                    <div className="divide-y divide-border/30">
-                      {connectionInfo ? (
-                        <div className="p-4">
-                          <div className="flex items-center justify-between gap-4 flex-wrap">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden border border-border/40 bg-muted/30">
-                                <img
-                                  src={BOX_ICON[connectionInfo.boxName as keyof typeof BOX_ICON] ?? BOX_ICON.Kali}
-                                  alt={connectionInfo.boxName}
-                                  className="w-full h-full object-contain"
-                                />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-mono font-medium text-foreground">{connectionInfo.boxName}</p>
-                                <p className="font-mono text-xs text-muted-foreground truncate">
-                                  {connectionInfo.containerName}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="font-mono"
-                                onClick={() => setExpandedRunningId((prev) => (prev === connectionInfo.containerName ? null : connectionInfo.containerName))}
-                              >
-                                {expandedRunningId === connectionInfo.containerName ? (
-                                  <ChevronDown className="h-4 w-4 mr-1" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4 mr-1" />
-                                )}
-                                세부 정보
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="font-mono"
-                                disabled={stopping}
-                                onClick={() => handleStop(connectionInfo.containerName)}
-                              >
-                                <Square className="h-4 w-4 mr-2" />
-                                {stopping ? '중지 중…' : '종료'}
-                              </Button>
-                            </div>
-                          </div>
-                          {expandedRunningId === connectionInfo.containerName && (
-                            <div className="mt-4 rounded-lg border border-border/40 bg-muted/20 p-4 font-mono text-xs space-y-2">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-muted-foreground">Host</span>
-                                <span className="text-foreground">{ATTACKBOX_DISPLAY_HOST}</span>
-                              </div>
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-muted-foreground">Port (SSH)</span>
-                                <span className="text-foreground">{String(connectionInfo.port)}</span>
-                              </div>
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-muted-foreground">Port (8080)</span>
-                                <span className="text-foreground">{String(connectionInfo.port8080)}</span>
-                              </div>
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-muted-foreground">User</span>
-                                <span className="text-foreground">{connectionInfo.user}</span>
-                              </div>
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-muted-foreground">Password</span>
-                                <span className="text-foreground">
-                                  {connectionInfo.boxName === 'Kali' ? 'highest' : '—'}
-                                </span>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="text-muted-foreground">SSH 접속</span>
-                                <code className="text-foreground break-all bg-muted/40 px-2 py-1 rounded">
-                                  ssh -p {connectionInfo.port} {connectionInfo.user}@{ATTACKBOX_DISPLAY_HOST}
-                                </code>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="p-8 text-center">
-                          <p className="font-mono text-sm text-muted-foreground">
-                            No running AttackBox found.
-                          </p>
-                          <p className="font-mono text-xs text-muted-foreground mt-1">
-                            Select an environment and launch a box first.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                ) : detail && detailContent ? (
-                  <Card className="border-border/40 bg-card/70 overflow-hidden">
-                    <div className="p-5 border-b border-border/30 flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 overflow-hidden border border-border/40 bg-muted/30">
-                          <img
-                            src={detail ? BOX_ICON[detail.name] : ''}
-                            alt={detailLabel ?? ''}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <h2 className="font-mono font-semibold text-foreground">
-                            {detailLabel}
-                          </h2>
-                          <p className="font-mono text-xs text-muted-foreground mt-0.5">
-                            {detail.name === 'Ubuntu'
-                              ? UBUNTU_VERSIONS.find((v) => v.value === detailUbuntuVersion)?.label ?? detailUbuntuVersion
-                              : detailContent.specs[0]}
-                          </p>
-                        </div>
-                      </div>
-                      {isCurrentBoxRunning ? (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="font-mono shrink-0"
-                          disabled={stopping}
-                          onClick={() => handleStop(connectionInfo!.containerName)}
-                        >
-                          <Square className="h-4 w-4 mr-2" />
-                          {stopping ? '중지 중…' : 'Stop'}
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          className="font-mono shrink-0"
-                          variant={isRunDisabled ? 'outline' : 'default'}
-                          disabled={!!runningDetail || isRunDisabled}
-                          onClick={handleRunFromDetail}
-                        >
-                          <Play className="h-4 w-4 mr-2" />
-                          {isRunDisabled ? 'Run Disabled' : runningDetail ? '실행 중…' : 'Run'}
-                        </Button>
-                      )}
-                    </div>
-                    <div className="p-5 space-y-5">
-                      {detail.name === 'Ubuntu' && (
-                        <div>
-                          <h3 className="font-mono text-xs font-medium text-foreground uppercase tracking-wider mb-2">
-                            버전
-                          </h3>
-                          <Select value={detailUbuntuVersion} onValueChange={setDetailUbuntuVersion}>
-                            <SelectTrigger className="font-mono text-sm w-full max-w-[220px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {UBUNTU_VERSIONS.map((v) => (
-                                <SelectItem key={v.value} value={v.value} className="font-mono">
-                                  {v.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="font-mono text-xs font-medium text-foreground uppercase tracking-wider mb-2">
-                          설명
-                        </h3>
-                        <p className="font-mono text-sm text-muted-foreground leading-relaxed">
-                          {detailContent.description}
+                  <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    Operation Panel
+                  </p>
+                  {viewMode === 'running' ? (
+                    <Card className="border-border/40 bg-card/70 overflow-hidden">
+                      <div className="p-5 border-b border-border/30">
+                        <h2 className="font-mono font-semibold text-foreground">
+                          Running AttackBox
+                        </h2>
+                        <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                          Inspect active container details and stop when needed.
                         </p>
                       </div>
-                      <div>
-                        <h3 className="font-mono text-xs font-medium text-foreground uppercase tracking-wider mb-2">
-                          사양
-                        </h3>
-                        <ul className="font-mono text-xs text-muted-foreground space-y-1">
-                          {detailContent.specs.map((s, i) => (
-                            <li key={i}>· {s}</li>
-                          ))}
-                        </ul>
+                      <div className="divide-y divide-border/30">
+                        {connectionInfo ? (
+                          <div className="p-4">
+                            <div className="flex items-center justify-between gap-4 flex-wrap">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden border border-border/40 bg-muted/30">
+                                  <img
+                                    src={
+                                      BOX_ICON[
+                                        connectionInfo.boxName as keyof typeof BOX_ICON
+                                      ] ?? BOX_ICON.Kali
+                                    }
+                                    alt={connectionInfo.boxName}
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-mono font-medium text-foreground">
+                                    {connectionInfo.boxName}
+                                  </p>
+                                  <p className="font-mono text-xs text-muted-foreground truncate">
+                                    {connectionInfo.containerName}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="font-mono"
+                                  onClick={() =>
+                                    setExpandedRunningId((prev) =>
+                                      prev === connectionInfo.containerName
+                                        ? null
+                                        : connectionInfo.containerName
+                                    )
+                                  }
+                                >
+                                  {expandedRunningId ===
+                                  connectionInfo.containerName ? (
+                                    <ChevronDown className="h-4 w-4 mr-1" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 mr-1" />
+                                  )}
+                                  세부 정보
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="font-mono"
+                                  disabled={stopping}
+                                  onClick={() =>
+                                    handleStop(connectionInfo.containerName)
+                                  }
+                                >
+                                  <Square className="h-4 w-4 mr-2" />
+                                  {stopping ? '중지 중…' : '종료'}
+                                </Button>
+                              </div>
+                            </div>
+                            {expandedRunningId ===
+                              connectionInfo.containerName && (
+                              <div className="mt-4 rounded-lg border border-border/40 bg-muted/20 p-4 font-mono text-xs space-y-2">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-muted-foreground">
+                                    Host
+                                  </span>
+                                  <span className="text-foreground">
+                                    {ATTACKBOX_DISPLAY_HOST}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-muted-foreground">
+                                    Port (SSH)
+                                  </span>
+                                  <span className="text-foreground">
+                                    {String(connectionInfo.port)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-muted-foreground">
+                                    Port (8080)
+                                  </span>
+                                  <span className="text-foreground">
+                                    {String(connectionInfo.port8080)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-muted-foreground">
+                                    User
+                                  </span>
+                                  <span className="text-foreground">
+                                    {connectionInfo.user}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-muted-foreground">
+                                    Password
+                                  </span>
+                                  <span className="text-foreground">
+                                    {connectionInfo.boxName === 'Kali'
+                                      ? 'highest'
+                                      : '—'}
+                                  </span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-muted-foreground">
+                                    SSH 접속
+                                  </span>
+                                  <code className="text-foreground break-all bg-muted/40 px-2 py-1 rounded">
+                                    ssh -p {connectionInfo.port}{' '}
+                                    {connectionInfo.user}@
+                                    {ATTACKBOX_DISPLAY_HOST}
+                                  </code>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="p-8 text-center">
+                            <p className="font-mono text-sm text-muted-foreground">
+                              No running AttackBox found.
+                            </p>
+                            <p className="font-mono text-xs text-muted-foreground mt-1">
+                              Select an environment and launch a box first.
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      {/* {detailContent.notes && (
+                    </Card>
+                  ) : detail && detailContent ? (
+                    <Card className="border-border/40 bg-card/70 overflow-hidden">
+                      <div className="p-5 border-b border-border/30 flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 overflow-hidden border border-border/40 bg-muted/30">
+                            <img
+                              src={detail ? BOX_ICON[detail.name] : ''}
+                              alt={detailLabel ?? ''}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <h2 className="font-mono font-semibold text-foreground">
+                              {detailLabel}
+                            </h2>
+                            <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                              {detail.name === 'Ubuntu'
+                                ? (UBUNTU_VERSIONS.find(
+                                    (v) => v.value === detailUbuntuVersion
+                                  )?.label ?? detailUbuntuVersion)
+                                : detailContent.specs[0]}
+                            </p>
+                          </div>
+                        </div>
+                        {isCurrentBoxRunning ? (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="font-mono shrink-0"
+                            disabled={stopping}
+                            onClick={() =>
+                              handleStop(connectionInfo!.containerName)
+                            }
+                          >
+                            <Square className="h-4 w-4 mr-2" />
+                            {stopping ? '중지 중…' : 'Stop'}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="font-mono shrink-0"
+                            variant={isRunDisabled ? 'outline' : 'default'}
+                            disabled={!!runningDetail || isRunDisabled}
+                            onClick={handleRunFromDetail}
+                          >
+                            <Play className="h-4 w-4 mr-2" />
+                            {isRunDisabled
+                              ? 'Run Disabled'
+                              : runningDetail
+                                ? '실행 중…'
+                                : 'Run'}
+                          </Button>
+                        )}
+                      </div>
+                      <div className="p-5 space-y-5">
+                        {detail.name === 'Ubuntu' && (
+                          <div>
+                            <h3 className="font-mono text-xs font-medium text-foreground uppercase tracking-wider mb-2">
+                              버전
+                            </h3>
+                            <Select
+                              value={detailUbuntuVersion}
+                              onValueChange={setDetailUbuntuVersion}
+                            >
+                              <SelectTrigger className="font-mono text-sm w-full max-w-[220px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {UBUNTU_VERSIONS.map((v) => (
+                                  <SelectItem
+                                    key={v.value}
+                                    value={v.value}
+                                    className="font-mono"
+                                  >
+                                    {v.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="font-mono text-xs font-medium text-foreground uppercase tracking-wider mb-2">
+                            설명
+                          </h3>
+                          <p className="font-mono text-sm text-muted-foreground leading-relaxed">
+                            {detailContent.description}
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="font-mono text-xs font-medium text-foreground uppercase tracking-wider mb-2">
+                            사양
+                          </h3>
+                          <ul className="font-mono text-xs text-muted-foreground space-y-1">
+                            {detailContent.specs.map((s, i) => (
+                              <li key={i}>· {s}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        {/* {detailContent.notes && (
                         <div className="rounded-lg border border-border/40 bg-muted/20 p-3">
                           <p className="font-mono text-xs text-muted-foreground">
                             {detailContent.notes}
                           </p>
                         </div>
                       )} */}
-                      <div>
-                        <h3 className="font-mono text-xs font-medium text-foreground uppercase tracking-wider mb-2">
-                          연결 정보 (실행 후 표시)
-                        </h3>
-                        <div className="rounded-lg border border-border/40 bg-muted/20 p-4 font-mono text-xs space-y-2">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-muted-foreground">Host</span>
-                            <span className="text-foreground">
-                              {isCurrentBoxRunning && connectionInfo ? ATTACKBOX_DISPLAY_HOST : '—'}
-                            </span>
+                        <div>
+                          <h3 className="font-mono text-xs font-medium text-foreground uppercase tracking-wider mb-2">
+                            연결 정보 (실행 후 표시)
+                          </h3>
+                          <div className="rounded-lg border border-border/40 bg-muted/20 p-4 font-mono text-xs space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-muted-foreground">
+                                Host
+                              </span>
+                              <span className="text-foreground">
+                                {isCurrentBoxRunning && connectionInfo
+                                  ? ATTACKBOX_DISPLAY_HOST
+                                  : '—'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-muted-foreground">
+                                Port (SSH)
+                              </span>
+                              <span className="text-foreground">
+                                {isCurrentBoxRunning && connectionInfo
+                                  ? String(connectionInfo.port)
+                                  : '—'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-muted-foreground">
+                                Port (8080)
+                              </span>
+                              <span className="text-foreground">
+                                {isCurrentBoxRunning && connectionInfo
+                                  ? String(connectionInfo.port8080)
+                                  : '—'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-muted-foreground">
+                                User
+                              </span>
+                              <span className="text-foreground">
+                                {isCurrentBoxRunning && connectionInfo
+                                  ? connectionInfo.user
+                                  : '—'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-muted-foreground">
+                                Password
+                              </span>
+                              <span className="text-foreground">
+                                {isCurrentBoxRunning && connectionInfo
+                                  ? connectionInfo.boxName === 'Kali'
+                                    ? 'highest'
+                                    : '—'
+                                  : '—'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-muted-foreground">
+                                SSH 접속
+                              </span>
+                              <code className="text-muted-foreground break-all text-right">
+                                {isCurrentBoxRunning && connectionInfo
+                                  ? `ssh -p ${connectionInfo.port} ${connectionInfo.user}@${ATTACKBOX_DISPLAY_HOST}`
+                                  : 'ssh -p port user@host'}
+                              </code>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-muted-foreground">Port (SSH)</span>
-                            <span className="text-foreground">
-                              {isCurrentBoxRunning && connectionInfo ? String(connectionInfo.port) : '—'}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-muted-foreground">Port (8080)</span>
-                            <span className="text-foreground">
-                              {isCurrentBoxRunning && connectionInfo ? String(connectionInfo.port8080) : '—'}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-muted-foreground">User</span>
-                            <span className="text-foreground">
-                              {isCurrentBoxRunning && connectionInfo ? connectionInfo.user : '—'}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-muted-foreground">Password</span>
-                            <span className="text-foreground">
-                              {isCurrentBoxRunning && connectionInfo
-                                ? (connectionInfo.boxName === 'Kali' ? 'highest' : '—')
-                                : '—'}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-muted-foreground">SSH 접속</span>
-                            <code className="text-muted-foreground break-all text-right">
-                              {isCurrentBoxRunning && connectionInfo
-                                ? `ssh -p ${connectionInfo.port} ${connectionInfo.user}@${ATTACKBOX_DISPLAY_HOST}`
-                                : 'ssh -p port user@host'}
-                            </code>
-                          </div>
+                          <p className="font-mono text-xs text-muted-foreground mt-2">
+                            {isCurrentBoxRunning && connectionInfo ? (
+                              <>
+                                <strong className="text-foreground">
+                                  Port {connectionInfo.port}은 SSH(22)
+                                  전용입니다.
+                                </strong>{' '}
+                                브라우저 주소창이 아닌 터미널에서 위 SSH
+                                명령으로 접속하세요. HTTP가 아닙니다.
+                              </>
+                            ) : (
+                              '환경을 실행하면 접속 정보가 여기에 표시됩니다.'
+                            )}
+                          </p>
                         </div>
-                        <p className="font-mono text-xs text-muted-foreground mt-2">
-                          {isCurrentBoxRunning && connectionInfo ? (
-                            <>
-                              <strong className="text-foreground">Port {connectionInfo.port}은 SSH(22) 전용입니다.</strong> 브라우저 주소창이 아닌 터미널에서 위 SSH 명령으로 접속하세요. HTTP가 아닙니다.
-                            </>
-                          ) : (
-                            '환경을 실행하면 접속 정보가 여기에 표시됩니다.'
-                          )}
-                        </p>
                       </div>
-                    </div>
-                  </Card>
-                ) : (
-                  <Card className="border-border/40 bg-card/70 border-dashed min-h-[200px] flex items-center justify-center">
-                    <p className="font-mono text-sm text-muted-foreground">
-                      Select an environment to view details.
-                    </p>
-                  </Card>
-                )}
+                    </Card>
+                  ) : (
+                    <Card className="border-border/40 bg-card/70 border-dashed min-h-[200px] flex items-center justify-center">
+                      <p className="font-mono text-sm text-muted-foreground">
+                        Select an environment to view details.
+                      </p>
+                    </Card>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-
         </SidebarInset>
       </SidebarProvider>
     </>

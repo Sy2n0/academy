@@ -26,7 +26,10 @@ export default async function handler(
     return res.status(401).json({ error: { message: 'Unauthorized' } });
   }
 
-  const requestedContainerName = typeof req.body?.containerName === 'string' ? req.body.containerName.trim() : null;
+  const requestedContainerName =
+    typeof req.body?.containerName === 'string'
+      ? req.body.containerName.trim()
+      : null;
 
   const sessionModel = (prisma as any).cloudIDESession as
     | {
@@ -44,7 +47,9 @@ export default async function handler(
     : null;
 
   const containerName =
-    (requestedContainerName && /^cloud-ide-\d+$/.test(requestedContainerName) ? requestedContainerName : null) ??
+    (requestedContainerName && /^cloud-ide-\d+$/.test(requestedContainerName)
+      ? requestedContainerName
+      : null) ??
     existing?.containerName ??
     null;
 
@@ -52,12 +57,20 @@ export default async function handler(
     if (sessionModel?.deleteMany) {
       await sessionModel.deleteMany({ where: { userId: user.id } });
     }
-    return res.status(200).json({ success: true, stopped: false, message: 'No active Cloud IDE session' });
+    return res.status(200).json({
+      success: true,
+      stopped: false,
+      message: 'No active Cloud IDE session',
+    });
   }
 
   try {
-    const inspect = await execAsync(`docker ps -a --filter name=^/${containerName}$ --format "{{.Names}}"`).catch(() => ({ stdout: '' }));
-    const exists = typeof inspect.stdout === 'string' && inspect.stdout.trim() === containerName;
+    const inspect = await execAsync(
+      `docker ps -a --filter name=^/${containerName}$ --format "{{.Names}}"`
+    ).catch(() => ({ stdout: '' }));
+    const exists =
+      typeof inspect.stdout === 'string' &&
+      inspect.stdout.trim() === containerName;
 
     if (exists) {
       await execAsync(`docker stop ${containerName}`).catch(() => undefined);
@@ -69,10 +82,18 @@ export default async function handler(
     }
 
     console.log('[cloud-ide/stop]', { userId: user.id, containerName, exists });
-    return res.status(200).json({ success: true, containerName, stopped: exists });
+    return res
+      .status(200)
+      .json({ success: true, containerName, stopped: exists });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error('[cloud-ide/stop]', { userId: user.id, containerName, error: msg });
-    return res.status(500).json({ error: { message: 'Docker stop failed', detail: msg } });
+    console.error('[cloud-ide/stop]', {
+      userId: user.id,
+      containerName,
+      error: msg,
+    });
+    return res
+      .status(500)
+      .json({ error: { message: 'Docker stop failed', detail: msg } });
   }
 }

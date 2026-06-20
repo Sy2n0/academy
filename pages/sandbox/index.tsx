@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { Hexagon } from './Hexagon';
 import Head from 'next/head';
 import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { AnimatedNoise } from '@/components/animated-noise';
 import { SessionProvider } from 'next-auth/react';
@@ -56,10 +60,30 @@ export default function SandboxPage() {
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                   >
-                    <path d="M512 320 Q 380 230, 260 160" stroke="#22c1c322" strokeWidth="2" strokeDasharray="4 8" />
-                    <path d="M512 320 Q 360 370, 240 460" stroke="#22c1c322" strokeWidth="2" strokeDasharray="4 8" />
-                    <path d="M512 320 Q 650 230, 780 150" stroke="#22c1c322" strokeWidth="2" strokeDasharray="4 8" />
-                    <path d="M512 320 Q 660 390, 800 460" stroke="#22c1c322" strokeWidth="2" strokeDasharray="4 8" />
+                    <path
+                      d="M512 320 Q 380 230, 260 160"
+                      stroke="#22c1c322"
+                      strokeWidth="2"
+                      strokeDasharray="4 8"
+                    />
+                    <path
+                      d="M512 320 Q 360 370, 240 460"
+                      stroke="#22c1c322"
+                      strokeWidth="2"
+                      strokeDasharray="4 8"
+                    />
+                    <path
+                      d="M512 320 Q 650 230, 780 150"
+                      stroke="#22c1c322"
+                      strokeWidth="2"
+                      strokeDasharray="4 8"
+                    />
+                    <path
+                      d="M512 320 Q 660 390, 800 460"
+                      stroke="#22c1c322"
+                      strokeWidth="2"
+                      strokeDasharray="4 8"
+                    />
                   </svg>
 
                   {/* 중앙 로고 (육각형 + Linux Tux) */}
@@ -70,7 +94,12 @@ export default function SandboxPage() {
                       style={{ filter: 'none', boxShadow: 'none' }}
                       fillOpacity={0.98}
                     />
-                    <img src="https://cdn.freebiesupply.com/logos/thumbs/2x/linux-tux-2-logo.png" alt="Linux Tux" className="absolute w-20 h-20 object-contain pointer-events-none" style={{ filter: 'none', boxShadow: 'none' }} />
+                    <img
+                      src="https://cdn.freebiesupply.com/logos/thumbs/2x/linux-tux-2-logo.png"
+                      alt="Linux Tux"
+                      className="absolute w-20 h-20 object-contain pointer-events-none"
+                      style={{ filter: 'none', boxShadow: 'none' }}
+                    />
                   </div>
 
                   {/* Admin에서 지정한 위치에 육각형 렌더 (겹침 없음) */}
@@ -85,7 +114,11 @@ export default function SandboxPage() {
                       }}
                       title={p.title}
                     >
-                      <Hexagon color={undefined} size={HEX_SIZE} fillOpacity={0.85} />
+                      <Hexagon
+                        color={undefined}
+                        size={HEX_SIZE}
+                        fillOpacity={0.85}
+                      />
                     </div>
                   ))}
                 </div>

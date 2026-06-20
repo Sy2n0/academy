@@ -32,7 +32,11 @@ export default async function handler(
     const { status, limit, offset } = req.query;
 
     const where: any = {};
-    if (status && typeof status === 'string' && ['pending', 'approved', 'rejected'].includes(status)) {
+    if (
+      status &&
+      typeof status === 'string' &&
+      ['pending', 'approved', 'rejected'].includes(status)
+    ) {
       where.status = status;
     }
 

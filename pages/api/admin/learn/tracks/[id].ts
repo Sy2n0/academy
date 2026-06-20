@@ -40,14 +40,22 @@ export default async function handler(
     }
   } catch (error: any) {
     if (error instanceof ApiError) {
-      return res.status(error.status).json({ error: { message: error.message } });
+      return res
+        .status(error.status)
+        .json({ error: { message: error.message } });
     }
     console.error('[API /admin/learn/tracks/[id]] Error:', error);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
+    return res
+      .status(500)
+      .json({ error: { message: 'Internal server error' } });
   }
 }
 
-async function handleGET(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function handleGET(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
   const track = await prisma.skillPath.findUnique({
     where: { id },
     include: {
@@ -80,8 +88,13 @@ async function handleGET(req: NextApiRequest, res: NextApiResponse, id: string) 
   });
 }
 
-async function handlePATCH(req: NextApiRequest, res: NextApiResponse, id: string) {
-  const { title, description, type, difficulty, duration, imageUrl, isActive } = req.body;
+async function handlePATCH(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
+  const { title, description, type, difficulty, duration, imageUrl, isActive } =
+    req.body;
 
   const track = await prisma.skillPath.findUnique({
     where: { id },
@@ -95,7 +108,9 @@ async function handlePATCH(req: NextApiRequest, res: NextApiResponse, id: string
     where: { id },
     data: {
       ...(title !== undefined && { title: title.trim() }),
-      ...(description !== undefined && { description: description?.trim() || null }),
+      ...(description !== undefined && {
+        description: description?.trim() || null,
+      }),
       ...(type !== undefined && { type }),
       ...(difficulty !== undefined && { difficulty }),
       ...(duration !== undefined && { duration: duration || null }),
@@ -109,7 +124,11 @@ async function handlePATCH(req: NextApiRequest, res: NextApiResponse, id: string
   });
 }
 
-async function handleDELETE(req: NextApiRequest, res: NextApiResponse, id: string) {
+async function handleDELETE(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) {
   const track = await prisma.skillPath.findUnique({
     where: { id },
   });

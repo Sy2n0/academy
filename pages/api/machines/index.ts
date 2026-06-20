@@ -20,7 +20,7 @@ export default async function handler(
     const session = await getSession(req, res);
     const user = await getUserBySession(session);
     const userId = user?.id;
-    
+
     console.log('[API /machines] userId:', userId, 'user email:', user?.email);
 
     const machines = await prisma.machine.findMany({
@@ -60,7 +60,10 @@ export default async function handler(
     }
 
     // solvedCount 계산 (고유한 사용자/팀 수)
-    console.log('[API] Starting machinesWithCounts calculation, machines count:', machines.length);
+    console.log(
+      '[API] Starting machinesWithCounts calculation, machines count:',
+      machines.length
+    );
     const machinesWithCounts = await Promise.all(
       machines.map(async (machine) => {
         try {
@@ -78,7 +81,7 @@ export default async function handler(
 
           // userId와 teamId 조합으로 고유한 해결자 수 계산
           const uniqueSolvers = new Set<string>();
-          correctSubmissions.forEach(sub => {
+          correctSubmissions.forEach((sub) => {
             // 팀이 있으면 팀 기준, 없으면 사용자 기준
             if (sub.teamId) {
               uniqueSolvers.add(`team-${sub.teamId}`);
@@ -112,7 +115,7 @@ export default async function handler(
             isActive: machine.isActive ?? true,
             isSolved: Boolean(isSolved), // 명시적으로 boolean으로 변환
           };
-          
+
           return machineData;
         } catch (err: any) {
           console.error(`[API] Error processing machine ${machine.id}:`, err);
@@ -130,38 +133,50 @@ export default async function handler(
         }
       })
     );
-    console.log('[API] machinesWithCounts calculated, count:', machinesWithCounts.length);
+    console.log(
+      '[API] machinesWithCounts calculated, count:',
+      machinesWithCounts.length
+    );
 
     // 디버깅: 첫 번째 machine의 isSolved 확인
     if (machinesWithCounts.length > 0) {
-      console.log('[API Response] First machine:', JSON.stringify({
-        name: machinesWithCounts[0].name,
-        isSolved: machinesWithCounts[0].isSolved,
-        type: typeof machinesWithCounts[0].isSolved,
-        fullObject: machinesWithCounts[0],
-      }, null, 2));
+      console.log(
+        '[API Response] First machine:',
+        JSON.stringify(
+          {
+            name: machinesWithCounts[0].name,
+            isSolved: machinesWithCounts[0].isSolved,
+            type: typeof machinesWithCounts[0].isSolved,
+            fullObject: machinesWithCounts[0],
+          },
+          null,
+          2
+        )
+      );
     }
-    
+
     // 명시적으로 isSolved를 포함한 응답 생성
     try {
-      const machinesResponse = machinesWithCounts.map(m => {
-        try {
-          return {
-            id: m.id || '',
-            name: m.name || '',
-            difficulty: m.difficulty || '',
-            type: m.type || null,
-            points: m.points || 0,
-            solvedCount: m.solvedCount || 0,
-            isActive: m.isActive ?? true,
-            isSolved: m.isSolved !== undefined ? Boolean(m.isSolved) : false, // 명시적으로 boolean 보장
-          };
-        } catch (err) {
-          console.error('[API] Error mapping machine:', m, err);
-          return null;
-        }
-      }).filter(m => m !== null);
-      
+      const machinesResponse = machinesWithCounts
+        .map((m) => {
+          try {
+            return {
+              id: m.id || '',
+              name: m.name || '',
+              difficulty: m.difficulty || '',
+              type: m.type || null,
+              points: m.points || 0,
+              solvedCount: m.solvedCount || 0,
+              isActive: m.isActive ?? true,
+              isSolved: m.isSolved !== undefined ? Boolean(m.isSolved) : false, // 명시적으로 boolean 보장
+            };
+          } catch (err) {
+            console.error('[API] Error mapping machine:', m, err);
+            return null;
+          }
+        })
+        .filter((m) => m !== null);
+
       const response = {
         data: {
           machines: machinesResponse,
@@ -171,9 +186,12 @@ export default async function handler(
           },
         },
       };
-      
-      console.log('[API Response] Full response machines count:', machinesResponse.length);
-      
+
+      console.log(
+        '[API Response] Full response machines count:',
+        machinesResponse.length
+      );
+
       res.status(200).json(response);
     } catch (mapError: any) {
       console.error('[API] Error in response mapping:', mapError);

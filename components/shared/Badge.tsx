@@ -9,8 +9,9 @@ interface BadgeProps {
 
 const Badge = (props: BadgeProps) => {
   const { children, className, color, variant, ...rest } = props;
-  
-  const badgeVariant = variant || (color === 'error' ? 'destructive' : 'default');
+
+  const badgeVariant =
+    variant || (color === 'error' ? 'destructive' : 'default');
 
   return (
     <BaseBadge

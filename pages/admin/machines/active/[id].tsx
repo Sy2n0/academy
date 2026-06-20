@@ -109,7 +109,11 @@ const ActiveMachineDetail: NextPageWithLayout = () => {
                 <div className="px-6 md:px-12 py-6">
                   <div className="max-w-7xl mx-auto">
                     {/* Tabs Navigation */}
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <Tabs
+                      value={activeTab}
+                      onValueChange={setActiveTab}
+                      className="w-full"
+                    >
                       <TabsList className="inline-flex h-10 items-center justify-center rounded-lg bg-background/40 border border-border/30 p-1 gap-0 w-auto">
                         <TabsTrigger
                           value="information"

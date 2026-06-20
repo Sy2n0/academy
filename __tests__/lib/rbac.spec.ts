@@ -13,7 +13,9 @@ import { validateMembershipOperation } from '@/lib/rbac';
 import { getTeamMember } from 'models/team';
 import { Role } from '@prisma/client';
 
-const mockGetTeamMember = getTeamMember as jest.MockedFunction<typeof getTeamMember>;
+const mockGetTeamMember = getTeamMember as jest.MockedFunction<
+  typeof getTeamMember
+>;
 
 function makeTeamMember(role: Role) {
   return {
@@ -31,19 +33,25 @@ describe('OWNER 보호', () => {
   it('ADMIN이 OWNER의 역할을 변경하려 하면 403을 던진다', async () => {
     mockGetTeamMember.mockResolvedValue(makeTeamMember(Role.OWNER));
     const actor = makeTeamMember(Role.ADMIN);
-    await expect(validateMembershipOperation('target-1', actor)).rejects.toMatchObject({ status: 403 });
+    await expect(
+      validateMembershipOperation('target-1', actor)
+    ).rejects.toMatchObject({ status: 403 });
   });
 
   it('MEMBER가 OWNER의 역할을 변경하려 하면 403을 던진다', async () => {
     mockGetTeamMember.mockResolvedValue(makeTeamMember(Role.OWNER));
     const actor = makeTeamMember(Role.MEMBER);
-    await expect(validateMembershipOperation('target-1', actor)).rejects.toMatchObject({ status: 403 });
+    await expect(
+      validateMembershipOperation('target-1', actor)
+    ).rejects.toMatchObject({ status: 403 });
   });
 
   it('OWNER는 다른 OWNER를 변경할 수 있다', async () => {
     mockGetTeamMember.mockResolvedValue(makeTeamMember(Role.OWNER));
     const actor = makeTeamMember(Role.OWNER);
-    await expect(validateMembershipOperation('target-1', actor)).resolves.toBeUndefined();
+    await expect(
+      validateMembershipOperation('target-1', actor)
+    ).resolves.toBeUndefined();
   });
 });
 
@@ -51,7 +59,9 @@ describe('MEMBER 권한 제한', () => {
   it('MEMBER가 ADMIN의 역할을 변경하려 하면 403을 던진다', async () => {
     mockGetTeamMember.mockResolvedValue(makeTeamMember(Role.ADMIN));
     const actor = makeTeamMember(Role.MEMBER);
-    await expect(validateMembershipOperation('target-1', actor)).rejects.toMatchObject({ status: 403 });
+    await expect(
+      validateMembershipOperation('target-1', actor)
+    ).rejects.toMatchObject({ status: 403 });
   });
 
   it('MEMBER가 다른 MEMBER를 변경하려 해도 역할 자체가 ADMIN이면 403을 던진다', async () => {

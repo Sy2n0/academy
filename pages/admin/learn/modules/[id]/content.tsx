@@ -32,14 +32,18 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { extractCustomBlocks } from '@/lib/markdown-parser';
-import { UrlPreview, HeapVisualizer, CodeRunner } from '@/components/learn/InteractiveBlock';
-import { 
-  QuizBlock, 
-  TerminalBlock, 
-  JsonFormatter, 
-  FileDownloadBlock, 
-  ChecklistBlock, 
-  ApiTestBlock 
+import {
+  UrlPreview,
+  HeapVisualizer,
+  CodeRunner,
+} from '@/components/learn/InteractiveBlock';
+import {
+  QuizBlock,
+  TerminalBlock,
+  JsonFormatter,
+  FileDownloadBlock,
+  ChecklistBlock,
+  ApiTestBlock,
 } from '@/components/learn/AdditionalBlocks';
 import {
   CryptoBlock,
@@ -105,7 +109,9 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
   const { id } = router.query;
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState('');
-  const [viewMode, setViewMode] = useState<'edit' | 'preview' | 'split'>('split');
+  const [viewMode, setViewMode] = useState<'edit' | 'preview' | 'split'>(
+    'split'
+  );
 
   const { data, error, isLoading } = useSWR<{ data: Module }>(
     id ? `/api/admin/learn/modules/${id}` : null,
@@ -119,14 +125,23 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
   }, [data]);
 
   // Markdown with custom components renderer
-  const MarkdownWithComponents = ({ content: markdownContent }: { content: string }) => {
+  const MarkdownWithComponents = ({
+    content: markdownContent,
+  }: {
+    content: string;
+  }) => {
     // 커스텀 블록을 직접 찾아서 처리
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
-    
+
     // 모든 커스텀 블록 찾기
-    const allMatches: Array<{ type: string; start: number; end: number; props: any }> = [];
-    
+    const allMatches: Array<{
+      type: string;
+      start: number;
+      end: number;
+      props: any;
+    }> = [];
+
     // URL 블록
     const urlPattern = /\[url:(https?:\/\/[^\]]+)\]/g;
     let match;
@@ -138,7 +153,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { url: match[1] },
       });
     }
-    
+
     // Heap 블록
     const heapPattern = /\[heap:([^\]]+)\]/g;
     while ((match = heapPattern.exec(markdownContent)) !== null) {
@@ -159,7 +174,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         });
       }
     }
-    
+
     // 코드 실행 블록
     const codeRunPattern = /\[run:(\w+)\]([\s\S]*?)\[\/run\]/g;
     while ((match = codeRunPattern.exec(markdownContent)) !== null) {
@@ -170,7 +185,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { code: match[2].trim(), language: match[1] },
       });
     }
-    
+
     // 퀴즈 블록: [quiz:question|option1|option2|option3|answer_index]
     const quizPattern = /\[quiz:([^\]]+)\]/g;
     while ((match = quizPattern.exec(markdownContent)) !== null) {
@@ -187,9 +202,11 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
             props: { question, options, answer },
           });
         }
-      } catch {}
+      } catch {
+        // ignore malformed embedded block
+      }
     }
-    
+
     // 터미널 블록: [terminal]...commands...[/terminal]
     const terminalPattern = /\[terminal\]([\s\S]*?)\[\/terminal\]/g;
     while ((match = terminalPattern.exec(markdownContent)) !== null) {
@@ -200,7 +217,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { commands: match[1].trim() },
       });
     }
-    
+
     // JSON 포맷터 블록: [json:{"key":"value"}]
     const jsonPattern = /\[json:([^\]]+)\]/g;
     while ((match = jsonPattern.exec(markdownContent)) !== null) {
@@ -211,7 +228,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { data: match[1] },
       });
     }
-    
+
     // 파일 다운로드 블록: [file:filename|content|mimetype]
     const filePattern = /\[file:([^\]]+)\]/g;
     while ((match = filePattern.exec(markdownContent)) !== null) {
@@ -227,9 +244,11 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
             mimetype: parts[2] || 'text/plain',
           },
         });
-      } catch {}
+      } catch {
+        // ignore malformed embedded block
+      }
     }
-    
+
     // 체크리스트 블록: [checklist:item1|item2|item3]
     const checklistPattern = /\[checklist:([^\]]+)\]/g;
     while ((match = checklistPattern.exec(markdownContent)) !== null) {
@@ -241,7 +260,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { items },
       });
     }
-    
+
     // API 테스트 블록: [api:endpoint|method|headers_json|body_json]
     const apiPattern = /\[api:([^\]]+)\]/g;
     while ((match = apiPattern.exec(markdownContent)) !== null) {
@@ -258,9 +277,11 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
             body: parts[3] || '',
           },
         });
-      } catch {}
+      } catch {
+        // ignore malformed embedded block
+      }
     }
-    
+
     // 암호화/인코딩 블록: [crypto:type|data]
     const cryptoPattern = /\[crypto:([^\]]+)\]/g;
     while ((match = cryptoPattern.exec(markdownContent)) !== null) {
@@ -275,9 +296,11 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
             data: parts[1] || '',
           },
         });
-      } catch {}
+      } catch {
+        // ignore malformed embedded block
+      }
     }
-    
+
     // 헥스 덤프 블록: [hexdump:data]
     const hexdumpPattern = /\[hexdump:([^\]]+)\]/g;
     while ((match = hexdumpPattern.exec(markdownContent)) !== null) {
@@ -288,7 +311,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { data: match[1] },
       });
     }
-    
+
     // SQL Injection 테스트 블록: [sqli:query]
     const sqliPattern = /\[sqli:([^\]]+)\]/g;
     while ((match = sqliPattern.exec(markdownContent)) !== null) {
@@ -299,7 +322,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { query: match[1] },
       });
     }
-    
+
     // XSS 테스트 블록: [xss:payload]
     const xssPattern = /\[xss:([^\]]+)\]/g;
     while ((match = xssPattern.exec(markdownContent)) !== null) {
@@ -310,7 +333,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { payload: match[1] },
       });
     }
-    
+
     // 포트 스캐너 블록: [portscan:target|ports]
     const portscanPattern = /\[portscan:([^\]]+)\]/g;
     while ((match = portscanPattern.exec(markdownContent)) !== null) {
@@ -325,9 +348,11 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
             ports: parts[1] || '1-100',
           },
         });
-      } catch {}
+      } catch {
+        // ignore malformed embedded block
+      }
     }
-    
+
     // 로그 분석기 블록: [loganalyzer:logs]
     const loganalyzerPattern = /\[loganalyzer:([^\]]+)\]/g;
     while ((match = loganalyzerPattern.exec(markdownContent)) !== null) {
@@ -338,7 +363,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         props: { logs: match[1] },
       });
     }
-    
+
     // 패킷 분석기 블록: [packet:data]
     const packetPattern = /\[packet:([^\]]+)\]/g;
     while ((match = packetPattern.exec(markdownContent)) !== null) {
@@ -351,7 +376,8 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
     }
 
     // GUI vs CLI 비교 블록: [compare:title]GUI content[---]CLI content[/compare]
-    const comparePattern = /\[compare(?::([^\]]*))?\]([\s\S]*?)\[---\]([\s\S]*?)\[\/compare\]/g;
+    const comparePattern =
+      /\[compare(?::([^\]]*))?\]([\s\S]*?)\[---\]([\s\S]*?)\[\/compare\]/g;
     while ((match = comparePattern.exec(markdownContent)) !== null) {
       allMatches.push({
         type: 'compare',
@@ -364,10 +390,10 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         },
       });
     }
-    
+
     // 인덱스 순으로 정렬
     allMatches.sort((a, b) => a.start - b.start);
-    
+
     // 각 블록을 처리
     allMatches.forEach((item, index) => {
       // 블록 이전의 마크다운 렌더링
@@ -385,12 +411,14 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
           );
         }
       }
-      
+
       // 커스텀 컴포넌트 렌더링
       if (item.type === 'url') {
         parts.push(<UrlPreview key={`url-${index}`} url={item.props.url} />);
       } else if (item.type === 'heap') {
-        parts.push(<HeapVisualizer key={`heap-${index}`} data={item.props.data} />);
+        parts.push(
+          <HeapVisualizer key={`heap-${index}`} data={item.props.data} />
+        );
       } else if (item.type === 'code') {
         parts.push(
           <CodeRunner
@@ -417,10 +445,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         );
       } else if (item.type === 'json') {
         parts.push(
-          <JsonFormatter
-            key={`json-${index}`}
-            data={item.props.data}
-          />
+          <JsonFormatter key={`json-${index}`} data={item.props.data} />
         );
       } else if (item.type === 'file') {
         parts.push(
@@ -433,10 +458,7 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         );
       } else if (item.type === 'checklist') {
         parts.push(
-          <ChecklistBlock
-            key={`checklist-${index}`}
-            items={item.props.items}
-          />
+          <ChecklistBlock key={`checklist-${index}`} items={item.props.items} />
         );
       } else if (item.type === 'api') {
         parts.push(
@@ -458,24 +480,15 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         );
       } else if (item.type === 'hexdump') {
         parts.push(
-          <HexDumpBlock
-            key={`hexdump-${index}`}
-            data={item.props.data}
-          />
+          <HexDumpBlock key={`hexdump-${index}`} data={item.props.data} />
         );
       } else if (item.type === 'sqli') {
         parts.push(
-          <SqlInjectionBlock
-            key={`sqli-${index}`}
-            query={item.props.query}
-          />
+          <SqlInjectionBlock key={`sqli-${index}`} query={item.props.query} />
         );
       } else if (item.type === 'xss') {
         parts.push(
-          <XssTestBlock
-            key={`xss-${index}`}
-            payload={item.props.payload}
-          />
+          <XssTestBlock key={`xss-${index}`} payload={item.props.payload} />
         );
       } else if (item.type === 'portscan') {
         parts.push(
@@ -509,10 +522,10 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
           />
         );
       }
-      
+
       lastIndex = item.end;
     });
-    
+
     // 마지막 부분 렌더링
     if (lastIndex < markdownContent.length) {
       const remaining = markdownContent.substring(lastIndex);
@@ -528,16 +541,19 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         );
       }
     }
-    
+
     // 커스텀 블록이 없으면 일반 마크다운만 렌더링
     if (parts.length === 0) {
       return (
-        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeHighlight]}
+        >
           {markdownContent}
         </ReactMarkdown>
       );
     }
-    
+
     return <>{parts}</>;
   };
 
@@ -557,9 +573,13 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           const error = await response.json();
-          throw new Error(error.error?.message || '모듈 콘텐츠 수정에 실패했습니다');
+          throw new Error(
+            error.error?.message || '모듈 콘텐츠 수정에 실패했습니다'
+          );
         } else {
-          throw new Error(`모듈 콘텐츠 수정에 실패했습니다: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `모듈 콘텐츠 수정에 실패했습니다: ${response.status} ${response.statusText}`
+          );
         }
       }
 
@@ -582,7 +602,9 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
   if (error || !data?.data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="font-mono text-sm text-destructive">모듈을 불러오지 못했습니다</p>
+        <p className="font-mono text-sm text-destructive">
+          모듈을 불러오지 못했습니다
+        </p>
       </div>
     );
   }
@@ -638,7 +660,10 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <h1 className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground" style={{ fontStyle: 'italic' }}>
+                        <h1
+                          className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground"
+                          style={{ fontStyle: 'italic' }}
+                        >
                           MODULE CONTENT
                         </h1>
                         <p className="font-mono text-sm text-muted-foreground mt-2">
@@ -703,11 +728,15 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
                     <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="content" className="font-mono text-sm font-bold text-foreground uppercase tracking-wider">
+                          <Label
+                            htmlFor="content"
+                            className="font-mono text-sm font-bold text-foreground uppercase tracking-wider"
+                          >
                             강의 내용 (Markdown 지원)
                           </Label>
                           <p className="font-mono text-xs text-muted-foreground mt-1 mb-4">
-                            Markdown 형식으로 강의 내용을 작성할 수 있습니다. 제목, 리스트, 코드 블록 등을 사용할 수 있습니다.
+                            Markdown 형식으로 강의 내용을 작성할 수 있습니다.
+                            제목, 리스트, 코드 블록 등을 사용할 수 있습니다.
                           </p>
                         </div>
 
@@ -715,7 +744,9 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
                         {viewMode === 'split' && (
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label className="font-mono text-xs text-muted-foreground">Editor</Label>
+                              <Label className="font-mono text-xs text-muted-foreground">
+                                Editor
+                              </Label>
                               <Textarea
                                 id="content"
                                 value={content}
@@ -745,9 +776,16 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label className="font-mono text-xs text-muted-foreground">Preview</Label>
+                              <Label className="font-mono text-xs text-muted-foreground">
+                                Preview
+                              </Label>
                               <div className="min-h-[700px] p-4 border border-border/30 rounded-md bg-background/40 overflow-y-auto prose prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground max-w-none">
-                                <MarkdownWithComponents content={content || '*No content yet. Start typing to see the preview.*'} />
+                                <MarkdownWithComponents
+                                  content={
+                                    content ||
+                                    '*No content yet. Start typing to see the preview.*'
+                                  }
+                                />
                               </div>
                             </div>
                           </div>
@@ -787,7 +825,12 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
                         {/* Preview Only View */}
                         {viewMode === 'preview' && (
                           <div className="min-h-[700px] p-4 border border-border/30 rounded-md bg-background/40 overflow-y-auto prose prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground max-w-none">
-                            <MarkdownWithComponents content={content || '*No content yet. Switch to Edit mode to add content.*'} />
+                            <MarkdownWithComponents
+                              content={
+                                content ||
+                                '*No content yet. Switch to Edit mode to add content.*'
+                              }
+                            />
                           </div>
                         )}
 

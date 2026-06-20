@@ -26,9 +26,14 @@ export default async function handler(
     return res.status(401).json({ error: { message: 'Unauthorized' } });
   }
 
-  const containerName = typeof req.body?.containerName === 'string' ? req.body.containerName.trim() : null;
+  const containerName =
+    typeof req.body?.containerName === 'string'
+      ? req.body.containerName.trim()
+      : null;
   if (!containerName || !/^attackbox-[a-z0-9]+-\d+$/.test(containerName)) {
-    return res.status(400).json({ error: { message: 'Valid containerName is required' } });
+    return res
+      .status(400)
+      .json({ error: { message: 'Valid containerName is required' } });
   }
 
   try {
@@ -38,7 +43,13 @@ export default async function handler(
     return res.status(200).json({ success: true, containerName });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error('[attackbox/stop]', { userId: user.id, containerName, error: msg });
-    return res.status(500).json({ error: { message: 'Docker stop failed', detail: msg } });
+    console.error('[attackbox/stop]', {
+      userId: user.id,
+      containerName,
+      error: msg,
+    });
+    return res
+      .status(500)
+      .json({ error: { message: 'Docker stop failed', detail: msg } });
   }
 }

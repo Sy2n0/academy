@@ -14,7 +14,7 @@ export const isEmailAllowed = (email: string) => {
   if (!email || !email.includes('@')) {
     return false;
   }
-  
+
   const emailDomain = email.split('@')[1];
   if (emailDomain !== 'bu.ac.kr') {
     return false;

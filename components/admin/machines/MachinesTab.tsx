@@ -47,10 +47,9 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
   const [newChallengeCategory, setNewChallengeCategory] = useState('');
   const [newChallengeType, setNewChallengeType] = useState('');
 
-  const { data, error, isLoading, mutate } = useSWR<{ data: { machines: Machine[] } }>(
-    '/api/admin/machines/active',
-    fetcher
-  );
+  const { data, error, isLoading, mutate } = useSWR<{
+    data: { machines: Machine[] };
+  }>('/api/admin/machines/active', fetcher);
 
   const machines = data?.data?.machines || [];
 
@@ -108,10 +107,14 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error?.message || 'Failed to update machine status');
+        throw new Error(
+          result.error?.message || 'Failed to update machine status'
+        );
       }
 
-      toast.success(`Machine ${checked ? 'activated' : 'deactivated'} successfully`);
+      toast.success(
+        `Machine ${checked ? 'activated' : 'deactivated'} successfully`
+      );
       mutate();
     } catch (error: any) {
       toast.error(error.message || 'Failed to update machine status');
@@ -140,19 +143,22 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
           onClick={() => setIsNewChallengeOpen(true)}
           className="font-mono text-sm bg-accent hover:bg-accent/90 text-foreground"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          + New Challenge
+          <Plus className="h-4 w-4 mr-2" />+ New Challenge
         </Button>
       </div>
 
       {/* Machines List */}
       {isLoading ? (
         <div className="text-center py-12">
-          <p className="font-mono text-sm text-muted-foreground">Loading challenges...</p>
+          <p className="font-mono text-sm text-muted-foreground">
+            Loading challenges...
+          </p>
         </div>
       ) : error ? (
         <div className="text-center py-12">
-          <p className="font-mono text-sm text-destructive">Failed to load challenges</p>
+          <p className="font-mono text-sm text-destructive">
+            Failed to load challenges
+          </p>
         </div>
       ) : machines.length === 0 ? (
         <div className="text-center py-20">
@@ -193,7 +199,10 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
                   progress: 'bg-blue-500',
                   button: 'text-blue-500',
                 };
-              } else if (categoryLower.includes('revers') || categoryLower.includes('reverse')) {
+              } else if (
+                categoryLower.includes('revers') ||
+                categoryLower.includes('reverse')
+              ) {
                 return {
                   icon: 'text-yellow-500',
                   progress: 'bg-yellow-500',
@@ -228,22 +237,26 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
                 className="group relative bg-background/40 border border-border/30 rounded-lg hover:bg-background/60 transition-all duration-200 overflow-hidden"
               >
                 {/* Progress Bar at Bottom */}
-                <div className={`absolute bottom-0 left-0 right-0 h-1 ${colors.progress}`}></div>
-                
+                <div
+                  className={`absolute bottom-0 left-0 right-0 h-1 ${colors.progress}`}
+                ></div>
+
                 <div className="p-4">
                   <div className="flex items-center gap-3">
                     {/* Toggle Switch */}
-                    <Switch 
-                      className="flex-shrink-0" 
+                    <Switch
+                      className="flex-shrink-0"
                       checked={machine.isActive}
-                      onCheckedChange={(checked) => handleToggleActive(machine, checked)}
+                      onCheckedChange={(checked) =>
+                        handleToggleActive(machine, checked)
+                      }
                     />
-                    
+
                     {/* Bomb Icon */}
                     <div className="flex-shrink-0">
                       <Bomb className={`h-5 w-5 ${colors.icon}`} />
                     </div>
-                    
+
                     {/* Title and Score */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-mono text-sm font-semibold text-foreground truncate mb-0.5">
@@ -253,7 +266,7 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
                         {machine.score}/{machine.score}pts
                       </p>
                     </div>
-                    
+
                     {/* Action Icons */}
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <Button
@@ -303,7 +316,10 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="title" className="font-mono text-sm font-semibold">
+              <Label
+                htmlFor="title"
+                className="font-mono text-sm font-semibold"
+              >
                 Title <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -315,10 +331,16 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category" className="font-mono text-sm font-semibold">
+              <Label
+                htmlFor="category"
+                className="font-mono text-sm font-semibold"
+              >
                 Category <span className="text-destructive">*</span>
               </Label>
-              <Select value={newChallengeCategory} onValueChange={setNewChallengeCategory}>
+              <Select
+                value={newChallengeCategory}
+                onValueChange={setNewChallengeCategory}
+              >
                 <SelectTrigger className="font-mono">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
@@ -336,15 +358,26 @@ export function MachinesTab({ gameId: _gameId }: MachinesTabProps) {
               <Label htmlFor="type" className="font-mono text-sm font-semibold">
                 Type <span className="text-destructive">*</span>
               </Label>
-              <Select value={newChallengeType} onValueChange={setNewChallengeType}>
+              <Select
+                value={newChallengeType}
+                onValueChange={setNewChallengeType}
+              >
                 <SelectTrigger className="font-mono">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STATIC_ATTACHMENT">Static Attachment</SelectItem>
-                  <SelectItem value="DYNAMIC_ATTACHMENT">Dynamic Attachment</SelectItem>
-                  <SelectItem value="STATIC_CONTAINER">Static Container</SelectItem>
-                  <SelectItem value="DYNAMIC_CONTAINER">Dynamic Container</SelectItem>
+                  <SelectItem value="STATIC_ATTACHMENT">
+                    Static Attachment
+                  </SelectItem>
+                  <SelectItem value="DYNAMIC_ATTACHMENT">
+                    Dynamic Attachment
+                  </SelectItem>
+                  <SelectItem value="STATIC_CONTAINER">
+                    Static Container
+                  </SelectItem>
+                  <SelectItem value="DYNAMIC_CONTAINER">
+                    Dynamic Container
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <p className="font-mono text-xs text-muted-foreground">

@@ -2,7 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const session = await getSession(req, res);
   if (!session?.user?.id) {
     return res.status(401).json({ error: { message: 'Unauthorized' } });
@@ -13,10 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     const { problemId, flag } = req.body as { problemId: string; flag: string };
     if (!problemId || !flag) {
-      return res.status(400).json({ error: { message: 'problemId and flag are required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'problemId and flag are required' } });
     }
 
-    const problem = await prisma.sandboxProblem.findUnique({ where: { id: problemId } });
+    const problem = await prisma.sandboxProblem.findUnique({
+      where: { id: problemId },
+    });
     if (!problem) {
       return res.status(404).json({ error: { message: 'Problem not found' } });
     }
@@ -35,14 +42,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.sandboxSolve.create({ data: { userId, problemId } });
     }
 
-    return res.status(200).json({ data: { result: correct ? 'correct' : 'wrong' } });
+    return res
+      .status(200)
+      .json({ data: { result: correct ? 'correct' : 'wrong' } });
   }
 
   // GET: 솔버 목록
   if (req.method === 'GET') {
     const { problemId } = req.query as { problemId: string };
     if (!problemId) {
-      return res.status(400).json({ error: { message: 'problemId is required' } });
+      return res
+        .status(400)
+        .json({ error: { message: 'problemId is required' } });
     }
 
     const solves = await prisma.sandboxSolve.findMany({
@@ -55,5 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   res.setHeader('Allow', ['POST', 'GET']);
-  res.status(405).json({ error: { message: `Method ${req.method} Not Allowed` } });
+  res
+    .status(405)
+    .json({ error: { message: `Method ${req.method} Not Allowed` } });
 }

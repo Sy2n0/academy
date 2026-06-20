@@ -44,7 +44,19 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import Head from 'next/head';
-import { CheckCircle2, XCircle, Shield, Clock, User, Mail, Key, Plus, Copy, Check, Crown } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  Shield,
+  Clock,
+  User,
+  Mail,
+  Key,
+  Plus,
+  Copy,
+  Check,
+  Crown,
+} from 'lucide-react';
 import { UserRole } from '@prisma/client';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
@@ -128,8 +140,12 @@ const Account: NextPageWithLayout<AccountProps> = ({
           setCreatedApiKey(data.apiKey);
           toast.success(t('api-key-created') || 'API Key created successfully');
           // API Key 목록 새로고침
-          const refreshResponse = await fetch(`/api/teams/${team.slug}/api-keys`);
-          const refreshData = (await refreshResponse.json()) as ApiResponse<any[]>;
+          const refreshResponse = await fetch(
+            `/api/teams/${team.slug}/api-keys`
+          );
+          const refreshData = (await refreshResponse.json()) as ApiResponse<
+            any[]
+          >;
           if (refreshData.data) {
             setApiKeys(refreshData.data);
           }
@@ -215,11 +231,16 @@ const Account: NextPageWithLayout<AccountProps> = ({
                           Member Since
                         </p>
                         <p className="font-mono text-sm text-foreground">
-                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          }) : 'N/A'}
+                          {user.createdAt
+                            ? new Date(user.createdAt).toLocaleDateString(
+                                'en-US',
+                                {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                }
+                              )
+                            : 'N/A'}
                         </p>
                       </div>
                       <div>
@@ -227,13 +248,18 @@ const Account: NextPageWithLayout<AccountProps> = ({
                           Last Updated
                         </p>
                         <p className="font-mono text-sm text-foreground">
-                          {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          }) : 'N/A'}
+                          {user.updatedAt
+                            ? new Date(user.updatedAt).toLocaleDateString(
+                                'en-US',
+                                {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                }
+                              )
+                            : 'N/A'}
                         </p>
                       </div>
                       <div>
@@ -241,16 +267,21 @@ const Account: NextPageWithLayout<AccountProps> = ({
                           Role
                         </p>
                         <div className="flex items-center gap-2">
-                          {(user.role === UserRole.ADMIN || user.role === 'ADMIN') && (
+                          {(user.role === UserRole.ADMIN ||
+                            user.role === 'ADMIN') && (
                             <Crown className="h-4 w-4 text-yellow-500" />
                           )}
-                          <span className={`inline-flex items-center px-2 py-1 rounded border text-xs font-mono uppercase tracking-wider ${
-                            (user.role === UserRole.ADMIN || user.role === 'ADMIN')
-                              ? 'bg-red-500/10 text-red-500 border-red-500/30'
-                              : (user.role === UserRole.LAB || user.role === 'LAB')
-                              ? 'bg-blue-500/10 text-blue-500 border-blue-500/30'
-                              : 'bg-muted text-muted-foreground border-border'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded border text-xs font-mono uppercase tracking-wider ${
+                              user.role === UserRole.ADMIN ||
+                              user.role === 'ADMIN'
+                                ? 'bg-red-500/10 text-red-500 border-red-500/30'
+                                : user.role === UserRole.LAB ||
+                                    user.role === 'LAB'
+                                  ? 'bg-blue-500/10 text-blue-500 border-blue-500/30'
+                                  : 'bg-muted text-muted-foreground border-border'
+                            }`}
+                          >
                             {user.role || UserRole.USER}
                           </span>
                         </div>
@@ -287,11 +318,15 @@ const Account: NextPageWithLayout<AccountProps> = ({
                         </div>
                         {user.emailVerified && (
                           <p className="font-mono text-xs text-muted-foreground mt-1">
-                            Verified on {new Date(user.emailVerified).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
+                            Verified on{' '}
+                            {new Date(user.emailVerified).toLocaleDateString(
+                              'en-US',
+                              {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              }
+                            )}
                           </p>
                         )}
                       </div>
@@ -318,7 +353,8 @@ const Account: NextPageWithLayout<AccountProps> = ({
                         </div>
                         {user.invalidLoginAttempts > 0 && (
                           <p className="font-mono text-xs text-muted-foreground mt-1">
-                            {user.invalidLoginAttempts} failed login attempt{user.invalidLoginAttempts > 1 ? 's' : ''}
+                            {user.invalidLoginAttempts} failed login attempt
+                            {user.invalidLoginAttempts > 1 ? 's' : ''}
                           </p>
                         )}
                       </div>
@@ -327,7 +363,8 @@ const Account: NextPageWithLayout<AccountProps> = ({
                           Active Sessions
                         </p>
                         <p className="font-mono text-sm text-foreground">
-                          {sessions?.length || 0} active session{sessions?.length !== 1 ? 's' : ''}
+                          {sessions?.length || 0} active session
+                          {sessions?.length !== 1 ? 's' : ''}
                         </p>
                       </div>
                     </div>
@@ -352,23 +389,31 @@ const Account: NextPageWithLayout<AccountProps> = ({
                               Session ID: {session.id.substring(0, 8)}...
                             </p>
                             <p className="font-mono text-xs text-muted-foreground">
-                              Created: {new Date(session.createdAt).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </p>
-                            {session.expires && (
-                              <p className="font-mono text-xs text-muted-foreground">
-                                Expires: {new Date(session.expires).toLocaleDateString('en-US', {
+                              Created:{' '}
+                              {new Date(session.createdAt).toLocaleDateString(
+                                'en-US',
+                                {
                                   year: 'numeric',
                                   month: 'short',
                                   day: 'numeric',
                                   hour: '2-digit',
                                   minute: '2-digit',
-                                })}
+                                }
+                              )}
+                            </p>
+                            {session.expires && (
+                              <p className="font-mono text-xs text-muted-foreground">
+                                Expires:{' '}
+                                {new Date(session.expires).toLocaleDateString(
+                                  'en-US',
+                                  {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  }
+                                )}
                               </p>
                             )}
                           </div>
@@ -386,13 +431,15 @@ const Account: NextPageWithLayout<AccountProps> = ({
                   </h3>
                   <div className="flex items-center gap-6">
                     <Avatar className="h-24 w-24 rounded-full">
-                      <AvatarImage 
-                        src={user.image || undefined} 
-                        alt={user.name || 'User'} 
+                      <AvatarImage
+                        src={user.image || undefined}
+                        alt={user.name || 'User'}
                         className="object-cover rounded-full"
                       />
                       <AvatarFallback className="bg-muted text-foreground font-mono text-lg rounded-full">
-                        {user.name ? user.name.substring(0, 2).toUpperCase() : 'U'}
+                        {user.name
+                          ? user.name.substring(0, 2).toUpperCase()
+                          : 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
@@ -447,11 +494,15 @@ const Account: NextPageWithLayout<AccountProps> = ({
                                 {apiKey.name}
                               </p>
                               <p className="font-mono text-xs text-muted-foreground">
-                                Created: {new Date(apiKey.createdAt).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
+                                Created:{' '}
+                                {new Date(apiKey.createdAt).toLocaleDateString(
+                                  'en-US',
+                                  {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }
+                                )}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -466,7 +517,11 @@ const Account: NextPageWithLayout<AccountProps> = ({
                                 size="sm"
                                 className="font-mono text-xs uppercase tracking-wider text-destructive hover:text-destructive"
                                 onClick={async () => {
-                                  if (confirm('Are you sure you want to revoke this API key?')) {
+                                  if (
+                                    confirm(
+                                      'Are you sure you want to revoke this API key?'
+                                    )
+                                  ) {
                                     try {
                                       const response = await fetch(
                                         `/api/teams/${team.slug}/api-keys/${apiKey.id}`,
@@ -476,8 +531,12 @@ const Account: NextPageWithLayout<AccountProps> = ({
                                       );
 
                                       if (!response.ok) {
-                                        const json = (await response.json()) as ApiResponse;
-                                        toast.error(json.error?.message || 'API 키 해제에 실패했습니다');
+                                        const json =
+                                          (await response.json()) as ApiResponse;
+                                        toast.error(
+                                          json.error?.message ||
+                                            'API 키 해제에 실패했습니다'
+                                        );
                                         return;
                                       }
 
@@ -504,7 +563,10 @@ const Account: NextPageWithLayout<AccountProps> = ({
                 )}
 
                 {/* API Key 생성 모달 */}
-                <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+                <Dialog
+                  open={createModalOpen}
+                  onOpenChange={setCreateModalOpen}
+                >
                   <DialogContent className="border-border/30 bg-card/95 backdrop-blur-sm">
                     {createdApiKey ? (
                       <>
@@ -513,7 +575,8 @@ const Account: NextPageWithLayout<AccountProps> = ({
                             {t('new-api-key') || 'New API Key'}
                           </DialogTitle>
                           <DialogDescription className="font-mono text-xs text-destructive">
-                            {t('new-api-warning') || 'Please copy this API key now. You won\'t be able to see it again!'}
+                            {t('new-api-warning') ||
+                              "Please copy this API key now. You won't be able to see it again!"}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -560,14 +623,18 @@ const Account: NextPageWithLayout<AccountProps> = ({
                             {t('new-api-key') || 'New API Key'}
                           </DialogTitle>
                           <DialogDescription className="font-mono text-xs">
-                            {t('api-key-description') || 'Create a new API key for your team'}
+                            {t('api-key-description') ||
+                              'Create a new API key for your team'}
                           </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={formik.handleSubmit}>
                           <div className="space-y-4 mb-6">
                             <FieldGroup>
                               <Field>
-                                <FieldLabel htmlFor="name" className="font-mono text-xs uppercase tracking-wider">
+                                <FieldLabel
+                                  htmlFor="name"
+                                  className="font-mono text-xs uppercase tracking-wider"
+                                >
                                   {t('name') || 'Name'}
                                 </FieldLabel>
                                 <Input
@@ -578,8 +645,10 @@ const Account: NextPageWithLayout<AccountProps> = ({
                                   value={formik.values.name}
                                   onChange={formik.handleChange}
                                   className={cn(
-                                    "font-mono text-sm",
-                                    formik.touched.name && formik.errors.name && "border-destructive"
+                                    'font-mono text-sm',
+                                    formik.touched.name &&
+                                      formik.errors.name &&
+                                      'border-destructive'
                                   )}
                                   required
                                 />
@@ -602,10 +671,16 @@ const Account: NextPageWithLayout<AccountProps> = ({
                             </Button>
                             <Button
                               type="submit"
-                              disabled={!formik.dirty || !formik.isValid || formik.isSubmitting}
+                              disabled={
+                                !formik.dirty ||
+                                !formik.isValid ||
+                                formik.isSubmitting
+                              }
                               className="font-mono text-xs uppercase tracking-wider"
                             >
-                              {formik.isSubmitting ? t('loading') || 'Loading...' : t('create-api-key') || 'Create API Key'}
+                              {formik.isSubmitting
+                                ? t('loading') || 'Loading...'
+                                : t('create-api-key') || 'Create API Key'}
                             </Button>
                           </DialogFooter>
                         </form>
@@ -684,11 +759,13 @@ export const getServerSideProps = async (
         createdAt: s.expires.toISOString(),
         expires: s.expires?.toISOString() || null,
       })),
-      team: teamMember?.team ? {
-        id: teamMember.team.id,
-        name: teamMember.team.name,
-        slug: teamMember.team.slug,
-      } : null,
+      team: teamMember?.team
+        ? {
+            id: teamMember.team.id,
+            name: teamMember.team.name,
+            slug: teamMember.team.slug,
+          }
+        : null,
       apiKeys: apiKeys.map((key) => ({
         id: key.id,
         name: key.name,

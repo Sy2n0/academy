@@ -30,7 +30,11 @@ export default async function handler(
   }
 }
 
-const handleGET = async (req: NextApiRequest, res: NextApiResponse, id: string) => {
+const handleGET = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  id: string
+) => {
   if (!id) {
     res.status(400).json({ error: { message: 'Machine ID is required' } });
     return;
@@ -71,7 +75,7 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse, id: string) 
     where: { id: { in: userIds } },
     select: { id: true, name: true },
   });
-  const userMap = new Map(users.map(u => [u.id, u.name]));
+  const userMap = new Map(users.map((u) => [u.id, u.name]));
 
   // 통계 계산
   let solvedCount = 0;
@@ -84,7 +88,11 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse, id: string) 
     let matched = false;
 
     // metadata에서 machineId 추출
-    if (score.metadata && typeof score.metadata === 'object' && 'machineId' in score.metadata) {
+    if (
+      score.metadata &&
+      typeof score.metadata === 'object' &&
+      'machineId' in score.metadata
+    ) {
       const machineId = score.metadata.machineId as string;
       if (machineId === id) {
         matched = true;
@@ -92,9 +100,18 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse, id: string) 
     }
 
     // description에서 machine title로 매칭
-    if (!matched && score.metadata && typeof score.metadata === 'object' && 'description' in score.metadata) {
+    if (
+      !matched &&
+      score.metadata &&
+      typeof score.metadata === 'object' &&
+      'description' in score.metadata
+    ) {
       const description = score.metadata.description as string;
-      if (description && (description.includes(machine.title) || machine.title.includes(description))) {
+      if (
+        description &&
+        (description.includes(machine.title) ||
+          machine.title.includes(description))
+      ) {
         matched = true;
       }
     }
@@ -103,8 +120,14 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse, id: string) 
       solvedCount += 1;
 
       // First Blood 확인
-      if (score.metadata && typeof score.metadata === 'object' && 'firstBlood' in score.metadata) {
-        const isFirstBlood = score.metadata.firstBlood === true || score.metadata.firstBlood === 'true';
+      if (
+        score.metadata &&
+        typeof score.metadata === 'object' &&
+        'firstBlood' in score.metadata
+      ) {
+        const isFirstBlood =
+          score.metadata.firstBlood === true ||
+          score.metadata.firstBlood === 'true';
         if (isFirstBlood && !firstBlood) {
           firstBlood = userMap.get(score.userId) || 'Unknown';
         }

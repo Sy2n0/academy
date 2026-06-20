@@ -89,7 +89,9 @@ const MagicLink = ({ csrfToken }: MagicLinkProps) => {
               className="w-full"
               size="md"
             >
-              {formik.isSubmitting ? t('loading') || 'Loading...' : t('send-magic-link')}
+              {formik.isSubmitting
+                ? t('loading') || 'Loading...'
+                : t('send-magic-link')}
             </Button>
           </div>
         </form>

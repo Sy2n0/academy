@@ -46,9 +46,7 @@ const mockCreateTeam = createTeam as jest.MockedFunction<typeof createTeam>;
 
 // --- 헬퍼 ---
 
-function makeReq(
-  overrides: Partial<NextApiRequest> = {}
-): NextApiRequest {
+function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
   return {
     method: 'GET',
     headers: {},
@@ -58,7 +56,11 @@ function makeReq(
   } as NextApiRequest;
 }
 
-function makeRes(): { res: NextApiResponse; json: jest.Mock; status: jest.Mock } {
+function makeRes(): {
+  res: NextApiResponse;
+  json: jest.Mock;
+  status: jest.Mock;
+} {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
@@ -126,7 +128,12 @@ describe('POST /api/teams', () => {
 
     await handler(req, res);
 
-    expect(mockCreateTeam).toHaveBeenCalledWith('New Team', 'new-team', mockUser.id, undefined);
+    expect(mockCreateTeam).toHaveBeenCalledWith(
+      'New Team',
+      'new-team',
+      mockUser.id,
+      undefined
+    );
     expect(json).toHaveBeenCalledWith({
       data: {
         message: 'Team created successfully',

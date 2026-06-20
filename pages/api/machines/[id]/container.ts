@@ -2,7 +2,10 @@ import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ApiError } from '@/lib/errors';
-import { createContainerInstance, stopContainerInstance } from 'models/container';
+import {
+  createContainerInstance,
+  stopContainerInstance,
+} from 'models/container';
 import { prisma } from '@/lib/prisma';
 
 export default async function handler(
@@ -138,7 +141,10 @@ const handleDELETE = async (
   }
 
   if (instance.userId !== userId) {
-    throw new ApiError(403, 'You do not have permission to stop this container');
+    throw new ApiError(
+      403,
+      'You do not have permission to stop this container'
+    );
   }
 
   await stopContainerInstance(instanceId);

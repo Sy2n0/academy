@@ -182,7 +182,10 @@ const Monitoring: NextPageWithLayout = () => {
                   <div className="max-w-6xl mx-auto space-y-6">
                     {/* Header */}
                     <div>
-                      <h1 className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2" style={{ fontStyle: 'italic' }}>
+                      <h1
+                        className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2"
+                        style={{ fontStyle: 'italic' }}
+                      >
                         MONITORING
                       </h1>
                       <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
@@ -205,13 +208,23 @@ const Monitoring: NextPageWithLayout = () => {
                     </div>
 
                     {/* Tabs */}
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <Tabs
+                      value={activeTab}
+                      onValueChange={setActiveTab}
+                      className="w-full"
+                    >
                       <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="submissions" className="font-mono text-xs uppercase tracking-wider">
+                        <TabsTrigger
+                          value="submissions"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
                           <Flag className="h-4 w-4 mr-2" />
                           Flag Submissions ({filteredSubmissions.length})
                         </TabsTrigger>
-                        <TabsTrigger value="events" className="font-mono text-xs uppercase tracking-wider">
+                        <TabsTrigger
+                          value="events"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
                           <Activity className="h-4 w-4 mr-2" />
                           Event Logs ({filteredEvents.length})
                         </TabsTrigger>
@@ -267,7 +280,9 @@ const Monitoring: NextPageWithLayout = () => {
                                         </p>
                                       )}
                                       <p className="font-mono text-[10px] text-muted-foreground">
-                                        {new Date(sub.createdAt).toLocaleString()}
+                                        {new Date(
+                                          sub.createdAt
+                                        ).toLocaleString()}
                                       </p>
                                     </div>
                                   </div>
@@ -309,7 +324,9 @@ const Monitoring: NextPageWithLayout = () => {
                                       )}
                                     </div>
                                     <p className="font-mono text-[10px] text-muted-foreground ml-4">
-                                      {new Date(event.createdAt).toLocaleString()}
+                                      {new Date(
+                                        event.createdAt
+                                      ).toLocaleString()}
                                     </p>
                                   </div>
                                 </div>

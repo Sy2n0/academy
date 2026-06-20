@@ -34,11 +34,15 @@ export default async function handler(
 
     if (format === 'json') {
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename=scoreboard.json');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=scoreboard.json'
+      );
       res.json({ rankings, exportedAt: new Date().toISOString() });
     } else if (format === 'csv') {
       // CSV 형식
-      const csvHeader = 'Rank,Name,Email,Machine Points,Track Points,Playground Points,Total Points\n';
+      const csvHeader =
+        'Rank,Name,Email,Machine Points,Track Points,Playground Points,Total Points\n';
       const csvRows = rankings
         .map(
           (user, index) =>
@@ -47,12 +51,18 @@ export default async function handler(
         .join('\n');
 
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=scoreboard.csv');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=scoreboard.csv'
+      );
       res.send(csvHeader + csvRows);
     } else {
       // 기본 JSON
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename=scoreboard.json');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=scoreboard.json'
+      );
       res.json({ rankings, exportedAt: new Date().toISOString() });
     }
   } catch (error: any) {

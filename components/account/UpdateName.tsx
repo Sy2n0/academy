@@ -71,7 +71,10 @@ const UpdateName = ({ user }: { user: Partial<User> }) => {
         </div>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="name" className="font-mono text-xs uppercase tracking-wider">
+            <FieldLabel
+              htmlFor="name"
+              className="font-mono text-xs uppercase tracking-wider"
+            >
               {t('name')}
             </FieldLabel>
             <Input
@@ -82,8 +85,10 @@ const UpdateName = ({ user }: { user: Partial<User> }) => {
               value={formik.values.name}
               onChange={formik.handleChange}
               className={cn(
-                "font-mono text-sm",
-                formik.touched.name && formik.errors.name && "border-destructive"
+                'font-mono text-sm',
+                formik.touched.name &&
+                  formik.errors.name &&
+                  'border-destructive'
               )}
               required
             />
@@ -100,7 +105,9 @@ const UpdateName = ({ user }: { user: Partial<User> }) => {
             disabled={!formik.dirty || !formik.isValid || formik.isSubmitting}
             className="font-mono text-xs uppercase tracking-wider"
           >
-            {formik.isSubmitting ? t('loading') || 'Loading...' : t('save-changes')}
+            {formik.isSubmitting
+              ? t('loading') || 'Loading...'
+              : t('save-changes')}
           </Button>
         </div>
       </div>

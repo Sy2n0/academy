@@ -1,13 +1,13 @@
-"use client"
+'use client';
 
-import { ChevronRight, type LucideIcon } from "lucide-react"
-import Link from "next/link"
+import { ChevronRight, type LucideIcon } from 'lucide-react';
+import Link from 'next/link';
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from '@/components/ui/collapsible';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -18,32 +18,32 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 export function NavProjects({
   projects,
 }: {
   projects: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+    isActive?: boolean;
     items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+      title: string;
+      url: string;
+    }[];
+  }[];
 }) {
-  const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>PRACTICE</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => {
-          const hasSubItems = item.items && item.items.length > 0
-          
+          const hasSubItems = item.items && item.items.length > 0;
+
           return (
             <Collapsible
               key={item.title}
@@ -55,19 +55,23 @@ export function NavProjects({
                 className="relative"
                 onMouseEnter={(e) => {
                   if (isCollapsed && hasSubItems) {
-                    const menuItem = e.currentTarget
-                    const hoverMenu = menuItem.querySelector('.hover-submenu') as HTMLElement
+                    const menuItem = e.currentTarget;
+                    const hoverMenu = menuItem.querySelector(
+                      '.hover-submenu'
+                    ) as HTMLElement;
                     if (hoverMenu) {
-                      hoverMenu.style.display = 'block'
+                      hoverMenu.style.display = 'block';
                     }
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (isCollapsed && hasSubItems) {
-                    const menuItem = e.currentTarget
-                    const hoverMenu = menuItem.querySelector('.hover-submenu') as HTMLElement
+                    const menuItem = e.currentTarget;
+                    const hoverMenu = menuItem.querySelector(
+                      '.hover-submenu'
+                    ) as HTMLElement;
                     if (hoverMenu) {
-                      hoverMenu.style.display = 'none'
+                      hoverMenu.style.display = 'none';
                     }
                   }
                 }}
@@ -84,7 +88,7 @@ export function NavProjects({
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton asChild>
-                          {subItem.url === "#" ? (
+                          {subItem.url === '#' ? (
                             <a href={subItem.url}>
                               <span>{subItem.title}</span>
                             </a>
@@ -106,7 +110,7 @@ export function NavProjects({
                   >
                     {item.items?.map((subItem) => (
                       <div key={subItem.title}>
-                        {subItem.url === "#" ? (
+                        {subItem.url === '#' ? (
                           <a
                             href={subItem.url}
                             className="block text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md px-3 py-2"
@@ -127,9 +131,9 @@ export function NavProjects({
                 )}
               </SidebarMenuItem>
             </Collapsible>
-          )
+          );
         })}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

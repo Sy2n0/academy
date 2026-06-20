@@ -15,7 +15,10 @@ jest.mock('models/invitation', () => ({
 jest.mock('@/lib/metrics', () => ({ recordMetric: jest.fn() }));
 jest.mock('@/lib/zod', () => ({
   getInvitationSchema: {
-    safeParse: jest.fn((data) => ({ success: true, data: { token: data.token } })),
+    safeParse: jest.fn((data) => ({
+      success: true,
+      data: { token: data.token },
+    })),
   },
   validateWithSchema: jest.fn((schema, data) => {
     const r = schema.safeParse(data);
@@ -27,24 +30,42 @@ jest.mock('@/lib/zod', () => ({
 import handler from '../../../pages/api/invitations/[token]';
 import { getInvitation, isInvitationExpired } from 'models/invitation';
 
-const mockGetInvitation = getInvitation as jest.MockedFunction<typeof getInvitation>;
-const mockIsExpired = isInvitationExpired as jest.MockedFunction<typeof isInvitationExpired>;
+const mockGetInvitation = getInvitation as jest.MockedFunction<
+  typeof getInvitation
+>;
+const mockIsExpired = isInvitationExpired as jest.MockedFunction<
+  typeof isInvitationExpired
+>;
 
 const validInvitation = {
-  id: 'inv-1', email: 'invited@example.com', role: 'MEMBER',
-  token: 'valid-token', expires: new Date(Date.now() + 3600000),
-  allowedDomains: null, url: 'http://localhost/invite/valid-token',
+  id: 'inv-1',
+  email: 'invited@example.com',
+  role: 'MEMBER',
+  token: 'valid-token',
+  expires: new Date(Date.now() + 3600000),
+  allowedDomains: null,
+  url: 'http://localhost/invite/valid-token',
 };
 
 function makeReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'GET', headers: {}, query: { token: 'valid-token' }, body: {}, ...overrides } as NextApiRequest;
+  return {
+    method: 'GET',
+    headers: {},
+    query: { token: 'valid-token' },
+    body: {},
+    ...overrides,
+  } as NextApiRequest;
 }
 
 function makeRes() {
   const json = jest.fn();
   const status = jest.fn().mockReturnThis();
   const setHeader = jest.fn();
-  return { res: { json, status, setHeader } as unknown as NextApiResponse, json, status };
+  return {
+    res: { json, status, setHeader } as unknown as NextApiResponse,
+    json,
+    status,
+  };
 }
 
 beforeEach(() => {
