@@ -1,6 +1,7 @@
 import app from '@/lib/app';
 import { SessionProvider } from 'next-auth/react';
 import { appWithTranslation } from 'next-i18next';
+import { Inter } from 'next/font/google';
 import Head from 'next/head';
 import { Toaster } from 'react-hot-toast';
 import colors from 'tailwindcss/colors';
@@ -16,6 +17,10 @@ import { Themer } from '@boxyhq/react-ui/shared';
 
 import { useRouter } from 'next/router';
 import { DefaultLayout } from '@/components/layouts';
+
+// App-wide UI font for the redesigned (Direction B) surfaces. Legacy surfaces
+// (landing + /auth) restore the previous system font via .legacy-theme.
+const inter = Inter({ subsets: ['latin'] });
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const { session, ...props } = pageProps;
@@ -39,14 +44,24 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
   // sandbox 경로일 때는 레이아웃 없이 렌더링
   if (router.pathname.startsWith('/sandbox')) {
-    return <Component {...props} />;
+    return (
+      <div className={`${inter.className} contents`}>
+        <Component {...props} />
+      </div>
+    );
   }
 
   const getLayout =
     Component.getLayout || ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
+  // Landing (/) and auth (/auth/*) keep the previous design — scope them to the
+  // legacy token set so the refactor only touches the app + admin surfaces.
+  const isLegacySurface =
+    router.pathname === '/' || router.pathname.startsWith('/auth');
+  const page = getLayout(<Component {...props} />);
+
   return (
-    <>
+    <div className={`${inter.className} contents`}>
       <Head>
         <title>HUB ACADEMY</title>
       </Head>
@@ -68,10 +83,14 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
             '--primary-color-950': colors.blue['950'],
           }}
         >
-          {getLayout(<Component {...props} />)}
+          {isLegacySurface ? (
+            <div className="legacy-theme contents">{page}</div>
+          ) : (
+            page
+          )}
         </Themer>
       </SessionProvider>
-    </>
+    </div>
   );
 }
 

@@ -14,6 +14,14 @@ updates:
       day: 'monday'
       time: '06:00'
       timezone: 'Asia/Seoul'
+    # Let releases age before proposing them — avoids pulling brand-new
+    # packages that fail pnpm's supply-chain (minimumReleaseAge) policy and
+    # break `pnpm install --frozen-lockfile` in CI.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 5
     open-pull-requests-limit: 5
     labels:
       - 'dependencies'
@@ -56,6 +64,8 @@ updates:
     schedule:
       interval: 'weekly'
       day: 'monday'
+    cooldown:
+      default-days: 7
     labels:
       - 'dependencies'
       - 'ci'

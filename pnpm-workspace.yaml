@@ -1,3 +1,10 @@
+# Hold semver to an aged release: 7.8.5 (published within the supply-chain
+# minimumReleaseAge window) was pulled in by a Dependabot bump and fails the
+# lockfile policy check. 7.8.4 is the latest aged patch and satisfies all
+# consumers. Remove once 7.8.5 ages past the cutoff.
+overrides:
+  semver: 7.8.4
+
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
