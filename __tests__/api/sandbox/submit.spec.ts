@@ -22,13 +22,16 @@ jest.mock('@/lib/prisma', () => ({
     },
   },
 }));
+jest.mock('models/score', () => ({ awardPoints: jest.fn() }));
 
 import handler from '../../../pages/api/sandbox/submit';
 import { getSession } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
+import { awardPoints } from 'models/score';
 
 const mockGetSession = getSession as jest.MockedFunction<typeof getSession>;
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+const mockAward = awardPoints as jest.MockedFunction<typeof awardPoints>;
 
 const mockSession = { user: { id: 'user-1' } };
 
@@ -133,6 +136,13 @@ describe('POST /api/sandbox/submit - 플래그 판정', () => {
     expect(mockPrisma.sandboxSolve.create).toHaveBeenCalledWith({
       data: { userId: 'user-1', problemId: 'p1' },
     });
+    expect(mockAward).toHaveBeenCalledWith(
+      'user-1',
+      'SANDBOX',
+      0,
+      expect.any(String),
+      expect.any(Object)
+    );
     expect(json).toHaveBeenCalledWith({ data: { result: 'correct' } });
   });
 

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
+import { awardPoints } from 'models/score';
 
 export default async function handler(
   req: NextApiRequest,
@@ -40,6 +41,11 @@ export default async function handler(
     const correct = problem.flag?.trim() === flag.trim();
     if (correct) {
       await prisma.sandboxSolve.create({ data: { userId, problemId } });
+      // 점수 획득 — Recent Activity/스트릭/랭크에 반영
+      await awardPoints(userId, 'SANDBOX', 0, `Solved: ${problem.title}`, {
+        problemId,
+        problemTitle: problem.title,
+      });
     }
 
     return res

@@ -1,7 +1,7 @@
 import app from '@/lib/app';
 import { SessionProvider } from 'next-auth/react';
 import { appWithTranslation } from 'next-i18next';
-import { Inter } from 'next/font/google';
+import { JetBrains_Mono } from 'next/font/google';
 import Head from 'next/head';
 import { Toaster } from 'react-hot-toast';
 import colors from 'tailwindcss/colors';
@@ -18,9 +18,13 @@ import { Themer } from '@boxyhq/react-ui/shared';
 import { useRouter } from 'next/router';
 import { DefaultLayout } from '@/components/layouts';
 
-// App-wide UI font for the redesigned (Direction B) surfaces. Legacy surfaces
-// (landing + /auth) restore the previous system font via .legacy-theme.
-const inter = Inter({ subsets: ['latin'] });
+// App-wide UI font for the redesigned (Direction C — hacker console) surfaces:
+// monospace-native (JetBrains Mono). Legacy surfaces (landing + /auth) restore
+// the previous system font via .legacy-theme.
+const jbMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jb-mono',
+});
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const { session, ...props } = pageProps;
@@ -45,7 +49,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   // sandbox 경로일 때는 레이아웃 없이 렌더링
   if (router.pathname.startsWith('/sandbox')) {
     return (
-      <div className={`${inter.className} contents`}>
+      <div className={`${jbMono.variable} ${jbMono.className} contents`}>
         <Component {...props} />
       </div>
     );
@@ -61,7 +65,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const page = getLayout(<Component {...props} />);
 
   return (
-    <div className={`${inter.className} contents`}>
+    <div className={`${jbMono.variable} ${jbMono.className} contents`}>
       <Head>
         <title>HUB ACADEMY</title>
       </Head>

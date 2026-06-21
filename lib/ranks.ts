@@ -30,6 +30,7 @@ export const SCORING_CONFIG = {
   BASE_POINTS: {
     MACHINE: 1000,
     TRACK: 500,
+    SANDBOX: 300, // 샌드박스 문제
     PLAYGROUND: 0, // 운영자 직접 부여
   },
   // 사용자의 현재 총점에 따른 점수 조정 계수
@@ -104,7 +105,7 @@ export function getPointsToNextRank(
  */
 export function calculateEarnedPoints(
   basePoints: number,
-  type: 'MACHINE' | 'TRACK' | 'PLAYGROUND',
+  type: 'MACHINE' | 'TRACK' | 'PLAYGROUND' | 'SANDBOX',
   currentTotalPoints: number = 0
 ): number {
   // PLAYGROUND는 운영자가 직접 부여하므로 제한 없음

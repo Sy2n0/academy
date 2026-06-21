@@ -700,18 +700,18 @@ model KucisVulnerabilityReport {
 }
 
 model TestRun {
-  id          String       @id @default(uuid())
+  id          String        @id @default(uuid())
   status      TestRunStatus @default(PENDING)
-  trigger     String       @default("manual")
+  trigger     String        @default("manual")
   commit      String?
   branch      String?
-  passedCount Int          @default(0)
-  failedCount Int          @default(0)
-  skipCount   Int          @default(0)
+  passedCount Int           @default(0)
+  failedCount Int           @default(0)
+  skipCount   Int           @default(0)
   duration    Int?
   results     Json?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([status])
   @@index([createdAt])
@@ -741,6 +741,7 @@ enum ScoreType {
   MACHINE
   TRACK
   PLAYGROUND
+  SANDBOX
 }
 
 enum MachineType {
