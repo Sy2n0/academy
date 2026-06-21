@@ -138,7 +138,7 @@ const Settings: NextPageWithLayout<SettingsProps> = ({ user }) => {
                 </div>
 
                 {/* Profile Settings */}
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                   <div className="flex items-center gap-2 mb-6">
                     <User className="h-4 w-4" />
                     <h2 className="font-mono text-xs uppercase tracking-wider text-foreground">
@@ -149,7 +149,7 @@ const Settings: NextPageWithLayout<SettingsProps> = ({ user }) => {
                 </div>
 
                 {/* Security Settings */}
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                   <div className="flex items-center gap-2 mb-6">
                     <Lock className="h-4 w-4" />
                     <h2 className="font-mono text-xs uppercase tracking-wider text-foreground">
@@ -161,7 +161,7 @@ const Settings: NextPageWithLayout<SettingsProps> = ({ user }) => {
 
                 {/* Preferences */}
                 {/* {env.darkModeEnabled && (
-                  <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                  <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                     <div className="flex items-center gap-2 mb-6">
                       <Palette className="h-4 w-4" />
                       <h2 className="font-mono text-xs uppercase tracking-wider text-foreground">
@@ -173,7 +173,7 @@ const Settings: NextPageWithLayout<SettingsProps> = ({ user }) => {
                 )} */}
 
                 {/* Danger Zone */}
-                <div className="rounded-lg border border-destructive/30 bg-destructive/5 backdrop-blur-sm p-6">
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 backdrop-blur-sm p-6">
                   <div className="flex items-center gap-2 mb-6">
                     <Trash2 className="h-4 w-4 text-destructive" />
                     <h2 className="font-mono text-xs uppercase tracking-wider text-destructive">

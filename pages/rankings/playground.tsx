@@ -34,6 +34,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import type { ApiResponse } from 'types';
 import { defaultHeaders } from '@/lib/common';
@@ -235,21 +242,28 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({
                                 >
                                   사용자 선택
                                 </Label>
-                                <select
-                                  id="userId"
+                                <Select
                                   value={selectedUserId}
-                                  onChange={(e) =>
-                                    setSelectedUserId(e.target.value)
-                                  }
-                                  className="w-full px-3 py-2 border border-border rounded-md bg-background font-mono text-sm"
+                                  onValueChange={setSelectedUserId}
                                 >
-                                  <option value="">사용자를 선택하세요</option>
-                                  {rankings.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                      {user.name} ({user.email})
-                                    </option>
-                                  ))}
-                                </select>
+                                  <SelectTrigger
+                                    id="userId"
+                                    className="w-full font-mono text-sm"
+                                  >
+                                    <SelectValue placeholder="사용자를 선택하세요" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {rankings.map((user) => (
+                                      <SelectItem
+                                        key={user.id}
+                                        value={user.id}
+                                        className="font-mono text-sm"
+                                      >
+                                        {user.name} ({user.email})
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
                               <div className="space-y-2">
                                 <Label
@@ -302,7 +316,7 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({
 
                   {/* User Ranking Card */}
                   {session?.user && userRanking && (
-                    <div className="mb-8 p-6 border-2 border-accent/40 bg-accent/5 backdrop-blur-sm rounded-xl">
+                    <div className="mb-8 p-6 border-2 border-accent/40 bg-accent/5 backdrop-blur-sm rounded-md">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <Avatar className="h-14 w-14 border-2 border-accent/30">
@@ -382,7 +396,7 @@ const PlaygroundRankings: NextPageWithLayout<PlaygroundRankingsProps> = ({
                         return (
                           <div
                             key={user.id}
-                            className={`group relative p-6 border rounded-xl backdrop-blur-sm transition-all duration-200 ${
+                            className={`group relative p-6 border rounded-md backdrop-blur-sm transition-all duration-200 ${
                               isCurrentUser
                                 ? 'border-accent/50 bg-accent/5 hover:border-accent/70 hover:shadow-lg hover:shadow-accent/10'
                                 : 'border-border/30 bg-background/40 hover:border-border/50 hover:bg-background/60'

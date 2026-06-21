@@ -114,7 +114,7 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
                 </div>
 
                 <div className="grid auto-rows-min gap-6 md:grid-cols-3">
-                  <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                  <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4">
                       STATS
                     </h3>
@@ -149,7 +149,7 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                  <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4">
                       ACTIVITY
                     </h3>
@@ -187,7 +187,7 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                  <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4">
                       PROGRESS
                     </h3>
@@ -220,7 +220,7 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                   <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4">
                     RECENT ACTIVITY
                   </h3>
@@ -245,7 +245,7 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
                               <span className="text-green-500">
                                 +{activity.earnedPoints}
                               </span>{' '}
-                              <span className="text-white">pts</span>
+                              <span className="text-muted-foreground">pts</span>
                             </p>
                             <p className="font-mono text-[10px] text-muted-foreground">
                               {activity.type}

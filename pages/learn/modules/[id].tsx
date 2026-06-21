@@ -873,7 +873,7 @@ const ModuleDetailPage: NextPageWithLayout = () => {
                 Back to Modules
               </Button>
 
-              <section className="rounded-xl border border-border/30 bg-card p-6 md:p-7 space-y-4">
+              <section className="rounded-md border border-border/30 bg-card p-6 md:p-7 space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background/50 px-2.5 py-1 font-mono text-[10px] uppercase text-foreground">
                     <GraduationCap className="h-3 w-3" />
@@ -910,7 +910,7 @@ const ModuleDetailPage: NextPageWithLayout = () => {
                 )}
               </section>
 
-              <section className="rounded-xl border border-border/30 bg-card">
+              <section className="rounded-md border border-border/30 bg-card">
                 <div className="border-b border-border/30 px-6 py-4">
                   <h2 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">
                     Learning Material
@@ -971,7 +971,7 @@ const ModuleDetailPage: NextPageWithLayout = () => {
                     </div>
                   )}
 
-                  <section className="rounded-lg border border-border/40 bg-background/30 p-4">
+                  <section className="rounded-md border border-border/40 bg-background/30 p-4">
                     {!isCompleted ? (
                       <div className="space-y-3">
                         <p className="font-mono text-xs text-muted-foreground">

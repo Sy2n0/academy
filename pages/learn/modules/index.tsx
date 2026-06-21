@@ -12,6 +12,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import {
   SidebarInset,
   SidebarProvider,
@@ -206,7 +207,7 @@ const ModulesPage: NextPageWithLayout = () => {
         </header>
         <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6 overflow-y-auto">
           <div className="max-w-7xl mx-auto w-full space-y-6">
-            <section className="relative overflow-hidden rounded-xl border border-border/40 bg-card/80 p-5 md:p-7">
+            <section className="relative overflow-hidden rounded-md border border-border/40 bg-card/80 p-5 md:p-7">
               <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
               <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl" />
               <div className="relative flex flex-col gap-5">
@@ -288,7 +289,7 @@ const ModulesPage: NextPageWithLayout = () => {
               </div>
             </section>
 
-            <section className="rounded-xl border border-border/40 bg-card/70 p-4 md:p-5 space-y-3">
+            <section className="rounded-md border border-border/40 bg-card/70 p-4 md:p-5 space-y-3">
               <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                 Filter Control
               </p>
@@ -495,7 +496,7 @@ const ModulesPage: NextPageWithLayout = () => {
             </section>
 
             {isLoading && (
-              <div className="rounded-xl border border-border/40 bg-card/60 py-14 text-center">
+              <div className="rounded-md border border-border/40 bg-card/60 py-14 text-center">
                 <p className="font-mono text-sm text-muted-foreground">
                   Loading modules...
                 </p>
@@ -503,7 +504,7 @@ const ModulesPage: NextPageWithLayout = () => {
             )}
 
             {error && (
-              <div className="rounded-xl border border-destructive/40 bg-destructive/10 py-14 text-center">
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 py-14 text-center">
                 <p className="font-mono text-sm text-destructive">
                   모듈 목록을 불러오지 못했습니다
                 </p>
@@ -511,7 +512,7 @@ const ModulesPage: NextPageWithLayout = () => {
             )}
 
             {!isLoading && !error && filteredModules.length === 0 && (
-              <div className="rounded-xl border border-border/40 bg-card/60 py-14 text-center">
+              <div className="rounded-md border border-border/40 bg-card/60 py-14 text-center">
                 <p className="font-mono text-sm text-muted-foreground">
                   No modules found
                 </p>
@@ -530,7 +531,7 @@ const ModulesPage: NextPageWithLayout = () => {
                         onClick={() =>
                           router.push(`/learn/modules/${module.id}`)
                         }
-                        className="group cursor-pointer overflow-hidden rounded-xl border border-border/40 bg-card/85 transition-all duration-300 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_18px_50px_-24px_rgba(0,0,0,0.45)]"
+                        className="group cursor-pointer overflow-hidden rounded-md border border-border/40 bg-card/85 transition-all duration-300 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_18px_50px_-24px_rgba(0,0,0,0.45)]"
                       >
                         <div className="relative h-28 w-full overflow-hidden bg-gradient-to-br from-cyan-500/15 via-transparent to-emerald-500/15">
                           <div className="absolute inset-0 grid-bg opacity-30" />
@@ -619,29 +620,33 @@ const ModulesPage: NextPageWithLayout = () => {
 
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 pt-2">
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() =>
                         setCurrentPage((prev) => Math.max(1, prev - 1))
                       }
                       disabled={currentPage === 1}
-                      className="h-8 px-3 rounded border border-border/70 bg-background/70 font-mono text-xs text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="font-mono text-xs"
                     >
                       Prev
-                    </button>
+                    </Button>
                     <span className="font-mono text-xs text-muted-foreground px-2">
                       {currentPage} / {totalPages}
                     </span>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() =>
                         setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                       }
                       disabled={currentPage === totalPages}
-                      className="h-8 px-3 rounded border border-border/70 bg-background/70 font-mono text-xs text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="font-mono text-xs"
                     >
                       Next
-                    </button>
+                    </Button>
                   </div>
                 )}
               </>

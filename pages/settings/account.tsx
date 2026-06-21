@@ -212,7 +212,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
 
                 {/* 계정 정보 섹션 */}
                 <div className="grid auto-rows-min gap-6 md:grid-cols-2">
-                  <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                  <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
                       <User className="h-4 w-4" />
                       ACCOUNT INFO
@@ -275,7 +275,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
                             className={`inline-flex items-center px-2 py-1 rounded border text-xs font-mono uppercase tracking-wider ${
                               user.role === UserRole.ADMIN ||
                               user.role === 'ADMIN'
-                                ? 'bg-red-500/10 text-red-500 border-red-500/30'
+                                ? 'bg-destructive/10 text-destructive border-destructive/30'
                                 : user.role === UserRole.LAB ||
                                     user.role === 'LAB'
                                   ? 'bg-blue-500/10 text-blue-500 border-blue-500/30'
@@ -289,7 +289,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                  <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
                       <Shield className="h-4 w-4" />
                       SECURITY STATUS
@@ -302,7 +302,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
                         <div className="flex items-center gap-2">
                           {user.emailVerified ? (
                             <>
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-success" />
                               <p className="font-mono text-sm text-foreground">
                                 Verified
                               </p>
@@ -344,7 +344,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
                             </>
                           ) : (
                             <>
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <CheckCircle2 className="h-4 w-4 text-success" />
                               <p className="font-mono text-sm text-foreground">
                                 Active
                               </p>
@@ -373,7 +373,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
 
                 {/* 활성 세션 */}
                 {sessions && sessions.length > 0 && (
-                  <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                  <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                     <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
                       <Clock className="h-4 w-4" />
                       ACTIVE SESSIONS
@@ -424,7 +424,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
                 )}
 
                 {/* 프로필 섹션 */}
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                   <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
                     <User className="h-4 w-4" />
                     PROFILE
@@ -467,7 +467,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
 
                 {/* API Keys 섹션 */}
                 {team && (
-                  <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                  <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-mono text-xs uppercase tracking-wider text-foreground flex items-center gap-2">
                         <Key className="h-4 w-4" />
@@ -506,9 +506,9 @@ const Account: NextPageWithLayout<AccountProps> = ({
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-2 px-2 py-1 rounded border border-green-500/30 bg-green-500/10">
-                                <CheckCircle2 className="h-3 w-3 text-green-500" />
-                                <span className="font-mono text-[10px] text-green-500 uppercase tracking-wider">
+                              <div className="flex items-center gap-2 px-2 py-1 rounded border border-success/30 bg-success/10">
+                                <CheckCircle2 className="h-3 w-3 text-success" />
+                                <span className="font-mono text-[10px] text-success uppercase tracking-wider">
                                   Active
                                 </span>
                               </div>
@@ -597,7 +597,7 @@ const Account: NextPageWithLayout<AccountProps> = ({
                                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                 >
                                   {copied ? (
-                                    <Check className="h-4 w-4 text-green-500" />
+                                    <Check className="h-4 w-4 text-success" />
                                   ) : (
                                     <Copy className="h-4 w-4" />
                                   )}

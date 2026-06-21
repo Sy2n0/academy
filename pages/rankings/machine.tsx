@@ -143,7 +143,7 @@ const MachineRankings: NextPageWithLayout = () => {
 
                   {/* User Ranking Info */}
                   {session?.user && userRanking && (
-                    <div className="mb-6 p-5 border border-border/20 bg-background/30 backdrop-blur-sm rounded-lg">
+                    <div className="mb-6 p-5 border border-border/20 bg-background/30 backdrop-blur-sm rounded-md">
                       <div className="flex items-center gap-4">
                         <Avatar className="h-11 w-11">
                           <AvatarImage
@@ -197,7 +197,7 @@ const MachineRankings: NextPageWithLayout = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="border border-border/20 bg-background/30 backdrop-blur-sm rounded-lg overflow-hidden">
+                    <div className="border border-border/20 bg-background/30 backdrop-blur-sm rounded-md overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>

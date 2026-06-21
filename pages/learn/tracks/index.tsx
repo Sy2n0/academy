@@ -169,7 +169,7 @@ const TracksPage: NextPageWithLayout = () => {
 
         <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6 overflow-y-auto">
           <div className="max-w-7xl mx-auto w-full space-y-6">
-            <section className="relative overflow-hidden rounded-xl border border-border/40 bg-card/80 p-5 md:p-7">
+            <section className="relative overflow-hidden rounded-md border border-border/40 bg-card/80 p-5 md:p-7">
               <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-rose-500/10 blur-3xl" />
               <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-sky-500/10 blur-2xl" />
 
@@ -268,7 +268,7 @@ const TracksPage: NextPageWithLayout = () => {
               </div>
             </section>
 
-            <section className="rounded-xl border border-border/40 bg-card/70 p-4 md:p-5 space-y-3">
+            <section className="rounded-md border border-border/40 bg-card/70 p-4 md:p-5 space-y-3">
               <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                 Filter Control
               </p>
@@ -326,7 +326,7 @@ const TracksPage: NextPageWithLayout = () => {
             </section>
 
             {isLoading && (
-              <div className="rounded-xl border border-border/30 bg-card/60 text-center py-12">
+              <div className="rounded-md border border-border/30 bg-card/60 text-center py-12">
                 <p className="font-mono text-sm text-muted-foreground">
                   Loading tracks...
                 </p>
@@ -334,7 +334,7 @@ const TracksPage: NextPageWithLayout = () => {
             )}
 
             {error && (
-              <div className="rounded-xl border border-border/30 bg-card/60 text-center py-12">
+              <div className="rounded-md border border-border/30 bg-card/60 text-center py-12">
                 <p className="font-mono text-sm text-destructive">
                   트랙 목록을 불러오지 못했습니다
                 </p>
@@ -342,7 +342,7 @@ const TracksPage: NextPageWithLayout = () => {
             )}
 
             {!isLoading && !error && processedTracks.length === 0 && (
-              <div className="rounded-xl border border-border/30 bg-card/60 text-center py-12">
+              <div className="rounded-md border border-border/30 bg-card/60 text-center py-12">
                 <p className="font-mono text-sm text-muted-foreground">
                   No tracks found
                 </p>
@@ -355,7 +355,7 @@ const TracksPage: NextPageWithLayout = () => {
                   <div
                     key={track.id}
                     onClick={() => router.push(`/learn/tracks/${track.id}`)}
-                    className="group relative overflow-hidden rounded-xl border border-border/35 bg-card/80 hover:border-accent/50 transition-colors cursor-pointer"
+                    className="group relative overflow-hidden rounded-md border border-border/35 bg-card/80 hover:border-accent/50 transition-colors cursor-pointer"
                     style={{
                       backgroundImage:
                         'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)',

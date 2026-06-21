@@ -835,10 +835,7 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
                       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
                         {/* Left Column - Countdown */}
                         <div>
-                          <h2
-                            className="font-[var(--font-bebas)] text-5xl md:text-6xl tracking-tight text-accent mb-2"
-                            style={{ fontStyle: 'italic', color: 'violet' }}
-                          >
+                          <h2 className="font-[var(--font-bebas)] text-5xl md:text-6xl tracking-tight text-primary italic mb-2">
                             {settings.codeName || 'BREEZY'}
                           </h2>
                           <p className="font-mono text-xs text-muted-foreground mb-3">
@@ -975,25 +972,25 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
                         </h2>
 
                         {isLoading ? (
-                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-lg p-6 text-center">
+                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md p-6 text-center">
                             <p className="font-mono text-xs text-muted-foreground">
                               Loading leaderboard...
                             </p>
                           </div>
                         ) : error ? (
-                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-lg p-6 text-center">
+                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md p-6 text-center">
                             <p className="font-mono text-xs text-destructive">
                               리더보드를 불러오지 못했습니다
                             </p>
                           </div>
                         ) : rankings.length === 0 ? (
-                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-lg p-6 text-center">
+                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md p-6 text-center">
                             <p className="font-mono text-xs text-muted-foreground">
                               No leaderboard data available
                             </p>
                           </div>
                         ) : (
-                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-lg overflow-hidden">
+                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md overflow-hidden">
                             <div className="overflow-x-auto">
                               <table className="w-full">
                                 <thead>
@@ -1069,7 +1066,7 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
                         FAQ
                       </h2>
                       <div className="space-y-4">
-                        <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-5">
+                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
                           <p className="font-mono text-sm text-foreground mb-2">
                             Q. Playground는 언제 시작되나요?
                           </p>
@@ -1077,7 +1074,7 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
                             설정된 시작일 이후 자동으로 참여가 활성화됩니다.
                           </p>
                         </div>
-                        <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-5">
+                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
                           <p className="font-mono text-sm text-foreground mb-2">
                             Q. 점수는 어디서 확인하나요?
                           </p>
@@ -1086,7 +1083,7 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
                             있습니다.
                           </p>
                         </div>
-                        <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-5">
+                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
                           <p className="font-mono text-sm text-foreground mb-2">
                             Q. 종료된 Playground는 다시 참여 가능한가요?
                           </p>
@@ -1107,7 +1104,7 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
                         HOW TO PLAY
                       </h2>
                       <div className="space-y-4">
-                        <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-5">
+                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
                           <p className="font-mono text-sm text-foreground mb-2">
                             1. 등록 상태 확인
                           </p>
@@ -1116,7 +1113,7 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
                             기간에 접속하세요.
                           </p>
                         </div>
-                        <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-5">
+                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
                           <p className="font-mono text-sm text-foreground mb-2">
                             2. 문제 풀이 및 점수 획득
                           </p>
@@ -1125,7 +1122,7 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
                             반영됩니다.
                           </p>
                         </div>
-                        <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-5">
+                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
                           <p className="font-mono text-sm text-foreground mb-2">
                             3. 순위 확인
                           </p>

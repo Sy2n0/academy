@@ -224,7 +224,7 @@ const MachinesPage: NextPageWithLayout = () => {
                       </BreadcrumbItem>
                     </BreadcrumbList>
                   </Breadcrumb>
-                  <div className="ml-auto flex items-center gap-1 bg-background/40 border border-border/30 rounded-lg p-1">
+                  <div className="ml-auto flex items-center gap-1 bg-background/40 border border-border/30 rounded-md p-1">
                     {/* <button
                       onClick={() => setActiveTab('challenges')}
                       className={`px-4 py-2 rounded-md font-mono text-xs uppercase tracking-wider transition-all ${
@@ -331,7 +331,7 @@ const MachinesPage: NextPageWithLayout = () => {
                           <button
                             key={machine.id}
                             onClick={() => setSelectedMachineId(machine.id)}
-                            className={`group relative border rounded-lg hover:border-accent/50 transition-all duration-200 overflow-hidden w-full text-left ${
+                            className={`group relative border rounded-md hover:border-accent/50 transition-all duration-200 overflow-hidden w-full text-left ${
                               isSolved
                                 ? 'border-green-500 bg-green-500/10'
                                 : 'border-border/30 bg-card'
@@ -437,7 +437,7 @@ const MachinesPage: NextPageWithLayout = () => {
 
                     {/* Activity Feed */}
                     <div className="space-y-3">
-                      <div className="flex items-center gap-1 bg-background/60 border border-border/30 rounded-lg p-1">
+                      <div className="flex items-center gap-1 bg-background/60 border border-border/30 rounded-md p-1">
                         <button className="flex-1 px-2 py-1 rounded-md font-mono text-xs bg-accent text-foreground">
                           All
                         </button>

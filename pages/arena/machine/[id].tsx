@@ -413,7 +413,7 @@ const MachineDetail: NextPageWithLayout = () => {
 
                           {container && container.status === 'running' ? (
                             <div className="space-y-4">
-                              <div className="p-4 border border-border/30 rounded-lg bg-background/40">
+                              <div className="p-4 border border-border/30 rounded-md bg-background/40">
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">
@@ -509,7 +509,7 @@ const MachineDetail: NextPageWithLayout = () => {
                             <span className="text-sm text-muted-foreground whitespace-nowrap">
                               User Blood taken by
                             </span>
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2a303c]">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#2a303c]">
                               <Avatar className="h-6 w-6">
                                 <AvatarFallback className="bg-accent/20 text-accent text-xs">
                                   S
@@ -519,7 +519,7 @@ const MachineDetail: NextPageWithLayout = () => {
                                 szymex73
                               </span>
                             </div>
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#8b0000] ml-auto">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#8b0000] ml-auto">
                               <Clock className="h-4 w-4 text-white" />
                               <span className="text-sm font-mono text-white">
                                 0H 3M 38S
@@ -532,7 +532,7 @@ const MachineDetail: NextPageWithLayout = () => {
                             <span className="text-sm text-muted-foreground whitespace-nowrap">
                               System Blood taken by
                             </span>
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2a303c]">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#2a303c]">
                               <Avatar className="h-6 w-6">
                                 <AvatarFallback className="bg-accent/20 text-accent text-xs">
                                   S
@@ -542,7 +542,7 @@ const MachineDetail: NextPageWithLayout = () => {
                                 szymex73
                               </span>
                             </div>
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#8b0000] ml-auto">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#8b0000] ml-auto">
                               <Hash className="h-4 w-4 text-white" />
                               <span className="text-sm font-mono text-white">
                                 0H 4M 44S

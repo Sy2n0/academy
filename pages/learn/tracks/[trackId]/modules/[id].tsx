@@ -101,7 +101,7 @@ const PROSE_CLASSES = `prose dark:prose-invert max-w-none
   prose-strong:text-foreground prose-strong:font-semibold
   prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline
   prose-code:text-foreground prose-code:bg-muted/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
-  prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-white/5 prose-pre:rounded-xl prose-pre:text-sm
+  prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-white/5 prose-pre:rounded-md prose-pre:text-sm
   prose-blockquote:border-l-2 prose-blockquote:border-border/50 prose-blockquote:text-muted-foreground prose-blockquote:not-italic prose-blockquote:bg-muted/10 prose-blockquote:py-0.5 prose-blockquote:pr-4
   prose-hr:border-border/20
   prose-li:text-foreground prose-li:leading-7 prose-li:text-base prose-li:marker:text-muted-foreground

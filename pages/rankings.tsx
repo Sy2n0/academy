@@ -131,7 +131,7 @@ const Rankings: NextPageWithLayout = () => {
 
                   {/* User Ranking Info */}
                   {session?.user && userRanking && (
-                    <div className="mb-8 p-4 border border-border/30 bg-background/50 backdrop-blur-sm">
+                    <div className="mb-8 p-4 border border-border/30 bg-background/50 backdrop-blur-sm rounded-md">
                       <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12">
                           <AvatarImage
@@ -174,7 +174,7 @@ const Rankings: NextPageWithLayout = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="border border-border/30 bg-background/50 backdrop-blur-sm">
+                    <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>

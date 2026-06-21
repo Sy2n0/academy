@@ -272,7 +272,7 @@ const TrackDetailPage: NextPageWithLayout = () => {
 
         <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6 overflow-y-auto">
           <div className="max-w-7xl mx-auto w-full space-y-6">
-            <section className="relative overflow-hidden rounded-2xl border border-border/40 bg-card/85 p-6 md:p-8">
+            <section className="relative overflow-hidden rounded-md border border-border/40 bg-card/85 p-6 md:p-8">
               <div className="pointer-events-none absolute -left-24 -top-24 h-56 w-56 rounded-full bg-muted/30 blur-3xl" />
               <div className="pointer-events-none absolute -right-24 -bottom-24 h-56 w-56 rounded-full bg-muted/20 blur-3xl" />
 
@@ -339,7 +339,7 @@ const TrackDetailPage: NextPageWithLayout = () => {
                   </div>
                 </div>
 
-                <aside className="rounded-xl border border-border/40 bg-background/55 p-4 space-y-3">
+                <aside className="rounded-md border border-border/40 bg-background/55 p-4 space-y-3">
                   <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                     Command Panel
                   </p>
@@ -423,13 +423,13 @@ const TrackDetailPage: NextPageWithLayout = () => {
 
               <TabsContent value="progress" className="mt-4 space-y-4">
                 {track.modules.length === 0 ? (
-                  <div className="rounded-xl border border-border/40 bg-card/70 p-8 text-center">
+                  <div className="rounded-md border border-border/40 bg-card/70 p-8 text-center">
                     <p className="font-mono text-sm text-muted-foreground">
                       No modules registered in this track.
                     </p>
                   </div>
                 ) : (
-                  <section className="rounded-xl border border-border/40 bg-card/80 p-4 md:p-5">
+                  <section className="rounded-md border border-border/40 bg-card/80 p-4 md:p-5">
                     <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-4">
                       Route Timeline
                     </p>
@@ -454,7 +454,7 @@ const TrackDetailPage: NextPageWithLayout = () => {
                               }`}
                             />
 
-                            <div className="rounded-lg border border-border/35 bg-background/50 p-4 flex flex-col md:flex-row md:items-center gap-3">
+                            <div className="rounded-md border border-border/35 bg-background/50 p-4 flex flex-col md:flex-row md:items-center gap-3">
                               <div className="w-10 h-10 rounded-md border border-border/40 bg-card/70 flex items-center justify-center font-mono text-xs text-muted-foreground shrink-0">
                                 {trackModule.order}
                               </div>
@@ -526,7 +526,7 @@ const TrackDetailPage: NextPageWithLayout = () => {
               </TabsContent>
 
               <TabsContent value="details" className="mt-4">
-                <section className="rounded-xl border border-border/40 bg-card/80 p-5 md:p-6 space-y-4">
+                <section className="rounded-md border border-border/40 bg-card/80 p-5 md:p-6 space-y-4">
                   <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
                     Track Brief
                   </p>

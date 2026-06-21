@@ -79,7 +79,7 @@ const BadgesPage: NextPageWithLayout<BadgesProps> = ({
                   </p>
                 </div>
 
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
+                <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-6">
                   <h3 className="font-mono text-xs uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
                     <Award className="h-4 w-4" />
                     MY BADGES
@@ -93,7 +93,7 @@ const BadgesPage: NextPageWithLayout<BadgesProps> = ({
                       {earnedBadges.map((badge) => (
                         <div
                           key={badge.codeName}
-                          className="rounded-lg border border-border/30 bg-background/60 p-3"
+                          className="rounded-md border border-border/30 bg-background/60 p-3"
                         >
                           <div className="aspect-square w-full rounded-md overflow-hidden border border-border/30 bg-muted/20 mb-2 flex items-center justify-center">
                             {badge.image ? (
@@ -133,7 +133,7 @@ const BadgesPage: NextPageWithLayout<BadgesProps> = ({
                   )}
                 </div>
 
-                {/* <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-4">
+                {/* <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-4">
                   <div className="flex items-center gap-2">
                     <Badge variant={roleBadgeVariant}>{user.role || UserRole.USER}</Badge>
                     <p className="font-mono text-xs text-muted-foreground">Account role badge</p>

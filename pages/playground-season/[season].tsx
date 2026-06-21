@@ -654,7 +654,7 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({
               <main className="flex-1 flex items-center justify-center">
                 <section className="w-full h-full overflow-y-auto px-4 md:px-8 py-5">
                   <div className="max-w-[1360px] mx-auto space-y-4">
-                    <div className="rounded-lg border border-border bg-card/70 p-4 md:p-5">
+                    <div className="rounded-md border border-border bg-card/70 p-4 md:p-5">
                       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div>
                           <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -1011,7 +1011,7 @@ const PlaygroundSeasonPage: NextPageWithLayout<PlaygroundSeasonPageProps> = ({
                   </p>
                   {selectedChallenge?.description?.trim() ? (
                     <div className="rounded border border-border/40 bg-background/40 px-3 py-2">
-                      <div className="prose prose-sm max-w-none text-foreground prose-headings:font-mono prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-a:text-white hover:prose-a:text-white/90">
+                      <div className="prose prose-sm max-w-none text-foreground prose-headings:font-mono prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-a:text-foreground hover:prose-a:text-foreground/80">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {selectedChallenge.description}
                         </ReactMarkdown>

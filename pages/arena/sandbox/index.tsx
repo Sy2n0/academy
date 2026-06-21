@@ -360,12 +360,7 @@ const SandboxPage: NextPageWithLayout = () => {
               >
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <p
-                      className="font-mono text-sm"
-                      style={{ color: '#2dcc96' }}
-                    >
-                      Loading...
-                    </p>
+                    <p className="font-mono text-sm text-success">Loading...</p>
                   </div>
                 )}
                 {!isLoading && problems.length === 0 && (
@@ -608,14 +603,7 @@ const SandboxPage: NextPageWithLayout = () => {
                               {modalProblem.title}
                             </h1>
                             {solvedIds.includes(modalProblem.id) && (
-                              <span
-                                className="font-mono text-[10px] px-2 py-0.5 rounded-full"
-                                style={{
-                                  background: 'rgba(45,204,150,0.15)',
-                                  color: '#2dcc96',
-                                  border: '1px solid rgba(45,204,150,0.3)',
-                                }}
-                              >
+                              <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-success/15 text-success border border-success/30">
                                 SOLVED
                               </span>
                             )}
@@ -629,18 +617,11 @@ const SandboxPage: NextPageWithLayout = () => {
                             <button
                               key={tab}
                               onClick={() => setModalTab(tab)}
-                              className="px-4 py-2 font-mono text-xs uppercase tracking-wider transition-colors"
-                              style={{
-                                color:
-                                  modalTab === tab
-                                    ? '#2dcc96'
-                                    : 'rgba(255,255,255,0.4)',
-                                borderBottom:
-                                  modalTab === tab
-                                    ? '2px solid #2dcc96'
-                                    : '2px solid transparent',
-                                marginBottom: '-1px',
-                              }}
+                              className={`-mb-px px-4 py-2 font-mono text-xs uppercase tracking-wider border-b-2 transition-colors ${
+                                modalTab === tab
+                                  ? 'text-success border-success'
+                                  : 'text-muted-foreground border-transparent'
+                              }`}
                             >
                               {tab === 'solvers'
                                 ? `Solvers (${solvers.length})`
@@ -734,13 +715,7 @@ const SandboxPage: NextPageWithLayout = () => {
                               </div>
 
                               {instance && (
-                                <div
-                                  className="rounded-lg p-3 flex items-center justify-between gap-3"
-                                  style={{
-                                    background: 'rgba(45,204,150,0.06)',
-                                    border: '1px solid rgba(45,204,150,0.2)',
-                                  }}
-                                >
+                                <div className="rounded-md p-3 flex items-center justify-between gap-3 bg-success/5 border border-success/20">
                                   <div className="min-w-0">
                                     <p className="font-mono text-[10px] text-muted-foreground mb-0.5 uppercase tracking-wider">
                                       {t('connection')}
@@ -753,12 +728,7 @@ const SandboxPage: NextPageWithLayout = () => {
                                     href={`http://${instance.host}:${instance.port}`}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded font-mono text-[10px] transition-colors"
-                                    style={{
-                                      background: 'rgba(45,204,150,0.1)',
-                                      border: '1px solid rgba(45,204,150,0.3)',
-                                      color: '#2dcc96',
-                                    }}
+                                    className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[10px] bg-success/10 border border-success/30 text-success transition-colors hover:bg-success/20"
                                   >
                                     <ExternalLink size={11} /> OPEN
                                   </a>
@@ -771,14 +741,7 @@ const SandboxPage: NextPageWithLayout = () => {
                             <div className="space-y-2">
                               {submitResult === 'correct' ||
                               submitResult === 'already_solved' ? (
-                                <div
-                                  className="rounded-lg p-3 text-center font-mono text-sm font-bold"
-                                  style={{
-                                    background: 'rgba(45,204,150,0.1)',
-                                    border: '1px solid rgba(45,204,150,0.3)',
-                                    color: '#2dcc96',
-                                  }}
-                                >
+                                <div className="rounded-md p-3 text-center font-mono text-sm font-bold bg-success/10 border border-success/30 text-success">
                                   {submitResult === 'correct'
                                     ? '🎉 Correct! Challenge solved.'
                                     : '✓ Already solved.'}
@@ -848,10 +811,7 @@ const SandboxPage: NextPageWithLayout = () => {
                                     </Button>
                                   </form>
                                   {submitResult === 'wrong' && (
-                                    <p
-                                      className="font-mono text-xs text-center"
-                                      style={{ color: '#ef4444' }}
-                                    >
+                                    <p className="font-mono text-xs text-center text-destructive">
                                       {t('incorrect-flag')}
                                     </p>
                                   )}
@@ -870,11 +830,7 @@ const SandboxPage: NextPageWithLayout = () => {
                               solvers.map((s, i) => (
                                 <div
                                   key={s.user.id}
-                                  className="flex items-center gap-3 px-3 py-2 rounded-lg"
-                                  style={{
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid rgba(255,255,255,0.06)',
-                                  }}
+                                  className="flex items-center gap-3 px-3 py-2 rounded-md bg-muted/30 border border-border/40"
                                 >
                                   <span className="font-mono text-xs text-muted-foreground w-5 text-right">
                                     {i + 1}
@@ -897,10 +853,7 @@ const SandboxPage: NextPageWithLayout = () => {
                                     {new Date(s.solvedAt).toLocaleDateString()}
                                   </span>
                                   {i === 0 && (
-                                    <span
-                                      className="font-mono text-[10px]"
-                                      style={{ color: '#f59e0b' }}
-                                    >
+                                    <span className="font-mono text-[10px] text-amber-500">
                                       {t('first-blood')}
                                     </span>
                                   )}
@@ -916,53 +869,22 @@ const SandboxPage: NextPageWithLayout = () => {
 
                 {/* Zoom + action controls */}
                 <div className="absolute bottom-6 right-6 flex flex-col items-end gap-3 z-10">
-                  <div
-                    className="flex flex-col rounded overflow-hidden"
-                    style={{
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      background: 'rgba(0,0,0,0.7)',
-                    }}
-                  >
+                  <div className="flex flex-col rounded-md overflow-hidden border border-white/10 bg-black/70">
                     <button
                       onClick={zoomIn}
-                      className="px-3 py-2 font-mono text-base transition-colors"
-                      style={{ color: 'rgba(255,255,255,0.6)' }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = '#fff')
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')
-                      }
+                      className="px-3 py-2 font-mono text-base text-white/60 hover:text-white transition-colors"
                     >
                       +
                     </button>
                     <button
                       onClick={fitView}
-                      className="px-3 py-2 flex items-center justify-center transition-colors"
-                      style={{
-                        color: 'rgba(255,255,255,0.6)',
-                        borderTop: '1px solid rgba(255,255,255,0.1)',
-                        borderBottom: '1px solid rgba(255,255,255,0.1)',
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = '#fff')
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')
-                      }
+                      className="px-3 py-2 flex items-center justify-center border-y border-white/10 text-white/60 hover:text-white transition-colors"
                     >
                       <Maximize2 size={13} />
                     </button>
                     <button
                       onClick={zoomOut}
-                      className="px-3 py-2 font-mono text-base transition-colors"
-                      style={{ color: 'rgba(255,255,255,0.6)' }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = '#fff')
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')
-                      }
+                      className="px-3 py-2 font-mono text-base text-white/60 hover:text-white transition-colors"
                     >
                       −
                     </button>
@@ -975,19 +897,7 @@ const SandboxPage: NextPageWithLayout = () => {
                     ].map(({ icon, label }) => (
                       <button
                         key={label}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded font-mono text-xs transition-colors"
-                        style={{
-                          background: 'rgba(0,0,0,0.7)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          color: 'rgba(255,255,255,0.6)',
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.color = '#fff')
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.color =
-                            'rgba(255,255,255,0.6)')
-                        }
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-md font-mono text-xs bg-black/70 border border-white/10 text-white/60 hover:text-white transition-colors"
                       >
                         {icon} {label}
                       </button>

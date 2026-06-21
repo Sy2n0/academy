@@ -292,7 +292,7 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
                       {paged.map((a) => (
                         <div
                           key={a.id}
-                          className="group relative flex flex-col gap-3 rounded-lg border border-border/40 bg-card/40 p-5 transition-colors hover:border-border/70"
+                          className="group relative flex flex-col gap-3 rounded-md border border-border/40 bg-card/40 p-5 transition-colors hover:border-border/70"
                         >
                           {/* Status indicator */}
                           {a.submitted && (
@@ -568,7 +568,7 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
               </Label>
               <label
                 htmlFor="submit-file"
-                className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border/50 bg-muted/10 px-6 py-8 cursor-pointer hover:bg-muted/20 hover:border-border/70 transition-colors"
+                className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border/50 bg-muted/10 px-6 py-8 cursor-pointer hover:bg-muted/20 hover:border-border/70 transition-colors"
               >
                 {submitFile ? (
                   <div className="flex items-center gap-2 w-full">
