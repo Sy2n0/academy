@@ -12,6 +12,8 @@ const buttonVariants = cva(
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        success: 'bg-success text-success-foreground hover:bg-success/90',
+        warning: 'bg-warning text-warning-foreground hover:bg-warning/90',
         outline:
           'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
         secondary:
@@ -19,13 +21,15 @@ const buttonVariants = cva(
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
       },
+      // Heights of `default`/`sm`/`icon` are token-scoped so the shared
+      // landing/auth shells keep their original size; the app gets compact.
       size: {
-        default: 'h-10 px-4 py-2',
-        md: 'h-10 px-4 py-2',
-        xs: 'h-8 rounded-md px-2 text-xs',
-        sm: 'h-9 rounded-md px-3',
-        lg: 'h-11 rounded-md px-8',
-        icon: 'h-10 w-10',
+        default: 'h-[var(--control-h)] px-4 py-2',
+        md: 'h-9 px-4 py-2',
+        xs: 'h-7 rounded-md px-2 text-xs',
+        sm: 'h-[var(--control-h-sm)] rounded-md px-3',
+        lg: 'h-10 rounded-md px-6',
+        icon: 'h-[var(--control-h)] w-[var(--control-h)]',
       },
     },
     defaultVariants: {
@@ -61,6 +65,10 @@ const legacyColorToVariant = (
       return 'ghost';
     case 'link':
       return 'link';
+    case 'success':
+      return 'success';
+    case 'warning':
+      return 'warning';
     case 'error':
       return 'destructive';
     default:

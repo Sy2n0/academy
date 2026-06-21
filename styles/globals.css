@@ -40,6 +40,15 @@
     --sidebar-accent-foreground: 240 6% 10%;
     --sidebar-border: 240 6% 91%;
     --sidebar-ring: 243 75% 59%;
+
+    /* Density tokens (compact, Linear-like). Same in light/dark; restored to
+       the comfortable defaults under .legacy-theme so the landing/auth shells
+       that share these primitives stay visually unchanged. Components read
+       them via arbitrary values, e.g. h-[var(--control-h)]. */
+    --control-h: 2rem; /* 32px — buttons (default/icon), inputs, select trigger */
+    --control-h-sm: 2rem; /* 32px — small buttons (also used on legacy Navbar) */
+    --card-pad: 1rem; /* 16px — card header/content/footer padding */
+    --card-title: 1rem; /* 16px — card title font-size */
   }
 
   .dark {
@@ -110,6 +119,12 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Restore the comfortable (pre-refactor) density on excluded surfaces. */
+    --control-h: 2.5rem; /* 40px — original button/input height */
+    --control-h-sm: 2.25rem; /* 36px — original sm button height (Navbar) */
+    --card-pad: 1.5rem; /* 24px — original p-6 card padding */
+    --card-title: 1.5rem; /* 24px — original text-2xl card title */
     font-family:
       -apple-system,
       BlinkMacSystemFont,
