@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Check, X, Download, Play } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useToolPanel } from '@/components/learn/ToolPanelContext';
 
 // 퀴즈 블록 (객관식)
 export const QuizBlock = ({
@@ -116,19 +118,46 @@ export const TerminalBlock = ({ commands }: { commands?: string }) => {
     }
   };
 
+  const toolPanel = useToolPanel();
+
   const onOpenRealTerminal = async () => {
     setLoadingTerminal(true);
     try {
-      const res = await fetch('/api/launch-terminal', { method: 'POST' });
+      const res = await fetch('/api/launch-terminal', {
+        method: 'POST',
+        credentials: 'include',
+      });
       const data = await res.json();
-      if (res.ok) {
-        setTerminalInfo(data);
-        setShowRealTerminal(true);
+      if (!res.ok) {
+        toast.error(data.error || '터미널 생성 실패');
+        return;
+      }
+
+      const url = `${window.location.protocol}//${data.host}:${data.port}/`;
+      setTerminalInfo(data);
+      setShowRealTerminal(true);
+
+      const stop = async () => {
+        await fetch('/api/kill-terminal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ sessionId: data.sessionId }),
+        }).catch(() => {});
+        setShowRealTerminal(false);
+        setTerminalInfo(null);
+      };
+
+      // On a module page the session opens in the split panel, beside the
+      // lecture — the same place Attack Box and Cloud IDE appear. Elsewhere
+      // (tracks, previews) there is no panel, so fall back to a new tab.
+      if (toolPanel) {
+        toolPanel.open({ title: 'Terminal', url, onClose: stop });
       } else {
-        alert(data.error || '터미널 생성 실패');
+        window.open(url, '_blank', 'noopener,noreferrer');
       }
     } catch (e: any) {
-      alert(e.message || '터미널 생성 실패');
+      toast.error(e.message || '터미널 생성 실패');
     } finally {
       setLoadingTerminal(false);
     }
@@ -140,12 +169,14 @@ export const TerminalBlock = ({ commands }: { commands?: string }) => {
         await fetch('/api/kill-terminal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ sessionId: terminalInfo.sessionId }),
         });
       } catch {
         // intentionally ignored
       }
     }
+    toolPanel?.close();
     setShowRealTerminal(false);
     setTerminalInfo(null);
   };
@@ -199,14 +230,11 @@ export const TerminalBlock = ({ commands }: { commands?: string }) => {
           </div>
         )}
         {showRealTerminal && terminalInfo && (
-          <div className="my-2">
-            {/* 실제 터미널 iframe/컴포넌트 자리 (추후 구현) */}
-            <div className="border border-dashed border-blue-400 rounded p-4 text-center text-blue-500 bg-background/60">
-              Ubuntu 터미널 세션이 여기에 표시됩니다.
-              <br />
-              세션: {terminalInfo.sessionId} / 포트: {terminalInfo.port}
-            </div>
-          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {toolPanel
+              ? '터미널이 오른쪽 패널에서 실행 중입니다.'
+              : '터미널이 새 탭에서 실행 중입니다.'}
+          </p>
         )}
       </div>
       <div className="p-3 bg-black/80 font-mono text-xs min-h-[200px] max-h-[400px] overflow-y-auto">

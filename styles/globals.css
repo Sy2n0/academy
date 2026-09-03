@@ -50,6 +50,13 @@
     --control-h-sm: 2rem; /* 32px — small buttons (also used on legacy Navbar) */
     --card-pad: 1rem; /* 16px — card header/content/footer padding */
     --card-title: 1rem; /* 16px — card title font-size */
+
+    /* Direction C's monospace-native UI font. It lives here rather than on a
+       wrapper div: the theme classes sit on <html>, and a div carrying
+       next/font's className is a descendant, so it would win the cascade and
+       every Warp page would render in JetBrains Mono. One element, one rule. */
+    font-family:
+      var(--font-jb-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 
   .dark {
@@ -170,6 +177,173 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* Warp palette — one source of truth, shared by the two Warp surfaces:
+     .warp-theme (landing + /auth, editorial) and .warp-app (signed-in app).
+     Colour and type are identical across both, so crossing the login boundary
+     changes nothing visible about the brand. They diverge only in density,
+     radius and the sidebar — see the two blocks below. Values come from the
+     Warp design sheet; the additions are noted inline. */
+  .warp-theme,
+  .warp-app {
+    /* Raw brand values, used directly where alpha or exactness matters. */
+    --warp-void: #131311; /* page canvas — warm near-black */
+    --warp-surface: #1a1a18; /* cards, inputs, terminal frames */
+    --warp-parchment: #faf9f6;
+    --warp-ash: #afaeac;
+    --warp-stone: #868584;
+    --warp-earth: #353534;
+    --warp-charcoal: #454545;
+    --warp-purple: #666469;
+    --warp-veil: rgba(255, 255, 255, 0.04);
+    /* Card containment (sheet §6, level 2). */
+    --warp-border: rgb(226 226 226 / 35%);
+    /* ADDED: section hairlines. The sheet only specifies 0.35 for cards; across
+       full-bleed rules that weight is far too loud. */
+    --warp-rule: rgb(226 226 226 / 12%);
+    --warp-shadow-ambient: rgba(0, 0, 0, 0.2) 0px 5px 15px;
+
+    /* Motion (sheet §15) */
+    --warp-motion-fast: 150ms;
+    --warp-motion-standard: 250ms;
+
+    /* shadcn token bridge, so primitives dropped into the landing inherit the
+       palette. Borders are the flat composite of --warp-border over --warp-void,
+       since `hsl(var(--border))` carries no alpha channel. */
+    --background: 60 5.6% 7.1%;
+    --foreground: 45 28.6% 97.3%;
+    --card: 60 4% 9.8%;
+    --card-foreground: 45 28.6% 97.3%;
+    --popover: 60 4% 9.8%;
+    --popover-foreground: 45 28.6% 97.3%;
+    --primary: 60 1% 20.6%;
+    --primary-foreground: 40 1.8% 68%;
+    --secondary: 60 4% 9.8%;
+    --secondary-foreground: 45 28.6% 97.3%;
+    --muted: 60 4% 9.8%;
+    --muted-foreground: 30 0.8% 52.2%;
+    --accent: 0 0% 27.1%;
+    --accent-foreground: 45 28.6% 97.3%;
+    --destructive: 0 62.8% 40%;
+    --destructive-foreground: 45 28.6% 97.3%;
+    --border: 60 1% 35%;
+    /* shadcn spends --input on the input *border*, not its fill. Pointing it at
+       the surface colour made every field borderless on this canvas. */
+    --input: 60 1% 35%;
+    --ring: 40 1.8% 68%;
+    color-scheme: dark;
+
+    /* Latin from General Sans (Matter substitute), Hangul from Pretendard —
+       the browser falls through per-glyph, so mixed KR/EN lines stay correct. */
+    font-family:
+      var(--font-general-sans),
+      'Pretendard Variable',
+      Pretendard,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Apple SD Gothic Neo',
+      sans-serif;
+    background-color: var(--warp-void);
+    color: var(--warp-parchment);
+    /* Korean has no inter-word breaking by default in CSS, so the browser will
+       split mid-word ("쌓습니/다"). keep-all forces breaks at spaces; the
+       overflow-wrap fallback keeps a very long unbroken token from escaping. */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  /* Landing + /auth: comfortable, editorial. */
+  .warp-theme {
+    --radius: 0.75rem; /* 12px */
+    --control-h: 2.5rem;
+    --control-h-sm: 2.25rem;
+    --card-pad: 1.5rem;
+    --card-title: 1.375rem;
+  }
+
+  /* Signed-in app. Same palette and typefaces as the landing, but the app is a
+     tool, not a brochure: the compact density and 8px radius carry over from
+     Direction C so a dashboard still fits on one screen. */
+  .warp-app {
+    --radius: 0.5rem; /* 8px */
+    --control-h: 2rem;
+    --control-h-sm: 2rem;
+    --card-pad: 1rem;
+    --card-title: 1rem;
+
+    /* Direction C's sidebar tokens are cool (220 16% 4%) and would leave a blue
+       column against the warm canvas, so the whole set is restated on the Warp
+       ramp. The sidebar sits a shade below --background, as it does in .dark. */
+    --sidebar-background: 60 6% 5.5%;
+    --sidebar-foreground: 40 1.8% 68%; /* ash */
+    --sidebar-primary: 45 28.6% 97.3%; /* parchment */
+    --sidebar-primary-foreground: 60 5.6% 7.1%;
+    --sidebar-accent: 60 2% 14%; /* hover/active fill, between surface and earth */
+    --sidebar-accent-foreground: 45 28.6% 97.3%;
+    --sidebar-border: 60 1% 18%;
+    --sidebar-ring: 40 1.8% 68%;
+  }
+
+  /* ------------------------------------------------------------------------
+     v2 theme — the deliberate opposite of .warp-theme, built to test whether
+     the Warp sheet's three prohibitions (no accent colour, no gradient/glow,
+     no weight above 500) are what has been reading as flat. Scoped to
+     /preview/* only; nothing else in the app can see it.
+     ------------------------------------------------------------------------ */
+  .v2-theme {
+    /* Same warm monochrome as .warp-theme — the palette is fixed. What changes
+       here is everything else: weight, depth, iconography and density. The
+       "accent" is a value, not a hue: parchment carries emphasis where another
+       system would spend a colour. */
+    --v2-accent: #faf9f6;
+    --v2-accent-2: #868584;
+    --v2-accent-soft: rgb(250 249 246 / 9%);
+    --v2-accent-line: rgb(250 249 246 / 26%);
+
+    --v2-bg: #131311;
+    --v2-surface: #1a1a18;
+    --v2-surface-2: #201f1d;
+    --v2-text: #faf9f6;
+    --v2-muted: #afaeac;
+    --v2-dim: #868584;
+    --v2-line: rgb(226 226 226 / 10%);
+    --v2-line-strong: rgb(226 226 226 / 22%);
+
+    --background: 60 5.6% 7.1%;
+    --foreground: 45 28.6% 97.3%;
+    --card: 60 4% 9.8%;
+    --card-foreground: 45 28.6% 97.3%;
+    --popover: 60 4% 9.8%;
+    --popover-foreground: 45 28.6% 97.3%;
+    --primary: 45 28.6% 97.3%;
+    --primary-foreground: 60 5.6% 7.1%;
+    --secondary: 60 4% 9.8%;
+    --secondary-foreground: 45 28.6% 97.3%;
+    --muted: 60 4% 9.8%;
+    --muted-foreground: 30 0.8% 52.2%;
+    --accent: 0 0% 27.1%;
+    --accent-foreground: 45 28.6% 97.3%;
+    --destructive: 0 62.8% 45%;
+    --destructive-foreground: 45 28.6% 97.3%;
+    --border: 60 1% 30%;
+    --input: 60 1% 30%;
+    --ring: 45 28.6% 97.3%;
+    --radius: 0.875rem;
+    color-scheme: dark;
+
+    font-family:
+      var(--font-general-sans),
+      'Pretendard Variable',
+      Pretendard,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Apple SD Gothic Neo',
+      sans-serif;
+    background-color: var(--v2-bg);
+    color: var(--v2-text);
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
 }
 
 html,
@@ -188,6 +362,18 @@ body {
     Droid Sans,
     Helvetica Neue,
     sans-serif;
+}
+
+/* The theme class sits on <html> (see lib/theme-routes.ts), so its own
+   background-color already paints the canvas including the overscroll area.
+   Body is transparent over it. */
+:root.warp-theme,
+:root.warp-app {
+  background-color: #131311;
+}
+
+body:has(.v2-theme) {
+  background-color: #131311;
 }
 
 a {
@@ -346,4 +532,557 @@ a {
 
 .hljs-strong {
   font-weight: bold;
+}
+
+/* ---------------------------------------------------------------------------
+   Warp theme — typographic scale and components (sheet §3, §4, §5).
+   Everything here is scoped under .warp-theme so it cannot reach the app or
+   /auth surfaces. Tracking is expressed in em so it holds under the responsive
+   clamp()s; the sheet's px values are the desktop endpoint of each clamp.
+   --------------------------------------------------------------------------- */
+@layer components {
+  /* Layout ---------------------------------------------------------------- */
+  :where(.warp-theme) .warp-container {
+    width: 100%;
+    max-width: 1500px;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 810px) {
+    :where(.warp-theme) .warp-container {
+      padding-inline: 3rem;
+    }
+  }
+
+  /* Tightened from the sheet's 80/120px. At the sheet's spacing this page read
+     as loose rather than generous, because there is no photography absorbing
+     the gaps the way there is on the reference site. */
+  :where(.warp-theme) .warp-section {
+    padding-block: 3.5rem; /* 56px */
+  }
+
+  @media (min-width: 810px) {
+    :where(.warp-theme) .warp-section {
+      padding-block: 5.5rem; /* 88px at desktop */
+    }
+  }
+
+  :where(.warp-theme) .warp-rule {
+    border-top: 1px solid var(--warp-rule);
+  }
+
+  /* Warm restatement of the app's .grid-bg — that one reads hsl(var(--border)),
+     which resolves to the opaque border composite here and draws far too hot. */
+  :where(.warp-theme) .warp-grid-bg {
+    background-image:
+      linear-gradient(to right, var(--warp-rule) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--warp-rule) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+
+  /* Type scale ------------------------------------------------------------ */
+  /* The display scale is opt-in by class, so widening it to .warp-app costs
+     the compact app pages nothing — nothing gets it unless it asks. /playground
+     asks: it is an event announcement that happens to sit behind a login, and
+     the app's 24px page title made it read like a settings screen. */
+  :where(.warp-theme, .warp-app) .warp-display {
+    font-size: clamp(2.75rem, 6.2vw, 5rem); /* 44 → 80px */
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.03em; /* -2.4px at 80px */
+    color: var(--warp-parchment);
+  }
+
+  :where(.warp-theme, .warp-app) .warp-heading {
+    font-size: clamp(2.25rem, 4.2vw, 3.5rem); /* 36 → 56px */
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--warp-parchment);
+  }
+
+  :where(.warp-theme) .warp-feature {
+    font-size: clamp(1.75rem, 3vw, 2.5rem); /* 28 → 40px */
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--warp-parchment);
+  }
+
+  :where(.warp-theme) .warp-body-heading {
+    font-size: 1.5rem; /* 24px */
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--warp-parchment);
+  }
+
+  :where(.warp-theme) .warp-card-title {
+    font-size: 1.375rem; /* 22px */
+    font-weight: 500;
+    line-height: 1.14;
+    color: var(--warp-parchment);
+  }
+
+  :where(.warp-theme) .warp-body-lg {
+    font-size: 1.25rem; /* 20px */
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    color: var(--warp-ash);
+  }
+
+  :where(.warp-theme) .warp-body {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--warp-ash);
+  }
+
+  :where(.warp-theme) .warp-nav-text {
+    font-size: 1rem; /* 16px */
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  :where(.warp-theme) .warp-caption {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--warp-stone);
+  }
+
+  :where(.warp-theme) .warp-label {
+    font-size: 0.75rem; /* 12px */
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--warp-stone);
+  }
+
+  :where(.warp-theme) .warp-micro {
+    font-size: 0.6875rem; /* 11px */
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--warp-stone);
+  }
+
+  :where(.warp-theme) .warp-mono {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 1rem;
+    line-height: 1;
+    letter-spacing: -0.0125em;
+  }
+
+  /* shadcn means a size="lg" sidebar button to drop its padding when the rail
+     collapses (`group-data-[collapsible=icon]:!p-0`), so the 32px avatar fills
+     the 32px button. That never worked: Tailwind emits .p-0 before .p-2 and both
+     carry !important, so !p-2 wins and the avatar overflows a 16px content box.
+     An attribute selector we own outranks a single utility class, so the
+     intended layout lands without depending on utility order. */
+  .group[data-collapsible='icon'] [data-sidebar='menu-button'][data-size='lg'] {
+    /* !important because the utility it overrides carries one — with both
+       important, the higher specificity of this selector decides. */
+    padding: 0 !important;
+  }
+
+  /* Numerals on app surfaces — scores, ranks, counts, timestamps. Inherits its
+     size from the caller (unlike .warp-mono, which the landing pins to 16px)
+     and forces tabular figures so a column of numbers keeps its width as it
+     updates. */
+  :where(.warp-app) .warp-num {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.0125em;
+  }
+
+  /* Components ------------------------------------------------------------ */
+  :where(.warp-theme) .warp-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--warp-earth);
+    color: var(--warp-ash);
+    border-radius: 50px;
+    /* Sheet gives padding: 10px; widened horizontally so labels are not cramped
+       and the target clears the 44px touch minimum (sheet §8). */
+    padding: 0.625rem 1.375rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.2;
+    transition:
+      background-color var(--warp-motion-fast) cubic-bezier(0.4, 0, 0.2, 1),
+      color var(--warp-motion-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :where(.warp-theme) .warp-pill:hover {
+    background-color: var(--warp-charcoal);
+    color: var(--warp-parchment);
+  }
+
+  :where(.warp-theme) .warp-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--warp-ash);
+    border-radius: 50px;
+    padding: 0.625rem 1.125rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: color var(--warp-motion-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :where(.warp-theme) .warp-ghost:hover {
+    color: var(--warp-parchment);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  /* Outlined counterpart to .warp-pill, for secondary auth actions. */
+  :where(.warp-theme) .warp-pill-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    color: var(--warp-ash);
+    border: 1px solid var(--warp-border);
+    border-radius: 50px;
+    padding: 0.625rem 1.375rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.2;
+    transition:
+      border-color var(--warp-motion-fast) cubic-bezier(0.4, 0, 0.2, 1),
+      color var(--warp-motion-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :where(.warp-theme) .warp-pill-outline:hover {
+    border-color: rgb(226 226 226 / 55%);
+    color: var(--warp-parchment);
+  }
+
+  :where(.warp-theme) .warp-card {
+    background-color: var(--warp-surface);
+    color: var(--warp-parchment);
+    border: 1px solid var(--warp-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  :where(.warp-theme) .warp-badge {
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.16);
+    color: var(--warp-parchment);
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.35;
+  }
+
+  :where(.warp-theme) .warp-input {
+    background-color: var(--warp-surface);
+    color: var(--warp-parchment);
+    border: 1px solid var(--warp-border);
+    border-radius: 8px;
+    padding: 0.625rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  :where(.warp-theme) .warp-input::placeholder {
+    color: var(--warp-stone);
+  }
+
+  :where(.warp-theme) .warp-link {
+    color: var(--warp-ash);
+    transition: color var(--warp-motion-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :where(.warp-theme) .warp-link:hover {
+    color: var(--warp-parchment);
+  }
+
+  :where(.warp-theme) .warp-pulse {
+    animation: warp-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  :where(.warp-theme) .warp-caret {
+    animation: warp-blink 1.1s steps(1) infinite;
+  }
+
+  /* Entrance used by list rows; the delay is set inline so a row's position in
+     the list drives its stagger. */
+  :where(.warp-theme) .warp-rise {
+    opacity: 0;
+    animation: warp-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes warp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.warp-theme) .warp-rise {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+@keyframes warp-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes warp-ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* Sheet §15 — reduced motion drops hover transitions entirely. */
+@media (prefers-reduced-motion: reduce) {
+  :where(.warp-theme) *,
+  :where(.warp-theme) *::before,
+  :where(.warp-theme) *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   v2 components. Everything the Warp sheet forbids, on purpose: an accent
+   colour that carries state, gradient text, glow behind the hero, and headings
+   at 600-700. Scoped under .v2-theme.
+   --------------------------------------------------------------------------- */
+@layer components {
+  :where(.v2-theme) .v2-container {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    :where(.v2-theme) .v2-container {
+      padding-inline: 2rem;
+    }
+  }
+
+  :where(.v2-theme) .v2-section {
+    padding-block: 4rem;
+  }
+
+  @media (min-width: 768px) {
+    :where(.v2-theme) .v2-section {
+      padding-block: 6rem;
+    }
+  }
+
+  /* Type — bold, tight, high contrast. */
+  :where(.v2-theme) .v2-display {
+    font-size: clamp(2.75rem, 6vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.03;
+    letter-spacing: -0.035em;
+  }
+
+  :where(.v2-theme) .v2-h2 {
+    font-size: clamp(2rem, 3.6vw, 3rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  :where(.v2-theme) .v2-h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+  }
+
+  :where(.v2-theme) .v2-lead {
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--v2-muted);
+  }
+
+  :where(.v2-theme) .v2-body {
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--v2-muted);
+  }
+
+  :where(.v2-theme) .v2-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--v2-accent);
+  }
+
+  :where(.v2-theme) .v2-mono {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-feature-settings: 'tnum';
+  }
+
+  /* Gradient headline — flatly banned by the sheet, standard everywhere else. */
+  :where(.v2-theme) .v2-gradient-text {
+    background: linear-gradient(
+      104deg,
+      var(--v2-text) 0%,
+      var(--v2-text) 38%,
+      #c9c7c3 72%,
+      var(--v2-accent-2) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  :where(.v2-theme) .v2-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.875rem;
+    padding-inline: 1.375rem;
+    border-radius: 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #131311;
+    background: linear-gradient(180deg, #ffffff 0%, #e7e5e0 100%);
+    box-shadow:
+      0 0 0 1px rgb(250 249 246 / 35%),
+      0 10px 30px -12px rgb(250 249 246 / 45%);
+    transition:
+      transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :where(.v2-theme) .v2-btn:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 0 0 1px rgb(250 249 246 / 55%),
+      0 16px 38px -14px rgb(250 249 246 / 60%);
+  }
+
+  :where(.v2-theme) .v2-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.875rem;
+    padding-inline: 1.125rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--v2-line-strong);
+    background: rgb(255 255 255 / 3%);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--v2-text);
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease;
+  }
+
+  :where(.v2-theme) .v2-btn-ghost:hover {
+    border-color: var(--v2-accent-line);
+    background: var(--v2-accent-soft);
+  }
+
+  /* Glass card with a lit top edge. */
+  :where(.v2-theme) .v2-card {
+    position: relative;
+    border-radius: 1rem;
+    border: 1px solid var(--v2-line);
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 4%) 0%, transparent 42%),
+      var(--v2-surface);
+    overflow: hidden;
+  }
+
+  :where(.v2-theme) .v2-card::before {
+    content: '';
+    position: absolute;
+    inset-inline: 12%;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 22%),
+      transparent
+    );
+  }
+
+  :where(.v2-theme) .v2-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3125rem 0.625rem;
+    border-radius: 999px;
+    border: 1px solid var(--v2-accent-line);
+    background: var(--v2-accent-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--v2-accent);
+  }
+
+  :where(.v2-theme) .v2-icon-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
+    border: 1px solid var(--v2-accent-line);
+    background: var(--v2-accent-soft);
+    color: var(--v2-accent);
+  }
+
+  /* The glow the sheet forbids. */
+  :where(.v2-theme) .v2-glow {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 999px;
+    filter: blur(90px);
+    opacity: 0.5;
+  }
+
+  :where(.v2-theme) .v2-grid-bg {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 4%) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 4%) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(
+      ellipse 90% 60% at 50% 0%,
+      #000 40%,
+      transparent 100%
+    );
+  }
 }

@@ -1,42 +1,21 @@
 import { type ReactElement, useState } from 'react';
-import { useTranslation } from 'next-i18next';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  adminInputClass,
+  adminTabsListClass,
+  adminTabsTriggerClass,
+} from '@/components/admin/styles';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
 import Head from 'next/head';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import toast from 'react-hot-toast';
-import { Activity, Flag, AlertCircle, Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 import useSWR from 'swr';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { matches } from '@/lib/admin-ui';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -108,8 +87,21 @@ export const getServerSideProps = async (
   };
 };
 
+function Timestamp({ iso }: { iso: string }) {
+  return (
+    <span className="warp-num shrink-0 text-[11px] text-muted-foreground">
+      {new Date(iso).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })}
+    </span>
+  );
+}
+
 const Monitoring: NextPageWithLayout = () => {
-  const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState('submissions');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -124,19 +116,22 @@ const Monitoring: NextPageWithLayout = () => {
 
   const submissions = submissionsData?.data?.submissions || [];
   const events = eventsData?.data?.events || [];
+  const needle = searchQuery.toLowerCase();
 
+  // Every field here was matched with an unguarded .toLowerCase(); a submission
+  // from a user with no name took the whole page down.
   const filteredSubmissions = submissions.filter(
     (sub) =>
-      sub.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.submittedFlag.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.machine?.title.toLowerCase().includes(searchQuery.toLowerCase())
+      matches(sub.user?.name, needle) ||
+      matches(sub.submittedFlag, needle) ||
+      matches(sub.machine?.title, needle)
   );
 
   const filteredEvents = events.filter(
     (event) =>
-      event.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.user?.name.toLowerCase().includes(searchQuery.toLowerCase())
+      matches(event.message, needle) ||
+      matches(event.type, needle) ||
+      matches(event.user?.name, needle)
   );
 
   return (
@@ -145,204 +140,119 @@ const Monitoring: NextPageWithLayout = () => {
         <title>Monitoring - Admin - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
-
-        <div className="relative z-10">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="/admin/dashboard"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          Admin
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Monitoring
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
-
-              <div className="flex-1 overflow-y-auto">
-                <div className="px-6 md:px-12 py-6">
-                  <div className="max-w-6xl mx-auto space-y-6">
-                    {/* Header */}
-                    <div>
-                      <h1
-                        className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2"
-                        style={{ fontStyle: 'italic' }}
-                      >
-                        MONITORING
-                      </h1>
-                      <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
-                        Real-time System Monitoring and Logs
-                      </p>
-                    </div>
-
-                    {/* Search */}
-                    <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="text"
-                          placeholder="Search..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="font-mono pl-10"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Tabs */}
-                    <Tabs
-                      value={activeTab}
-                      onValueChange={setActiveTab}
-                      className="w-full"
-                    >
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger
-                          value="submissions"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          <Flag className="h-4 w-4 mr-2" />
-                          Flag Submissions ({filteredSubmissions.length})
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="events"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          <Activity className="h-4 w-4 mr-2" />
-                          Event Logs ({filteredEvents.length})
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="submissions" className="mt-6">
-                        <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
-                          {filteredSubmissions.length === 0 ? (
-                            <p className="font-mono text-sm text-muted-foreground text-center py-8">
-                              No submissions found.
-                            </p>
-                          ) : (
-                            <div className="space-y-3">
-                              {filteredSubmissions.map((sub) => (
-                                <div
-                                  key={sub.id}
-                                  className={`p-4 border rounded-lg ${
-                                    sub.isCorrect
-                                      ? 'border-accent/30 bg-accent/5'
-                                      : 'border-border/30 bg-background/40'
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between mb-2">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-mono text-sm font-semibold text-foreground">
-                                          {sub.user.name}
-                                        </span>
-                                        {sub.isFirstBlood && (
-                                          <span className="font-mono text-[9px] text-destructive uppercase tracking-wider px-2 py-0.5 border border-destructive/30 rounded bg-destructive/10">
-                                            FIRST BLOOD
-                                          </span>
-                                        )}
-                                        {sub.isCorrect && (
-                                          <span className="font-mono text-[9px] text-accent uppercase tracking-wider px-2 py-0.5 border border-accent/30 rounded bg-accent/10">
-                                            CORRECT
-                                          </span>
-                                        )}
-                                      </div>
-                                      <code className="font-mono text-xs text-muted-foreground break-all">
-                                        {sub.submittedFlag}
-                                      </code>
-                                      {sub.machine && (
-                                        <p className="font-mono text-[10px] text-muted-foreground mt-1">
-                                          Machine: {sub.machine.title}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="text-right ml-4">
-                                      {sub.isCorrect && (
-                                        <p className="font-mono text-sm font-bold text-accent">
-                                          +{sub.earnedPoints} pts
-                                        </p>
-                                      )}
-                                      <p className="font-mono text-[10px] text-muted-foreground">
-                                        {new Date(
-                                          sub.createdAt
-                                        ).toLocaleString()}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="events" className="mt-6">
-                        <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
-                          {filteredEvents.length === 0 ? (
-                            <p className="font-mono text-sm text-muted-foreground text-center py-8">
-                              No events found.
-                            </p>
-                          ) : (
-                            <div className="space-y-3">
-                              {filteredEvents.map((event) => (
-                                <div
-                                  key={event.id}
-                                  className="p-4 border border-border/30 rounded-lg bg-background/40"
-                                >
-                                  <div className="flex items-start justify-between mb-2">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                                        <span className="font-mono text-xs font-semibold text-foreground uppercase tracking-wider">
-                                          {event.type}
-                                        </span>
-                                      </div>
-                                      <p className="font-mono text-sm text-foreground">
-                                        {event.message}
-                                      </p>
-                                      {event.user && (
-                                        <p className="font-mono text-[10px] text-muted-foreground mt-1">
-                                          User: {event.user.name}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <p className="font-mono text-[10px] text-muted-foreground ml-4">
-                                      {new Date(
-                                        event.createdAt
-                                      ).toLocaleString()}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </div>
-                </div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+      <AdminLayout title="Monitoring" description="플래그 제출과 이벤트 로그">
+        <div className="relative mb-6">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="사용자, 플래그, 머신, 이벤트 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`${adminInputClass} pl-9`}
+          />
         </div>
-      </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className={adminTabsListClass}>
+            <TabsTrigger value="submissions" className={adminTabsTriggerClass}>
+              Submissions
+              <span className="warp-num ml-2 normal-case tracking-normal">
+                {filteredSubmissions.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="events" className={adminTabsTriggerClass}>
+              Events
+              <span className="warp-num ml-2 normal-case tracking-normal">
+                {filteredEvents.length}
+              </span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="submissions" className="mt-2">
+            {filteredSubmissions.length === 0 ? (
+              <p className="py-8 text-sm text-muted-foreground">
+                제출 기록이 없습니다.
+              </p>
+            ) : (
+              <ul className="max-h-[30rem] overflow-y-auto overscroll-contain pr-1">
+                {filteredSubmissions.map((sub) => (
+                  <li
+                    key={sub.id}
+                    className="border-b border-[var(--warp-rule)] py-3"
+                  >
+                    <div className="flex items-baseline gap-3">
+                      <span className="w-24 shrink-0 truncate text-sm text-foreground">
+                        {sub.user?.name ?? 'Unknown'}
+                      </span>
+                      {/* Correct and incorrect are the two outcomes of the same
+                          action, not a warning and a normal state, so neither
+                          takes destructive. The wrong one is simply quieter. */}
+                      <span
+                        className={`w-12 shrink-0 text-[10px] uppercase tracking-[0.14em] ${
+                          sub.isCorrect
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        {sub.isCorrect ? 'Solved' : 'Miss'}
+                      </span>
+                      <code className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                        {sub.submittedFlag}
+                      </code>
+                      {sub.isCorrect && (
+                        <span className="warp-num shrink-0 text-xs text-foreground">
+                          +{sub.earnedPoints}
+                        </span>
+                      )}
+                      <Timestamp iso={sub.createdAt} />
+                    </div>
+                    {(sub.machine || sub.isFirstBlood) && (
+                      <div className="mt-1 flex items-baseline gap-3 pl-[6.75rem] text-[11px] text-muted-foreground">
+                        {sub.isFirstBlood && (
+                          <span className="uppercase tracking-[0.14em] text-foreground">
+                            First blood
+                          </span>
+                        )}
+                        {sub.machine && <span>{sub.machine.title}</span>}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </TabsContent>
+
+          <TabsContent value="events" className="mt-2">
+            {filteredEvents.length === 0 ? (
+              <p className="py-8 text-sm text-muted-foreground">
+                이벤트가 없습니다.
+              </p>
+            ) : (
+              <ul className="max-h-[30rem] overflow-y-auto overscroll-contain pr-1">
+                {filteredEvents.map((event) => (
+                  <li
+                    key={event.id}
+                    className="flex items-baseline gap-3 border-b border-[var(--warp-rule)] py-3"
+                  >
+                    <span className="w-28 shrink-0 truncate text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {event.type}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                      {event.message}
+                    </span>
+                    {event.user && (
+                      <span className="w-20 shrink-0 truncate text-xs text-muted-foreground">
+                        {event.user.name}
+                      </span>
+                    )}
+                    <Timestamp iso={event.createdAt} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </TabsContent>
+        </Tabs>
+      </AdminLayout>
     </>
   );
 };

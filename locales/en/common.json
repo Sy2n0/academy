@@ -273,5 +273,6 @@
   "token-valid": "Token is valid",
   "token-invalid": "Token is invalid",
   "token-validation-error": "Token validation failed",
-  "validating-token": "Validating token..."
+  "validating-token": "Validating token...",
+  "account-blocked": "This account has been deactivated. Contact an administrator."
 }

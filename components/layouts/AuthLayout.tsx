@@ -1,6 +1,5 @@
-import app from '@/lib/app';
 import { useTranslation } from 'next-i18next';
-import Image from 'next/image';
+import { WarpAuthShell } from '@/components/auth/WarpAuthShell';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -8,6 +7,12 @@ interface AuthLayoutProps {
   description?: string;
 }
 
+/**
+ * Centred variant of the auth canvas, used by the single-step pages (magic
+ * link, verify email, unlock account, SSO, password reset). The logo image the
+ * previous version rendered is dropped — the wordmark already sits in the
+ * shell's header, so it was showing twice.
+ */
 export default function AuthLayout({
   children,
   heading,
@@ -16,29 +21,14 @@ export default function AuthLayout({
   const { t } = useTranslation('common');
 
   return (
-    <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-20 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <Image
-            src={app.logoUrl}
-            className="mx-auto h-12"
-            alt={app.name}
-            width={48}
-            height={48}
-          />
-          {heading && (
-            <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-              {t(heading)}
-            </h2>
-          )}
-          {description && (
-            <p className="text-center text-gray-600 dark:text-white">
-              {t(description)}
-            </p>
-          )}
+    <WarpAuthShell>
+      {(heading || description) && (
+        <div className="mb-10">
+          {heading && <h1 className="warp-feature">{t(heading)}</h1>}
+          {description && <p className="warp-body mt-4">{t(description)}</p>}
         </div>
-        <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">{children}</div>
-      </div>
-    </>
+      )}
+      {children}
+    </WarpAuthShell>
   );
 }

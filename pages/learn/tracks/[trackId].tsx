@@ -4,30 +4,10 @@ import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import {
-  ArrowRight,
-  BarChart3,
-  CheckCircle2,
-  Clock,
-  GraduationCap,
-  Shield,
-  SquareStack,
-  Target,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import useSWR from 'swr';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import toast from 'react-hot-toast';
@@ -142,39 +122,16 @@ const TrackDetailPage: NextPageWithLayout = () => {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Fundamental':
-        return 'text-sky-600 dark:text-sky-400';
+        return 'text-[var(--warp-stone)]';
       case 'Easy':
-        return 'text-emerald-600 dark:text-emerald-400';
+        return 'text-[var(--warp-ash)]';
       case 'Medium':
-        return 'text-amber-600 dark:text-amber-400';
+        return 'text-foreground';
       case 'Hard':
-        return 'text-rose-600 dark:text-rose-400';
+        return 'text-foreground';
       default:
         return 'text-muted-foreground';
     }
-  };
-
-  const getCategoryBadge = (category: string) => {
-    const c = category.toLowerCase();
-    if (c.includes('binary') || c.includes('pwn') || c.includes('exploit')) {
-      return 'border-orange-500/50 bg-orange-500/10 text-orange-700 dark:text-orange-300';
-    }
-    if (c.includes('web')) {
-      return 'border-sky-500/50 bg-sky-500/10 text-sky-700 dark:text-sky-300';
-    }
-    if (c.includes('crypto') || c.includes('cryptograph')) {
-      return 'border-violet-500/50 bg-violet-500/10 text-violet-700 dark:text-violet-300';
-    }
-    if (c.includes('reverse') || c.includes('re')) {
-      return 'border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-300';
-    }
-    if (c.includes('forensic') || c.includes('dfir')) {
-      return 'border-teal-500/50 bg-teal-500/10 text-teal-700 dark:text-teal-300';
-    }
-    if (c.includes('network') || c.includes('misc')) {
-      return 'border-indigo-500/50 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300';
-    }
-    return 'border-border/60 bg-card/80 text-muted-foreground';
   };
 
   if (isLoading) {
@@ -183,9 +140,7 @@ const TrackDetailPage: NextPageWithLayout = () => {
         <AppSidebar />
         <SidebarInset>
           <div className="flex items-center justify-center h-screen">
-            <p className="font-mono text-sm text-muted-foreground">
-              Loading track...
-            </p>
+            <p className="text-sm text-muted-foreground">Loading track...</p>
           </div>
         </SidebarInset>
       </SidebarProvider>
@@ -199,13 +154,13 @@ const TrackDetailPage: NextPageWithLayout = () => {
         <SidebarInset>
           <div className="flex items-center justify-center h-screen">
             <div className="text-center">
-              <p className="font-mono text-sm text-destructive mb-4">
+              <p className="text-sm text-destructive mb-4">
                 트랙을 불러오지 못했습니다
               </p>
               <Button
                 onClick={() => router.push('/learn/tracks')}
                 variant="outline"
-                className="font-mono text-xs"
+                className="text-xs"
               >
                 Back to Tracks
               </Button>
@@ -243,199 +198,122 @@ const TrackDetailPage: NextPageWithLayout = () => {
   };
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-          <div className="flex items-center gap-2 px-6 md:px-12">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    href="/learn/tracks"
-                    className="font-mono text-xs uppercase tracking-wider"
-                  >
-                    Track Paths
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                    {track.title}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
+    <div className="h-svh overflow-hidden bg-background">
+      <SidebarProvider className="h-full">
+        <AppSidebar />
+        <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+          <AppTopBar
+            crumbs={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Tracks', href: '/learn/tracks' },
+              { label: track.title },
+            ]}
+          />
 
-        <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto w-full space-y-6">
-            <section className="relative overflow-hidden rounded-md border border-border/40 bg-card/85 p-6 md:p-8">
-              <div className="pointer-events-none absolute -left-24 -top-24 h-56 w-56 rounded-full bg-muted/30 blur-3xl" />
-              <div className="pointer-events-none absolute -right-24 -bottom-24 h-56 w-56 rounded-full bg-muted/20 blur-3xl" />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[880px] p-5 md:px-10 md:py-8">
+              {/* Masthead. The hero card, its two blurred orbs and the
+                  "Command Panel" aside carried five nested boxes around what is
+                  really one heading, one number and one button. */}
+              <header>
+                <h1 className="text-3xl leading-tight tracking-tight text-foreground md:text-4xl">
+                  {track.title}
+                </h1>
+                {track.description && (
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                    {track.description}
+                  </p>
+                )}
 
-              <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-                <div className="space-y-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 font-mono text-[10px] uppercase ${track.type === 'OFFENSIVE' ? 'border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-300' : 'border-sky-500/50 bg-sky-500/10 text-sky-700 dark:text-sky-300'}`}
-                    >
-                      {track.type === 'OFFENSIVE' ? (
-                        <Target className="h-3 w-3" />
-                      ) : (
-                        <Shield className="h-3 w-3" />
-                      )}
-                      {track.type}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background/50 px-2.5 py-1 font-mono text-[10px] uppercase text-muted-foreground">
-                      <SquareStack className="h-3 w-3" />
-                      {totalModules} steps
-                    </span>
-                    {track.isEnrolled && (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-cyan-500/50 bg-cyan-500/10 px-2.5 py-1 font-mono text-[10px] uppercase text-cyan-700 dark:text-cyan-300">
-                        Enrolled
-                      </span>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                      Mission Track
-                    </p>
-                    <h1 className="font-[var(--font-bebas)] text-4xl md:text-5xl leading-none tracking-tight text-foreground mt-2">
-                      {track.title}
-                    </h1>
-                    {track.description && (
-                      <p className="font-mono text-xs text-muted-foreground mt-4 max-w-3xl leading-relaxed">
-                        {track.description}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs uppercase text-muted-foreground">
-                        Route Completion
-                      </span>
-                      <span className="font-mono text-xs text-emerald-400">
-                        {progress}%
-                      </span>
-                    </div>
-                    <div
-                      className="h-2.5 rounded-full bg-border/30 overflow-hidden"
-                      role="progressbar"
-                      aria-label="Path progress"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={progress}
-                    >
-                      <div
-                        className="h-full bg-emerald-500 transition-[width] duration-500 ease-out"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
+                <div className="mt-5 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <span>{track.type}</span>
+                  <span className={getDifficultyColor(track.difficulty)}>
+                    {track.difficulty}
+                  </span>
+                  {track.duration && track.duration !== '0' && (
+                    <span className="warp-num">{track.duration}</span>
+                  )}
+                  {track.isEnrolled && (
+                    <span className="ml-auto text-foreground">Enrolled</span>
+                  )}
                 </div>
 
-                <aside className="rounded-md border border-border/40 bg-background/55 p-4 space-y-3">
-                  <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                    Command Panel
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-md border border-border/50 bg-card/60 p-2.5">
-                      <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                        Done
-                      </p>
-                      <p className="font-mono text-lg text-foreground">
-                        {completedModules}
-                      </p>
-                    </div>
-                    <div className="rounded-md border border-border/50 bg-card/60 p-2.5">
-                      <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                        Left
-                      </p>
-                      <p className="font-mono text-lg text-foreground">
-                        {Math.max(totalModules - completedModules, 0)}
-                      </p>
-                    </div>
-                    <div className="rounded-md border border-border/50 bg-card/60 p-2.5 col-span-2">
-                      <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                        Difficulty
-                      </p>
-                      <p
-                        className={`font-mono text-sm mt-1 ${getDifficultyColor(track.difficulty)}`}
-                      >
-                        {track.difficulty}
-                      </p>
-                    </div>
-                    <div className="rounded-md border border-border/50 bg-card/60 p-2.5 col-span-2">
-                      <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                        Duration
-                      </p>
-                      <p className="font-mono text-sm text-foreground mt-1">
-                        {track.duration || 'N/A'}
-                      </p>
-                    </div>
-                  </div>
+                {/* The one number a track has: how far through it you are. */}
+                <div className="mt-6 flex items-baseline justify-between gap-4">
+                  <span className="warp-num text-4xl font-medium tracking-tight text-foreground">
+                    {completedModules}
+                    <span className="text-muted-foreground">
+                      /{totalModules}
+                    </span>
+                  </span>
+                  <span className="warp-num text-sm text-muted-foreground">
+                    {progress}%
+                  </span>
+                </div>
+                <div
+                  className="mt-3 h-px w-full bg-[var(--warp-rule)]"
+                  role="progressbar"
+                  aria-label="Path progress"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={progress}
+                >
+                  <div
+                    className="h-px bg-[var(--warp-parchment)] transition-[width] duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
 
-                  <div className="pt-1 flex flex-col gap-2">
-                    {track.isEnrolled ? (
-                      <>
-                        <Button
-                          className="font-mono text-xs"
-                          onClick={() => navigateToTrackModule(nextModule)}
-                          disabled={!nextModule}
-                        >
-                          <ArrowRight className="h-4 w-4 mr-1" />
-                          Continue Path
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="font-mono text-xs"
-                          onClick={handleUnenroll}
-                        >
-                          Unenroll
-                        </Button>
-                      </>
-                    ) : (
+                <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-[var(--warp-rule)] pb-6">
+                  {track.isEnrolled ? (
+                    <>
                       <Button
-                        className="font-mono text-xs"
-                        onClick={handleEnroll}
+                        className="bg-[var(--warp-parchment)] text-[var(--warp-void)] hover:bg-[var(--warp-ash)]"
+                        onClick={() => navigateToTrackModule(nextModule)}
+                        disabled={!nextModule}
                       >
-                        Enroll Path
+                        {completedModules > 0 ? 'Continue' : 'Start'}
+                        <ArrowRight className="ml-1 h-4 w-4" />
                       </Button>
-                    )}
-                  </div>
-                </aside>
-              </div>
-            </section>
+                      <Button
+                        variant="ghost"
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                        onClick={handleUnenroll}
+                      >
+                        Unenroll
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      className="bg-[var(--warp-parchment)] text-[var(--warp-void)] hover:bg-[var(--warp-ash)]"
+                      onClick={handleEnroll}
+                    >
+                      Enroll
+                    </Button>
+                  )}
+                </div>
+              </header>
 
-            <Tabs
-              value={activeTab}
-              onValueChange={(v) => setActiveTab(v as 'progress' | 'details')}
-            >
-              <TabsList className="font-mono text-xs">
-                <TabsTrigger value="progress">Route Timeline</TabsTrigger>
-                <TabsTrigger value="details">Track Brief</TabsTrigger>
-              </TabsList>
+              <Tabs
+                value={activeTab}
+                onValueChange={(v) => setActiveTab(v as 'progress' | 'details')}
+              >
+                <TabsList className="text-[11px] uppercase tracking-[0.12em]">
+                  <TabsTrigger value="progress">Curriculum</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="progress" className="mt-4 space-y-4">
-                {track.modules.length === 0 ? (
-                  <div className="rounded-md border border-border/40 bg-card/70 p-8 text-center">
-                    <p className="font-mono text-sm text-muted-foreground">
+                <TabsContent value="progress" className="mt-6">
+                  {track.modules.length === 0 ? (
+                    <p className="py-16 text-center text-sm text-muted-foreground">
                       No modules registered in this track.
                     </p>
-                  </div>
-                ) : (
-                  <section className="rounded-md border border-border/40 bg-card/80 p-4 md:p-5">
-                    <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-4">
-                      Route Timeline
-                    </p>
-                    <div className="relative pl-6 space-y-3">
-                      <div className="pointer-events-none absolute left-[11px] top-1 bottom-1 w-px bg-border/60" />
-
+                  ) : (
+                    /* The curriculum is the page. It was a bordered card
+                       holding a dotted timeline holding one bordered card per
+                       module, each with four badges — three levels of box for a
+                       list that is really "step, name, state". */
+                    <ol className="border-t border-[var(--warp-rule)]">
                       {track.modules.map((trackModule) => {
                         const module = trackModule.module;
                         const isCurrent =
@@ -443,144 +321,109 @@ const TrackDetailPage: NextPageWithLayout = () => {
                           nextModule?.id === trackModule.id;
 
                         return (
-                          <div key={trackModule.id} className="relative">
-                            <span
-                              className={`absolute -left-5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border ${
-                                trackModule.isCompleted
-                                  ? 'border-emerald-400 bg-emerald-400'
-                                  : isCurrent
-                                    ? 'border-foreground/60 bg-foreground/60'
-                                    : 'border-border bg-background'
-                              }`}
-                            />
-
-                            <div className="rounded-md border border-border/35 bg-background/50 p-4 flex flex-col md:flex-row md:items-center gap-3">
-                              <div className="w-10 h-10 rounded-md border border-border/40 bg-card/70 flex items-center justify-center font-mono text-xs text-muted-foreground shrink-0">
-                                {trackModule.order}
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                  {trackModule.isCompleted && (
-                                    <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/35 bg-emerald-500/15 px-2 py-1 font-mono text-[10px] uppercase text-emerald-200">
-                                      <CheckCircle2 className="h-3 w-3" />
-                                      Completed
-                                    </span>
-                                  )}
-                                  {isCurrent && (
-                                    <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/50 bg-amber-500/10 px-2 py-1 font-mono text-[10px] uppercase text-amber-700 dark:text-amber-300">
-                                      In Progress
-                                    </span>
-                                  )}
-                                  <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-card px-2 py-1 font-mono text-[10px] uppercase text-muted-foreground">
-                                    <GraduationCap className="h-3 w-3" />
-                                    {module.type}
-                                  </span>
-                                  <span
-                                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-[10px] uppercase ${getCategoryBadge(module.category)}`}
-                                  >
-                                    {module.category}
-                                  </span>
-                                </div>
-
-                                <p className="font-mono text-sm text-foreground">
-                                  {module.title}
-                                </p>
-                                <div className="flex items-center flex-wrap gap-3 mt-1 font-mono text-[11px] text-muted-foreground">
-                                  <span
-                                    className={`inline-flex items-center gap-1 ${getDifficultyColor(module.difficulty)}`}
-                                  >
-                                    <BarChart3 className="h-3.5 w-3.5" />
-                                    {module.difficulty}
-                                  </span>
-                                  {module.duration && (
-                                    <span className="inline-flex items-center gap-1">
-                                      <Clock className="h-3.5 w-3.5" />
-                                      {module.duration}
-                                    </span>
-                                  )}
-                                  <span>{module.tier}</span>
-                                </div>
-                              </div>
-
-                              <Button
-                                onClick={() =>
-                                  navigateToTrackModule(trackModule)
-                                }
-                                className="font-mono text-xs"
-                                variant={
-                                  trackModule.isCompleted
-                                    ? 'outline'
-                                    : 'default'
-                                }
+                          <li key={trackModule.id}>
+                            <button
+                              type="button"
+                              onClick={() => navigateToTrackModule(trackModule)}
+                              className="group flex w-full items-baseline gap-4 border-b border-[var(--warp-rule)] py-3.5 text-left transition-colors hover:bg-white/[0.03]"
+                            >
+                              <span
+                                className={`warp-num w-6 shrink-0 text-right text-xs ${
+                                  trackModule.isCompleted || isCurrent
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground'
+                                }`}
                               >
-                                Open
-                              </Button>
-                            </div>
-                          </div>
+                                {trackModule.order}
+                              </span>
+
+                              <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                                {module.title}
+                              </span>
+
+                              {isCurrent && (
+                                <span className="shrink-0 text-[10px] uppercase tracking-[0.12em] text-foreground">
+                                  Next
+                                </span>
+                              )}
+
+                              <span className="hidden w-24 shrink-0 text-right text-xs text-muted-foreground lg:inline">
+                                {module.category}
+                              </span>
+                              <span
+                                className={`hidden w-24 shrink-0 text-right text-xs sm:inline ${getDifficultyColor(module.difficulty)}`}
+                              >
+                                {module.difficulty}
+                              </span>
+                              <span className="warp-num hidden w-14 shrink-0 text-right text-xs text-muted-foreground md:inline">
+                                {module.duration || '—'}
+                              </span>
+                              <span className="w-4 shrink-0 text-center text-xs text-foreground">
+                                {trackModule.isCompleted ? '✓' : ''}
+                              </span>
+                            </button>
+                          </li>
                         );
                       })}
+                    </ol>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="details" className="mt-4">
+                  <section className="rounded-md border border-[var(--warp-rule)]  p-5 md:p-6 space-y-4">
+                    <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                      Track Brief
+                    </p>
+                    <h2 className="text-lg text-foreground">{track.title}</h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {track.description ||
+                        'No description provided for this track yet.'}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                      <div className="rounded-md border border-[var(--warp-rule)] bg-background/60 p-3">
+                        <p className="text-[10px] uppercase text-muted-foreground">
+                          Type
+                        </p>
+                        <p className="text-sm text-foreground mt-1">
+                          {track.type}
+                        </p>
+                      </div>
+                      <div className="rounded-md border border-[var(--warp-rule)] bg-background/60 p-3">
+                        <p className="text-[10px] uppercase text-muted-foreground">
+                          Difficulty
+                        </p>
+                        <p
+                          className={`text-sm mt-1 ${getDifficultyColor(track.difficulty)}`}
+                        >
+                          {track.difficulty}
+                        </p>
+                      </div>
+                      <div className="rounded-md border border-[var(--warp-rule)] bg-background/60 p-3">
+                        <p className="text-[10px] uppercase text-muted-foreground">
+                          Duration
+                        </p>
+                        <p className="warp-num text-sm text-foreground mt-1">
+                          {track.duration || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="rounded-md border border-[var(--warp-rule)] bg-background/60 p-3">
+                        <p className="text-[10px] uppercase text-muted-foreground">
+                          Modules
+                        </p>
+                        <p className="warp-num text-sm text-foreground mt-1">
+                          {totalModules}
+                        </p>
+                      </div>
                     </div>
                   </section>
-                )}
-              </TabsContent>
-
-              <TabsContent value="details" className="mt-4">
-                <section className="rounded-md border border-border/40 bg-card/80 p-5 md:p-6 space-y-4">
-                  <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                    Track Brief
-                  </p>
-                  <h2 className="font-mono text-lg text-foreground">
-                    {track.title}
-                  </h2>
-                  <p className="font-mono text-sm text-muted-foreground leading-relaxed">
-                    {track.description ||
-                      'No description provided for this track yet.'}
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-                    <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                      <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                        Type
-                      </p>
-                      <p className="font-mono text-sm text-foreground mt-1">
-                        {track.type}
-                      </p>
-                    </div>
-                    <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                      <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                        Difficulty
-                      </p>
-                      <p
-                        className={`font-mono text-sm mt-1 ${getDifficultyColor(track.difficulty)}`}
-                      >
-                        {track.difficulty}
-                      </p>
-                    </div>
-                    <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                      <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                        Duration
-                      </p>
-                      <p className="font-mono text-sm text-foreground mt-1">
-                        {track.duration || 'N/A'}
-                      </p>
-                    </div>
-                    <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                      <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                        Modules
-                      </p>
-                      <p className="font-mono text-sm text-foreground mt-1">
-                        {totalModules}
-                      </p>
-                    </div>
-                  </div>
-                </section>
-              </TabsContent>
-            </Tabs>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 };
 

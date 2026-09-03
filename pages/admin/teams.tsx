@@ -1,29 +1,20 @@
 import { type ReactElement, useEffect, useState } from 'react';
-import { useTranslation } from 'next-i18next';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { StatBar } from '@/components/layouts/StatBar';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  adminButtonClass,
+  adminButtonPrimaryClass,
+  adminInputClass,
+  adminLabelClass,
+} from '@/components/admin/styles';
+import { matches } from '@/lib/admin-ui';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
 import Head from 'next/head';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -31,19 +22,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
-import {
-  Users,
-  Search,
-  Copy,
-  Check,
-  TrendingUp,
-  Plus,
-  UserPlus,
-  X,
-} from 'lucide-react';
+import { Check, Copy, Plus, Search, X } from 'lucide-react';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -91,7 +71,6 @@ export const getServerSideProps = async (
 };
 
 const TeamManagement: NextPageWithLayout = () => {
-  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -256,228 +235,152 @@ const TeamManagement: NextPageWithLayout = () => {
   };
 
   const teams = teamsData?.data?.teams || [];
+  const needle = searchQuery.toLowerCase();
   const filteredTeams = teams.filter(
     (team) =>
-      team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      team.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      team.inviteCode.toLowerCase().includes(searchQuery.toLowerCase())
+      matches(team.name, needle) ||
+      matches(team.slug, needle) ||
+      matches(team.inviteCode, needle)
   );
 
   const handleCopyInviteCode = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
-    toast.success('Invite code copied!');
+    toast.success('초대 코드를 복사했습니다');
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
   return (
     <>
       <Head>
-        <title>Team Management - Admin - HUB ACADEMY</title>
+        <title>Teams - Admin - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
+      <AdminLayout title="Teams" description="팀과 초대 코드">
+        <StatBar
+          stats={[
+            { label: 'Teams', value: teams.length },
+            { label: 'Showing', value: filteredTeams.length },
+          ]}
+        />
 
-        <div className="relative z-10">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="/admin/dashboard"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          Admin
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Team Management
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
-
-              <div className="flex-1 overflow-y-auto">
-                <div className="px-6 md:px-12 py-6">
-                  <div className="max-w-6xl mx-auto space-y-6">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h1
-                          className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground mb-2"
-                          style={{ fontStyle: 'italic' }}
-                        >
-                          TEAM MANAGEMENT
-                        </h1>
-                        <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
-                          Manage Teams and Invite Codes
-                        </p>
-                      </div>
-                      <Button
-                        onClick={() => {
-                          setCreateForm({ name: '', slug: '', inviteCode: '' });
-                          setCreateError(null);
-                          setIsCreateOpen(true);
-                        }}
-                        size="sm"
-                        className="font-mono text-xs uppercase tracking-wider gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Create Team
-                      </Button>
-                    </div>
-
-                    {/* Search */}
-                    <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="text"
-                          placeholder="Search teams by name, slug, or invite code..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="font-mono pl-10"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Teams List */}
-                    <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
-                      <h2 className="font-mono text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        Teams ({filteredTeams.length})
-                      </h2>
-
-                      {filteredTeams.length === 0 ? (
-                        <p className="font-mono text-sm text-muted-foreground text-center py-8">
-                          {searchQuery
-                            ? 'No teams found matching your search.'
-                            : 'No teams found.'}
-                        </p>
-                      ) : (
-                        <div className="space-y-3">
-                          {filteredTeams.map((team) => (
-                            <div
-                              key={team.id}
-                              className="flex items-center justify-between p-4 border border-border/30 rounded-lg bg-background/40 hover:border-accent/50 transition-colors"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <h3 className="font-mono text-base font-semibold text-foreground truncate">
-                                    {team.name}
-                                  </h3>
-                                  <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
-                                    {team.slug}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-4 text-sm">
-                                  {team.memberCount !== undefined && (
-                                    <div className="flex items-center gap-1">
-                                      <Users className="h-3 w-3 text-muted-foreground" />
-                                      <span className="font-mono text-xs text-muted-foreground">
-                                        {team.memberCount} members
-                                      </span>
-                                    </div>
-                                  )}
-                                  {team.totalPoints !== undefined && (
-                                    <div className="flex items-center gap-1">
-                                      <TrendingUp className="h-3 w-3 text-accent" />
-                                      <span className="font-mono text-xs text-accent font-semibold">
-                                        {team.totalPoints} pts
-                                      </span>
-                                    </div>
-                                  )}
-                                  <span className="font-mono text-[10px] text-muted-foreground">
-                                    Created:{' '}
-                                    {new Date(
-                                      team.createdAt
-                                    ).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 ml-4">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openMemberDialog(team)}
-                                  className="font-mono text-xs uppercase tracking-wider gap-2"
-                                >
-                                  <UserPlus className="h-3.5 w-3.5" />
-                                  Members
-                                </Button>
-                                <div className="flex items-center gap-2 px-3 py-1.5 border border-border/30 rounded bg-background/60">
-                                  <code className="font-mono text-xs text-foreground">
-                                    {team.inviteCode}
-                                  </code>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleCopyInviteCode(team.inviteCode)
-                                    }
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    {copiedCode === team.inviteCode ? (
-                                      <Check className="h-3 w-3 text-accent" />
-                                    ) : (
-                                      <Copy className="h-3 w-3 text-muted-foreground" />
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+        <div className="mt-6 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="이름, slug, 초대 코드로 검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`${adminInputClass} pl-9`}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setCreateForm({ name: '', slug: '', inviteCode: '' });
+              setCreateError(null);
+              setIsCreateOpen(true);
+            }}
+            className={adminButtonPrimaryClass}
+          >
+            <Plus className="h-3 w-3" />
+            Team
+          </button>
         </div>
-      </div>
+
+        {filteredTeams.length === 0 ? (
+          <p className="py-10 text-sm text-muted-foreground">
+            {searchQuery ? '검색 결과가 없습니다.' : '팀이 없습니다.'}
+          </p>
+        ) : (
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full min-w-[42rem] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-[var(--warp-rule)] text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <th className="py-2 pr-4 text-left font-normal">Name</th>
+                  <th className="py-2 pr-4 text-left font-normal">Slug</th>
+                  <th className="py-2 pr-4 text-right font-normal">Members</th>
+                  <th className="py-2 pr-4 text-right font-normal">Points</th>
+                  <th className="py-2 pr-4 text-left font-normal">Invite</th>
+                  <th className="py-2 text-right font-normal">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTeams.map((team) => (
+                  <tr
+                    key={team.id}
+                    className="border-b border-[var(--warp-rule)]"
+                  >
+                    <td className="py-2.5 pr-4 text-foreground">{team.name}</td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {team.slug}
+                    </td>
+                    <td className="warp-num py-2.5 pr-4 text-right text-muted-foreground">
+                      {team.memberCount ?? '—'}
+                    </td>
+                    {/* Points were the one tinted thing on the row. Nothing
+                        about a team total is a warning or a state; it is a
+                        figure, so it reads as one. */}
+                    <td className="warp-num py-2.5 pr-4 text-right text-foreground">
+                      {team.totalPoints ?? '—'}
+                    </td>
+                    <td className="py-2.5 pr-4">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyInviteCode(team.inviteCode)}
+                        className="group inline-flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        <code className="warp-num">{team.inviteCode}</code>
+                        {copiedCode === team.inviteCode ? (
+                          <Check className="h-3 w-3 text-foreground" />
+                        ) : (
+                          <Copy className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                        )}
+                      </button>
+                    </td>
+                    <td className="py-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => openMemberDialog(team)}
+                        className={adminButtonClass}
+                      >
+                        Members
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </AdminLayout>
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-md border-border/30 bg-card/95 backdrop-blur-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-mono text-xs uppercase tracking-wider text-foreground">
-              Create Team
+            <DialogTitle className="text-base font-normal">
+              Create team
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={onCreateTeam} className="space-y-4">
-            <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">
-                Name
-              </Label>
-              <Input
+            <div>
+              <label className={adminLabelClass}>Name</label>
+              <input
                 value={createForm.name}
                 onChange={(e) =>
                   setCreateForm((f) => ({ ...f, name: e.target.value }))
                 }
                 placeholder="e.g. KUCIS_2026"
                 maxLength={120}
-                className="font-mono text-xs"
+                className={adminInputClass}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">
-                Slug
-              </Label>
-              <Input
+            <div>
+              <label className={adminLabelClass}>Slug</label>
+              <input
                 value={createForm.slug}
                 onChange={(e) => {
                   const cleaned = e.target.value
@@ -487,57 +390,46 @@ const TeamManagement: NextPageWithLayout = () => {
                 }}
                 placeholder="e.g. KUCIS_2026"
                 maxLength={120}
-                className="font-mono text-xs"
+                className={adminInputClass}
               />
-              <p className="font-mono text-[10px] text-muted-foreground">
-                Letters, numbers, underscores, and dashes only. Spaces become
-                underscores.
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                영문·숫자·언더스코어·하이픈만. 공백은 언더스코어가 됩니다.
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">
-                Invite Code{' '}
-                <span className="normal-case text-muted-foreground">
-                  (optional)
-                </span>
-              </Label>
-              <Input
+            <div>
+              <label className={adminLabelClass}>Invite code (optional)</label>
+              <input
                 value={createForm.inviteCode}
                 onChange={(e) =>
                   setCreateForm((f) => ({ ...f, inviteCode: e.target.value }))
                 }
-                placeholder="Auto-generated if blank"
+                placeholder="비우면 자동 생성"
                 maxLength={64}
-                className="font-mono text-xs"
+                className={adminInputClass}
               />
             </div>
 
             {createError && (
-              <p className="font-mono text-[11px] text-red-400">
-                {createError}
-              </p>
+              <p className="text-xs text-destructive">{createError}</p>
             )}
 
             <DialogFooter className="gap-2">
-              <Button
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
                 onClick={() => setIsCreateOpen(false)}
                 disabled={creating}
-                className="font-mono text-xs uppercase tracking-wider"
+                className={adminButtonClass}
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
-                size="sm"
                 disabled={creating}
-                className="font-mono text-xs uppercase tracking-wider"
+                className={adminButtonPrimaryClass}
               >
                 {creating ? 'Creating...' : 'Create'}
-              </Button>
+              </button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -549,127 +441,119 @@ const TeamManagement: NextPageWithLayout = () => {
           if (!open) setMemberTeam(null);
         }}
       >
-        <DialogContent className="sm:max-w-2xl border-border/30 bg-card/95 backdrop-blur-sm max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-mono text-xs uppercase tracking-wider text-foreground">
-              {memberTeam ? `Members · ${memberTeam.name}` : 'Members'}
+            <DialogTitle className="text-base font-normal">
+              {memberTeam ? `${memberTeam.name} · Members` : 'Members'}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-5 overflow-y-auto pr-1">
-            <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">
-                Current Members ({members.length})
-              </Label>
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
+            <section>
+              <h3 className={adminLabelClass}>Current ({members.length})</h3>
               {memberLoading ? (
-                <p className="font-mono text-xs text-muted-foreground py-3">
-                  Loading...
-                </p>
+                <p className="py-3 text-xs text-muted-foreground">Loading...</p>
               ) : members.length === 0 ? (
-                <p className="font-mono text-xs text-muted-foreground py-3">
-                  No members yet.
+                <p className="py-3 text-xs text-muted-foreground">
+                  아직 멤버가 없습니다.
                 </p>
               ) : (
-                <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                <ul className="max-h-48 overflow-y-auto overscroll-contain border-t border-[var(--warp-rule)] pr-1">
                   {members.map((m) => (
-                    <div
+                    <li
                       key={m.id}
-                      className="flex items-center justify-between gap-3 px-3 py-2 border border-border/30 rounded bg-background/40"
+                      className="flex items-center gap-3 border-b border-[var(--warp-rule)] py-2"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="font-mono text-xs text-foreground truncate">
+                        <p className="truncate text-sm text-foreground">
                           {m.name}
                         </p>
-                        <p className="font-mono text-[10px] text-muted-foreground truncate">
+                        <p className="truncate text-[11px] text-muted-foreground">
                           {m.email} · {m.role}
                         </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <button
+                        type="button"
                         onClick={() => onRemoveMember(m.userId)}
-                        className="h-7 w-7 p-0 text-muted-foreground hover:text-red-400"
                         title="Remove"
+                        className="rounded p-1 text-muted-foreground transition-colors hover:bg-white/[0.03] hover:text-destructive"
                       >
                         <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
-            </div>
+            </section>
 
-            <div className="space-y-2">
-              <Label className="font-mono text-xs uppercase tracking-wider">
-                Add Member
-              </Label>
+            <section>
+              <h3 className={adminLabelClass}>Add</h3>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
                   type="text"
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  placeholder="Search users by name or email..."
-                  className="font-mono text-xs pl-9"
+                  placeholder="이름 또는 이메일로 검색"
+                  className={`${adminInputClass} pl-9`}
                 />
               </div>
 
-              <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
+              <div className="mt-2 max-h-56 overflow-y-auto overscroll-contain pr-1">
                 {userSearchLoading ? (
-                  <p className="font-mono text-xs text-muted-foreground py-2">
+                  <p className="py-2 text-xs text-muted-foreground">
                     Searching...
                   </p>
                 ) : userResults.length === 0 ? (
-                  <p className="font-mono text-xs text-muted-foreground py-2">
+                  <p className="py-2 text-xs text-muted-foreground">
                     {userSearch.trim()
-                      ? 'No users found.'
-                      : 'Start typing to search users.'}
+                      ? '결과가 없습니다.'
+                      : '이름을 입력하면 검색합니다.'}
                   </p>
                 ) : (
-                  userResults.map((u) => {
-                    const alreadyMember = members.some(
-                      (m) => m.userId === u.id
-                    );
-                    return (
-                      <div
-                        key={u.id}
-                        className="flex items-center justify-between gap-3 px-3 py-2 border border-border/30 rounded bg-background/40"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="font-mono text-xs text-foreground truncate">
-                            {u.name}
-                          </p>
-                          <p className="font-mono text-[10px] text-muted-foreground truncate">
-                            {u.email}
-                          </p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={alreadyMember}
-                          onClick={() => onAddMember(u.id)}
-                          className="font-mono text-[10px] uppercase tracking-wider"
+                  <ul className="border-t border-[var(--warp-rule)]">
+                    {userResults.map((u) => {
+                      const alreadyMember = members.some(
+                        (m) => m.userId === u.id
+                      );
+                      return (
+                        <li
+                          key={u.id}
+                          className="flex items-center gap-3 border-b border-[var(--warp-rule)] py-2"
                         >
-                          {alreadyMember ? 'Added' : 'Add'}
-                        </Button>
-                      </div>
-                    );
-                  })
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm text-foreground">
+                              {u.name}
+                            </p>
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {u.email}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={alreadyMember}
+                            onClick={() => onAddMember(u.id)}
+                            className={adminButtonClass}
+                          >
+                            {alreadyMember ? 'Added' : 'Add'}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 )}
               </div>
-            </div>
+            </section>
           </div>
 
           <DialogFooter>
-            <Button
+            <button
               type="button"
-              variant="outline"
-              size="sm"
               onClick={() => setMemberTeam(null)}
-              className="font-mono text-xs uppercase tracking-wider"
+              className={adminButtonClass}
             >
               Close
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

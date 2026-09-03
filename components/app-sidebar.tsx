@@ -13,7 +13,7 @@ import {
 import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
 import { NavTools } from '@/components/nav-tools';
-import { NavKucis } from '@/components/nav-kucis';
+// import { NavKucis } from '@/components/nav-kucis';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@/components/team-switcher';
 import {
@@ -56,6 +56,10 @@ const data = {
         {
           title: 'MACHINE RANKINGS',
           url: '/rankings/machine',
+        },
+        {
+          title: 'SANDBOX RANKINGS',
+          url: '/rankings/sandbox',
         },
         {
           title: 'PLAYGROUND RANKINGS',
@@ -176,7 +180,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ];
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    // The shell divider reads as a hard bright line: border-r takes its colour
+    // from the global `* { border-border }`, and on the Warp palette --border is
+    // a 35%-light grey, far heavier than every hairline on the page. Point it at
+    // --warp-rule instead, with the old value as fallback for surfaces that do
+    // not define it.
+    <Sidebar
+      collapsible="icon"
+      className="border-r-[color:var(--warp-rule,hsl(var(--border)))]"
+      {...props}
+    >
       <SidebarHeader>
         <TeamSwitcher teams={teamsData} />
       </SidebarHeader>
@@ -184,7 +197,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
         <NavProjects projects={data.practice} />
         <NavTools tools={data.tools} />
-        <NavKucis items={data.kucis} />
+        {/* <NavKucis items={data.kucis} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

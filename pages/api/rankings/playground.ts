@@ -32,19 +32,26 @@ export default async function handler(
 }
 
 const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { limit } = req.query;
+  const { limit, season } = req.query;
   const session = await getSession(req, res);
+
+  // Each season starts from zero, so a ranking is only meaningful once it is
+  // told which one. Omitting `season` still sums every season, which is what
+  // the all-time board wants.
+  const seasonCodeName = typeof season === 'string' ? season : undefined;
 
   const rankings = await getRankingsByType(
     ScoreType.PLAYGROUND,
-    limit ? parseInt(limit as string, 10) : 100
+    limit ? parseInt(limit as string, 10) : 100,
+    seasonCodeName
   );
 
   let userRanking: number | null = null;
   if (session?.user?.id) {
     const rank = await getUserRankingByType(
       session.user.id,
-      ScoreType.PLAYGROUND
+      ScoreType.PLAYGROUND,
+      seasonCodeName
     );
     userRanking = rank;
   }

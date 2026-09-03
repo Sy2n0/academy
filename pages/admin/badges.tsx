@@ -2,25 +2,16 @@ import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import {
+  adminButtonClass,
+  adminButtonPrimaryClass,
+} from '@/components/admin/styles';
 import Head from 'next/head';
 import toast from 'react-hot-toast';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -347,301 +338,264 @@ const AdminBadges: NextPageWithLayout = () => {
         <title>Badge Management - Admin - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative h-screen bg-background overflow-hidden">
-        <AnimatedNoise opacity={0.03} />
+      <AdminLayout
+        title="Badges"
+        description="배지를 만들고 코드네임에 매핑하거나 직접 부여합니다"
+      >
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <h2 className="border-b border-[var(--warp-rule)] pb-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+              Badge Catalog
+            </h2>
+            <form onSubmit={onSubmitBadge} className="space-y-3">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Name
+                </Label>
+                <Input
+                  value={badgeForm.name}
+                  onChange={(e) =>
+                    setBadgeForm((p) => ({
+                      ...p,
+                      name: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Slug
+                </Label>
+                <Input
+                  value={badgeForm.slug}
+                  onChange={(e) =>
+                    setBadgeForm((p) => ({
+                      ...p,
+                      slug: e.target.value,
+                    }))
+                  }
+                  placeholder="optional-auto-generated"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Image URL
+                </Label>
+                <Input
+                  value={badgeForm.imageUrl}
+                  onChange={(e) =>
+                    setBadgeForm((p) => ({
+                      ...p,
+                      imageUrl: e.target.value,
+                    }))
+                  }
+                  placeholder="/badge/26_RECRUITING_BADGE.png"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Description
+                </Label>
+                <textarea
+                  value={badgeForm.description}
+                  onChange={(e) =>
+                    setBadgeForm((p) => ({
+                      ...p,
+                      description: e.target.value,
+                    }))
+                  }
+                  rows={3}
+                  className="w-full rounded border border-border/30 bg-background/60 px-3 py-2 font-mono text-sm"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="font-mono text-xs uppercase tracking-wider"
+                >
+                  {editingBadgeId ? 'Update Badge' : 'Create Badge'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsPreviewOpen(true)}
+                  className="font-mono text-xs uppercase tracking-wider"
+                >
+                  Preview
+                </Button>
+                {editingBadgeId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingBadgeId(null);
+                      setBadgeForm({
+                        name: '',
+                        slug: '',
+                        imageUrl: '',
+                        description: '',
+                      });
+                    }}
+                    className="font-mono text-xs uppercase tracking-wider"
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
+            </form>
 
-        <div className="relative z-10 h-full">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="h-full flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Badge Management
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
-
-              <div className="flex-1 overflow-y-auto px-6 md:px-12 py-6 space-y-6">
-                <div>
-                  <h1 className="font-[var(--font-bebas)] text-4xl md:text-5xl tracking-tight text-foreground">
-                    BADGE MANAGEMENT
-                  </h1>
-                  <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider mt-1">
-                    Create badges, map playground codename, and assign directly
-                    to users
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                  <div className="rounded-lg border border-border/30 bg-card/50 p-5 space-y-4">
-                    <h2 className="font-mono text-xs uppercase tracking-wider text-foreground">
-                      Badge Catalog
-                    </h2>
-                    <form onSubmit={onSubmitBadge} className="space-y-3">
-                      <div className="space-y-2">
-                        <Label className="font-mono text-xs uppercase tracking-wider">
-                          Name
-                        </Label>
-                        <Input
-                          value={badgeForm.name}
-                          onChange={(e) =>
-                            setBadgeForm((p) => ({
-                              ...p,
-                              name: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="font-mono text-xs uppercase tracking-wider">
-                          Slug
-                        </Label>
-                        <Input
-                          value={badgeForm.slug}
-                          onChange={(e) =>
-                            setBadgeForm((p) => ({
-                              ...p,
-                              slug: e.target.value,
-                            }))
-                          }
-                          placeholder="optional-auto-generated"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="font-mono text-xs uppercase tracking-wider">
-                          Image URL
-                        </Label>
-                        <Input
-                          value={badgeForm.imageUrl}
-                          onChange={(e) =>
-                            setBadgeForm((p) => ({
-                              ...p,
-                              imageUrl: e.target.value,
-                            }))
-                          }
-                          placeholder="/badge/26_RECRUITING_BADGE.png"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="font-mono text-xs uppercase tracking-wider">
-                          Description
-                        </Label>
-                        <textarea
-                          value={badgeForm.description}
-                          onChange={(e) =>
-                            setBadgeForm((p) => ({
-                              ...p,
-                              description: e.target.value,
-                            }))
-                          }
-                          rows={3}
-                          className="w-full rounded border border-border/30 bg-background/60 px-3 py-2 font-mono text-sm"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          type="submit"
-                          disabled={loading}
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          {editingBadgeId ? 'Update Badge' : 'Create Badge'}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsPreviewOpen(true)}
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          Preview
-                        </Button>
-                        {editingBadgeId && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setEditingBadgeId(null);
-                              setBadgeForm({
-                                name: '',
-                                slug: '',
-                                imageUrl: '',
-                                description: '',
-                              });
-                            }}
-                            className="font-mono text-xs uppercase tracking-wider"
-                          >
-                            Cancel
-                          </Button>
-                        )}
-                      </div>
-                    </form>
-
-                    <div className="max-h-[360px] overflow-y-auto space-y-2">
-                      {badges.map((badge) => (
-                        <div
-                          key={badge.id}
-                          className="rounded border border-border/30 bg-background/50 p-3"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="font-mono text-sm text-foreground">
-                                {badge.name}
-                              </p>
-                              <p className="font-mono text-[10px] text-muted-foreground">
-                                {badge.slug}
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setEditingBadgeId(badge.id);
-                                  setBadgeForm({
-                                    name: badge.name,
-                                    slug: badge.slug,
-                                    imageUrl: badge.imageUrl || '',
-                                    description: badge.description || '',
-                                  });
-                                }}
-                                className="font-mono text-[10px] uppercase"
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => onDeleteBadge(badge.id)}
-                                className="font-mono text-[10px] uppercase text-destructive"
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {badges.length === 0 && (
-                        <p className="font-mono text-xs text-muted-foreground">
-                          No badges yet.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-border/30 bg-card/50 p-5 space-y-4">
-                    <h2 className="font-mono text-xs uppercase tracking-wider text-foreground">
-                      Playground Mapping
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <Select
-                        value={mappingCodeName}
-                        onValueChange={setMappingCodeName}
-                      >
-                        <SelectTrigger className="font-mono text-xs">
-                          <SelectValue placeholder="Select CODENAME" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {playgrounds.map((pg) => (
-                            <SelectItem key={pg.codeName} value={pg.codeName}>
-                              {pg.codeName} ({pg.name})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select
-                        value={mappingBadgeId}
-                        onValueChange={setMappingBadgeId}
-                      >
-                        <SelectTrigger className="font-mono text-xs">
-                          <SelectValue placeholder="Select Badge" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {badges.map((badge) => (
-                            <SelectItem key={badge.id} value={badge.id}>
-                              {badge.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button
-                      onClick={onSaveMapping}
-                      disabled={loading}
-                      className="font-mono text-xs uppercase tracking-wider"
-                    >
-                      Save Mapping
-                    </Button>
-
-                    <div className="max-h-[360px] overflow-y-auto space-y-2">
-                      {mappingTable.map((row) => (
-                        <div
-                          key={row.codeName}
-                          className="rounded border border-border/30 bg-background/50 p-3 flex items-center justify-between gap-3"
-                        >
-                          <div>
-                            <p className="font-mono text-sm text-foreground">
-                              {row.codeName}
-                            </p>
-                            <p className="font-mono text-[10px] text-muted-foreground">
-                              {row.name}
-                            </p>
-                            <p className="font-mono text-[10px] text-accent mt-1">
-                              {row.mapping
-                                ? `Mapped: ${row.mapping.badgeName}`
-                                : 'Not mapped'}
-                            </p>
-                          </div>
-                          {row.mapping && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onDeleteMapping(row.codeName)}
-                              className="font-mono text-[10px] uppercase text-destructive"
-                            >
-                              Delete
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-border/30 bg-card/50 p-5 space-y-4">
-                  <div className="flex items-center justify-between gap-3">
+            <div className="max-h-[360px] overflow-y-auto space-y-2">
+              {badges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className="rounded border border-border/30 bg-background/50 p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h2 className="font-mono text-xs uppercase tracking-wider text-foreground">
-                        Direct User Assignment
-                      </h2>
-                      <p className="font-mono text-[10px] text-muted-foreground mt-1">
-                        Assign or revoke badges in a dedicated modal.
+                      <p className="font-mono text-sm text-foreground">
+                        {badge.name}
+                      </p>
+                      <p className="font-mono text-[10px] text-muted-foreground">
+                        {badge.slug}
                       </p>
                     </div>
-                    <Button
-                      type="button"
-                      onClick={() => setIsAssignmentModalOpen(true)}
-                      className="font-mono text-xs uppercase tracking-wider"
-                    >
-                      Open Assignment Manager
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingBadgeId(badge.id);
+                          setBadgeForm({
+                            name: badge.name,
+                            slug: badge.slug,
+                            imageUrl: badge.imageUrl || '',
+                            description: badge.description || '',
+                          });
+                        }}
+                        className="font-mono text-[10px] uppercase"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onDeleteBadge(badge.id)}
+                        className="font-mono text-[10px] uppercase text-destructive"
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+              ))}
+              {badges.length === 0 && (
+                <p className="font-mono text-xs text-muted-foreground">
+                  No badges yet.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="border-b border-[var(--warp-rule)] pb-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+              Playground Mapping
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Select
+                value={mappingCodeName}
+                onValueChange={setMappingCodeName}
+              >
+                <SelectTrigger className="font-mono text-xs">
+                  <SelectValue placeholder="Select CODENAME" />
+                </SelectTrigger>
+                <SelectContent>
+                  {playgrounds.map((pg) => (
+                    <SelectItem key={pg.codeName} value={pg.codeName}>
+                      {pg.codeName} ({pg.name})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={mappingBadgeId} onValueChange={setMappingBadgeId}>
+                <SelectTrigger className="font-mono text-xs">
+                  <SelectValue placeholder="Select Badge" />
+                </SelectTrigger>
+                <SelectContent>
+                  {badges.map((badge) => (
+                    <SelectItem key={badge.id} value={badge.id}>
+                      {badge.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              onClick={onSaveMapping}
+              disabled={loading}
+              className={adminButtonClass}
+            >
+              Save Mapping
+            </Button>
+
+            <div className="max-h-[360px] overflow-y-auto space-y-2">
+              {mappingTable.map((row) => (
+                <div
+                  key={row.codeName}
+                  className="rounded border border-border/30 bg-background/50 p-3 flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <p className="font-mono text-sm text-foreground">
+                      {row.codeName}
+                    </p>
+                    <p className="font-mono text-[10px] text-muted-foreground">
+                      {row.name}
+                    </p>
+                    <p className="font-mono text-[10px] text-accent mt-1">
+                      {row.mapping
+                        ? `Mapped: ${row.mapping.badgeName}`
+                        : 'Not mapped'}
+                    </p>
+                  </div>
+                  {row.mapping && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onDeleteMapping(row.codeName)}
+                      className="font-mono text-[10px] uppercase text-destructive"
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="border-b border-[var(--warp-rule)] pb-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                Direct User Assignment
+              </h2>
+              <p className="font-mono text-[10px] text-muted-foreground mt-1">
+                Assign or revoke badges in a dedicated modal.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={() => setIsAssignmentModalOpen(true)}
+              className={adminButtonClass}
+            >
+              Open Assignment Manager
+            </Button>
+          </div>
+        </div>
+      </AdminLayout>
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="sm:max-w-md border-border/30 bg-card/95 backdrop-blur-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-mono text-xs uppercase tracking-wider text-foreground">
               Badge Preview
@@ -682,7 +636,7 @@ const AdminBadges: NextPageWithLayout = () => {
         open={isAssignmentModalOpen}
         onOpenChange={setIsAssignmentModalOpen}
       >
-        <DialogContent className="sm:max-w-4xl border-border/30 bg-card/95 backdrop-blur-sm max-h-[85vh] overflow-hidden">
+        <DialogContent className="max-h-[85vh] overflow-hidden sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle className="font-mono text-xs uppercase tracking-wider text-foreground">
               Direct User Assignment
@@ -695,7 +649,7 @@ const AdminBadges: NextPageWithLayout = () => {
               className="grid grid-cols-1 md:grid-cols-[1fr_260px_auto] gap-3 items-end"
             >
               <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   User
                 </Label>
                 <Select
@@ -715,7 +669,7 @@ const AdminBadges: NextPageWithLayout = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="font-mono text-xs uppercase tracking-wider">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Badge
                 </Label>
                 <Select value={assignBadgeId} onValueChange={setAssignBadgeId}>

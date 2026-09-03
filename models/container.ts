@@ -58,7 +58,10 @@ export async function createContainerInstance(
     [{ host: hostPort, container: containerPort }],
     env,
     machine.cpuLimit ?? undefined,
-    machine.memoryLimit ?? undefined
+    machine.memoryLimit ?? undefined,
+    // Machines join the VPN-only network when one is configured. Without it
+    // they keep publishing to the host, which is the pre-VPN behaviour.
+    process.env.MACHINE_NETWORK || undefined
   );
 
   // 만료 시간 설정 (기본 24시간)

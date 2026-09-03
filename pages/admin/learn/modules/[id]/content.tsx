@@ -1,22 +1,13 @@
+import { ExerciseEditor } from '@/components/admin/learn/ExerciseEditor';
 import { type ReactElement, useState, useEffect } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  adminButtonClass,
+  adminButtonPrimaryClass,
+} from '@/components/admin/styles';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
@@ -615,248 +606,197 @@ const AdminModuleContentPage: NextPageWithLayout = () => {
         <title>Edit Module Content - Admin - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <div className="relative z-10">
-          <SidebarProvider defaultOpen={false}>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="/admin/learn"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          Learn Management
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="/admin/learn/modules"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          Modules
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Edit Content
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
+      <AdminLayout title="Module content" description={data.data.title}>
+        <div className="mb-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => router.push('/admin/learn/modules')}
+            className={adminButtonClass}
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className={adminButtonPrimaryClass}
+          >
+            <Save className="h-3 w-3" />
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'edit' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('edit')}
+            className="font-mono text-xs"
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+          <Button
+            variant={viewMode === 'preview' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('preview')}
+            className="font-mono text-xs"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Preview
+          </Button>
+          <Button
+            variant={viewMode === 'split' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('split')}
+            className="font-mono text-xs"
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            <Eye className="h-4 w-4 mr-2" />
+            Split
+          </Button>
+        </div>
+
+        {/* Content Editor & Preview */}
+        <div>
+          <div className="space-y-4">
+            <div>
+              <Label
+                htmlFor="content"
+                className="font-mono text-sm font-bold text-foreground uppercase tracking-wider"
+              >
+                강의 내용 (Markdown 지원)
+              </Label>
+              <p className="font-mono text-xs text-muted-foreground mt-1 mb-4">
+                Markdown 형식으로 강의 내용을 작성할 수 있습니다. 제목, 리스트,
+                코드 블록 등을 사용할 수 있습니다.
+              </p>
+            </div>
+
+            {/* Split View */}
+            {viewMode === 'split' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-mono text-xs text-muted-foreground">
+                    Editor
+                  </Label>
+                  <Textarea
+                    id="content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="font-mono text-sm min-h-[700px] resize-none"
+                    placeholder="# 강의 제목
+
+## 섹션 1
+
+강의 내용을 여기에 작성하세요. Markdown 형식을 지원합니다.
+
+### 소제목
+
+- 리스트 항목 1
+- 리스트 항목 2
+
+\`\`\`code
+코드 블록 예시
+\`\`\`
+
+**굵은 글씨**와 *기울임*도 사용할 수 있습니다.
+
+> 인용문 예시
+
+[링크](https://example.com)
+"
+                  />
                 </div>
-              </header>
-
-              <div className="flex-1 overflow-y-auto">
-                <div className="px-6 md:px-12 py-6">
-                  <div className="max-w-7xl mx-auto space-y-6">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h1
-                          className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground"
-                          style={{ fontStyle: 'italic' }}
-                        >
-                          MODULE CONTENT
-                        </h1>
-                        <p className="font-mono text-sm text-muted-foreground mt-2">
-                          {data.data.title}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => router.push('/admin/learn/modules')}
-                          className="font-mono text-xs"
-                        >
-                          <ArrowLeft className="h-4 w-4 mr-2" />
-                          Back
-                        </Button>
-                        <Button
-                          onClick={handleSave}
-                          disabled={saving}
-                          size="sm"
-                          className="font-mono text-xs bg-accent hover:bg-accent/90 text-foreground"
-                        >
-                          <Save className="h-4 w-4 mr-2" />
-                          {saving ? 'Saving...' : 'Save Content'}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* View Mode Toggle */}
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant={viewMode === 'edit' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setViewMode('edit')}
-                        className="font-mono text-xs"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant={viewMode === 'preview' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setViewMode('preview')}
-                        className="font-mono text-xs"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Preview
-                      </Button>
-                      <Button
-                        variant={viewMode === 'split' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setViewMode('split')}
-                        className="font-mono text-xs"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        <Eye className="h-4 w-4 mr-2" />
-                        Split
-                      </Button>
-                    </div>
-
-                    {/* Content Editor & Preview */}
-                    <div className="border-2 border-border/50 rounded-xl backdrop-blur-sm bg-background/60 p-6">
-                      <div className="space-y-4">
-                        <div>
-                          <Label
-                            htmlFor="content"
-                            className="font-mono text-sm font-bold text-foreground uppercase tracking-wider"
-                          >
-                            강의 내용 (Markdown 지원)
-                          </Label>
-                          <p className="font-mono text-xs text-muted-foreground mt-1 mb-4">
-                            Markdown 형식으로 강의 내용을 작성할 수 있습니다.
-                            제목, 리스트, 코드 블록 등을 사용할 수 있습니다.
-                          </p>
-                        </div>
-
-                        {/* Split View */}
-                        {viewMode === 'split' && (
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label className="font-mono text-xs text-muted-foreground">
-                                Editor
-                              </Label>
-                              <Textarea
-                                id="content"
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                className="font-mono text-sm min-h-[700px] resize-none"
-                                placeholder="# 강의 제목
-
-## 섹션 1
-
-강의 내용을 여기에 작성하세요. Markdown 형식을 지원합니다.
-
-### 소제목
-
-- 리스트 항목 1
-- 리스트 항목 2
-
-\`\`\`code
-코드 블록 예시
-\`\`\`
-
-**굵은 글씨**와 *기울임*도 사용할 수 있습니다.
-
-> 인용문 예시
-
-[링크](https://example.com)
-"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="font-mono text-xs text-muted-foreground">
-                                Preview
-                              </Label>
-                              <div className="min-h-[700px] p-4 border border-border/30 rounded-md bg-background/40 overflow-y-auto prose prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground max-w-none">
-                                <MarkdownWithComponents
-                                  content={
-                                    content ||
-                                    '*No content yet. Start typing to see the preview.*'
-                                  }
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Edit Only View */}
-                        {viewMode === 'edit' && (
-                          <Textarea
-                            id="content"
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            className="font-mono text-sm min-h-[700px] resize-none"
-                            placeholder="# 강의 제목
-
-## 섹션 1
-
-강의 내용을 여기에 작성하세요. Markdown 형식을 지원합니다.
-
-### 소제목
-
-- 리스트 항목 1
-- 리스트 항목 2
-
-\`\`\`code
-코드 블록 예시
-\`\`\`
-
-**굵은 글씨**와 *기울임*도 사용할 수 있습니다.
-
-> 인용문 예시
-
-[링크](https://example.com)
-"
-                          />
-                        )}
-
-                        {/* Preview Only View */}
-                        {viewMode === 'preview' && (
-                          <div className="min-h-[700px] p-4 border border-border/30 rounded-md bg-background/40 overflow-y-auto prose prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground max-w-none">
-                            <MarkdownWithComponents
-                              content={
-                                content ||
-                                '*No content yet. Switch to Edit mode to add content.*'
-                              }
-                            />
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-4 border-t border-border/30">
-                          <p className="font-mono text-xs text-muted-foreground">
-                            {content.length} characters
-                          </p>
-                          <Button
-                            onClick={handleSave}
-                            disabled={saving}
-                            size="sm"
-                            className="font-mono text-xs bg-accent hover:bg-accent/90 text-foreground"
-                          >
-                            <Save className="h-4 w-4 mr-2" />
-                            {saving ? 'Saving...' : 'Save Content'}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                <div className="space-y-2">
+                  <Label className="font-mono text-xs text-muted-foreground">
+                    Preview
+                  </Label>
+                  <div className="min-h-[700px] p-4 border border-border/30 rounded-md bg-background/40 overflow-y-auto prose prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground max-w-none">
+                    <MarkdownWithComponents
+                      content={
+                        content ||
+                        '*No content yet. Start typing to see the preview.*'
+                      }
+                    />
                   </div>
                 </div>
               </div>
-            </SidebarInset>
-          </SidebarProvider>
+            )}
+
+            {/* Edit Only View */}
+            {viewMode === 'edit' && (
+              <Textarea
+                id="content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="font-mono text-sm min-h-[700px] resize-none"
+                placeholder="# 강의 제목
+
+## 섹션 1
+
+강의 내용을 여기에 작성하세요. Markdown 형식을 지원합니다.
+
+### 소제목
+
+- 리스트 항목 1
+- 리스트 항목 2
+
+\`\`\`code
+코드 블록 예시
+\`\`\`
+
+**굵은 글씨**와 *기울임*도 사용할 수 있습니다.
+
+> 인용문 예시
+
+[링크](https://example.com)
+"
+              />
+            )}
+
+            {/* Preview Only View */}
+            {viewMode === 'preview' && (
+              <div className="min-h-[700px] p-4 border border-border/30 rounded-md bg-background/40 overflow-y-auto prose prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground max-w-none">
+                <MarkdownWithComponents
+                  content={
+                    content ||
+                    '*No content yet. Switch to Edit mode to add content.*'
+                  }
+                />
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-4 border-t border-border/30">
+              <p className="font-mono text-xs text-muted-foreground">
+                {content.length} characters
+              </p>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                size="sm"
+                className={adminButtonPrimaryClass}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saving ? 'Saving...' : 'Save Content'}
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* Sits under the content it grades, so an author writing a
+                        실습 block can add its check without leaving the page. */}
+        {typeof id === 'string' && (
+          <section className="mt-10">
+            <h2 className="mb-4 border-b border-[var(--warp-rule)] pb-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+              실습 확인
+            </h2>
+            <ExerciseEditor moduleId={id} />
+          </section>
+        )}
+      </AdminLayout>
     </>
   );
 };

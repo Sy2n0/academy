@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  LogOut,
-  Settings,
-  Sparkles,
-  Shield,
-} from 'lucide-react';
+import { ChevronsUpDown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
@@ -55,26 +47,12 @@ export function NavUser() {
   const userAvatar = user?.image || undefined;
 
   // Fetch user role
-  const { data: userData, error: userError } = useSWR<{
+  const { data: userData } = useSWR<{
     data: { role: UserRole };
   }>(session?.user?.id ? '/api/users/me' : null, fetcher);
 
   const userRole = userData?.data?.role;
   const isUserAdmin = userRole ? isAdmin(userRole) : false;
-
-  // Debug logging (remove in production if needed)
-  if (process.env.NODE_ENV === 'development') {
-    console.log(
-      'NavUser - userRole:',
-      userRole,
-      'isUserAdmin:',
-      isUserAdmin,
-      'userData:',
-      userData,
-      'userEmail:',
-      userEmail
-    );
-  }
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' });
@@ -89,6 +67,9 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
+              {/* Stays 32px when the rail collapses — globals.css strips the
+                  button's padding there so it fills the 32px button instead of
+                  overflowing a 16px content box. A 16px avatar is not a face. */}
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={userAvatar} alt={userName} />
                 <AvatarFallback className="rounded-lg">
@@ -103,61 +84,81 @@ export function NavUser() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-60 rounded-md border-[var(--warp-rule)] bg-[var(--warp-surface)] p-0"
             side={isMobile ? 'bottom' : 'right'}
             align="end"
-            sideOffset={4}
+            sideOffset={6}
           >
+            {/* Identity, stated once. Same avatar size as the trigger, so
+                opening the menu does not resize the face. */}
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+              <div className="flex items-center gap-3 border-b border-[var(--warp-rule)] px-3 py-3 text-left">
+                <Avatar className="h-9 w-9 rounded-md">
                   <AvatarImage src={userAvatar} alt={userName} />
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback className="rounded-md text-xs">
                     {getInitials(userName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{userName}</span>
-                  <span className="truncate text-xs">{userEmail}</span>
+                <div className="grid min-w-0 flex-1 leading-tight">
+                  <span className="truncate text-sm font-medium text-foreground">
+                    {userName}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {userEmail}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+
+            {/* Icons removed rather than remapped: the set pointed a badge icon
+                at Account and sparkles at Badges, so it actively misled. The
+                labels are three words long and read fine alone. */}
+            <DropdownMenuGroup className="p-1">
               <DropdownMenuItem
+                className="text-sm"
                 onClick={() => router.push('/settings/account')}
               >
-                <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push('/settings/badges')}>
-                <Sparkles />
+              {/* <DropdownMenuItem
+                className="text-sm"
+                onClick={() => router.push('/settings/badges')}
+              >
                 Badges
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push('/settings')}>
-                <Settings />
+              </DropdownMenuItem> */}
+              {/* <DropdownMenuItem
+                className="text-sm"
+                onClick={() => router.push('/settings')}
+              >
                 Settings
-              </DropdownMenuItem>
-              {isUserAdmin && (
-                <>
+              </DropdownMenuItem> */}
+            </DropdownMenuGroup>
+
+            {isUserAdmin && (
+              <>
+                <DropdownMenuSeparator className="bg-[var(--warp-rule)]" />
+                {/* Admin is a different kind of destination from personal
+                    settings, so it sits in its own group. */}
+                <DropdownMenuGroup className="p-1">
+                  <DropdownMenuLabel className="px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    Admin
+                  </DropdownMenuLabel>
                   <DropdownMenuItem
+                    className="text-sm"
                     onClick={() => router.push('/admin/dashboard')}
                   >
-                    <Shield />
-                    Admin
+                    Admin dashboard
                   </DropdownMenuItem>
-                  {/* <DropdownMenuItem onClick={() => router.push('/admin/badges')}>
-                    <Sparkles />
-                    Badge Admin
-                  </DropdownMenuItem> */}
-                </>
-              )}
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </>
+            )}
+
+            <DropdownMenuSeparator className="bg-[var(--warp-rule)]" />
+            <div className="p-1">
+              <DropdownMenuItem className="text-sm" onClick={handleSignOut}>
+                Log out
+              </DropdownMenuItem>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

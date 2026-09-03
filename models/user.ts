@@ -66,7 +66,16 @@ export const getUserBySession = async (session: Session | null) => {
     return null;
   }
 
-  return await getUser({ id });
+  const user = await getUser({ id });
+
+  // A blocked account is treated as no account. Every caller already handles a
+  // null user by returning 401 or redirecting, so this needs no new branch at
+  // the 115 call sites — and it adds no query, since the lookup already ran.
+  if (user?.isBlocked) {
+    return null;
+  }
+
+  return user;
 };
 
 export const deleteUser = async (key: { id: string } | { email: string }) => {

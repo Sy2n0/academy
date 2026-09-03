@@ -37,6 +37,21 @@ model Session {
   @@index([userId])
 }
 
+/// Sign-in history. The app runs NextAuth on the jwt strategy, so the Session
+/// table stays empty and there is nowhere to hang "which device, from where".
+/// This records one row per successful sign-in, independent of the session
+/// strategy, so the account page can show where it has been accessed from.
+model LoginActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -90,11 +105,14 @@ model User {
   teamMembers                TeamMember[]
   moduleCompletions          UserModuleCompletion[]
   moduleNotes                UserModuleNote[]
+  exerciseChecks             UserExerciseCheck[]
   userPermissions            UserPermission[]
   skillPathEnrollments       UserSkillPathEnrollment[]
   reviewedWriteups           Writeup[]                   @relation("WriteupReviewer")
   writeups                   Writeup[]
   kucisReports               KucisVulnerabilityReport[]
+  loginActivity              LoginActivity[]
+  vpnProfile                 VpnProfile?
 }
 
 model Team {
@@ -385,6 +403,12 @@ model SandboxProblem {
   dockerImage   String?
   flag          String?
   containerPort Int            @default(7681)
+  // Dynamic scoring. A problem is worth initialValue to the first solver and
+  // decays toward minimumValue as more people clear it; decay is the solve
+  // count at which it bottoms out. Defaults reproduce the old flat 300.
+  initialValue  Int            @default(300)
+  minimumValue  Int            @default(100)
+  decay         Int            @default(15)
   solves        SandboxSolve[]
 
   @@index([category])
@@ -403,6 +427,10 @@ model Machine {
   bloodBonus           Boolean             @default(true)
   containerImage       String?
   servicePort          Int?
+  /// How to reach the service, so the platform can hand the student a ready
+  /// address instead of an IP and a port to assemble. Unset falls back to a
+  /// guess from the category — see lib/machine-connection.ts.
+  serviceProtocol      String?
   cpuLimit             Int?
   memoryLimit          Int?
   storageLimit         Int?
@@ -515,6 +543,7 @@ model LearningModule {
   @@index([difficulty])
   @@index([tier])
   @@index([isActive])
+  exercises   ModuleExercise[]
 }
 
 model UserModuleCompletion {
@@ -749,4 +778,79 @@ enum MachineType {
   DYNAMIC_ATTACHMENT
   STATIC_CONTAINER
   DYNAMIC_CONTAINER
+}
+
+/// One OpenVPN client identity per user.
+///
+/// Machines are reachable only from the VPN subnet, so this row is both the
+/// credential (the certificate common name) and the live connection state that
+/// gates starting a machine. State is written by the OpenVPN server's
+/// client-connect / client-disconnect hooks rather than polled, so it changes
+/// at the moment the tunnel does.
+model VpnProfile {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  /// Certificate CN. The user id, so it is stable and carries no personal data.
+  commonName  String    @unique
+  /// Set once the certificate has been issued; a profile can exist before that.
+  issuedAt    DateTime?
+  revokedAt   DateTime?
+  connected   Boolean   @default(false)
+  /// Address inside the VPN subnet while connected.
+  virtualIp   String?
+  connectedAt DateTime?
+  disconnectedAt DateTime?
+  /// Last hook we heard from, so a stale "connected" row can be spotted.
+  lastSeenAt  DateTime?
+  bytesIn     BigInt    @default(0)
+  bytesOut    BigInt    @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([connected])
+}
+
+/// One hands-on step inside a module, and the command that decides whether the
+/// student actually did it.
+///
+/// Every module here is built around 실습 blocks the learner types into a
+/// terminal, and until now nothing checked the result — they compared their
+/// screen to an "예상 출력" line by eye and pressed a self-declared complete
+/// button. The check runs in the learner's own container and looks at state
+/// (does the directory exist, does the file have those permissions), not at
+/// what they typed, so arriving a different way still counts.
+model ModuleExercise {
+  id             String              @id @default(uuid())
+  moduleId       String
+  /// Position within the module, matching the 실습 numbering in the content.
+  order          Int                 @default(0)
+  title          String
+  /// Shell run inside the learner's terminal container. Exit 0 means done.
+  /// Authored content, never assembled from anything a learner supplies.
+  checkCommand   String
+  /// Shown when the check fails — the nudge, not the answer.
+  hint           String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  module         LearningModule      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  checks         UserExerciseCheck[]
+
+  @@unique([moduleId, order])
+  @@index([moduleId])
+}
+
+/// Records that a learner's container satisfied an exercise, so progress
+/// survives closing the terminal.
+model UserExerciseCheck {
+  id         String         @id @default(uuid())
+  userId     String
+  exerciseId String
+  passedAt   DateTime       @default(now())
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise   ModuleExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exerciseId])
+  @@index([userId])
+  @@index([exerciseId])
 }

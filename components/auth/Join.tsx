@@ -206,12 +206,12 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
 
   return (
     <div className={cn('flex flex-col gap-6')}>
-      <Card className="border-border/30 bg-card/50 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl font-[var(--font-bebas)] tracking-tight">
+      <Card className="border-[var(--warp-border)] bg-[var(--warp-surface)] shadow-none">
+        <CardHeader>
+          <CardTitle className="warp-body-heading">
             {t('create-account')}
           </CardTitle>
-          <CardDescription className="font-mono text-xs">
+          <CardDescription className="warp-body mt-2 text-[0.9375rem]">
             {t('create-a-new-account')}
           </CardDescription>
         </CardHeader>
@@ -219,10 +219,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
           <form onSubmit={formik.handleSubmit}>
             <FieldGroup>
               <Field>
-                <FieldLabel
-                  htmlFor="name"
-                  className="font-mono text-xs uppercase tracking-wider"
-                >
+                <FieldLabel htmlFor="name" className="warp-label">
                   {t('name')}
                 </FieldLabel>
                 <Input
@@ -233,7 +230,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   value={formik.values.name}
                   onChange={formik.handleChange}
                   className={cn(
-                    'font-mono text-sm',
+                    'text-[0.9375rem]',
                     formik.touched.name &&
                       formik.errors.name &&
                       'border-destructive'
@@ -241,17 +238,14 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   required
                 />
                 {formik.touched.name && formik.errors.name && (
-                  <FieldDescription className="text-destructive font-mono text-xs">
+                  <FieldDescription className="text-destructive text-xs">
                     {formik.errors.name}
                   </FieldDescription>
                 )}
               </Field>
 
               <Field>
-                <FieldLabel
-                  htmlFor="team"
-                  className="font-mono text-xs uppercase tracking-wider"
-                >
+                <FieldLabel htmlFor="team" className="warp-label">
                   {t('token') || 'Token'}
                 </FieldLabel>
                 <Input
@@ -262,7 +256,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   value={formik.values.team}
                   onChange={formik.handleChange}
                   className={cn(
-                    'font-mono text-sm',
+                    'text-[0.9375rem]',
                     formik.errors.team && 'border-destructive',
                     tokenValidation.status === 'valid' && 'border-green-500',
                     tokenValidation.status === 'invalid' && 'border-destructive'
@@ -270,32 +264,29 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   required
                 />
                 {tokenValidation.status === 'validating' && (
-                  <FieldDescription className="font-mono text-xs text-muted-foreground">
+                  <FieldDescription className="text-xs text-muted-foreground">
                     {t('validating-token') || 'Validating token...'}
                   </FieldDescription>
                 )}
                 {tokenValidation.status === 'valid' && (
-                  <FieldDescription className="font-mono text-xs text-green-500">
+                  <FieldDescription className="text-xs text-green-500">
                     {tokenValidation.message}
                   </FieldDescription>
                 )}
                 {tokenValidation.status === 'invalid' && (
-                  <FieldDescription className="font-mono text-xs text-destructive">
+                  <FieldDescription className="text-xs text-destructive">
                     {tokenValidation.message}
                   </FieldDescription>
                 )}
                 {formik.errors.team && (
-                  <FieldDescription className="text-destructive font-mono text-xs">
+                  <FieldDescription className="text-destructive text-xs">
                     {formik.errors.team}
                   </FieldDescription>
                 )}
               </Field>
 
               <Field>
-                <FieldLabel
-                  htmlFor="email"
-                  className="font-mono text-xs uppercase tracking-wider"
-                >
+                <FieldLabel htmlFor="email" className="warp-label">
                   {t('email')}
                 </FieldLabel>
                 <Input
@@ -306,25 +297,22 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   value={formik.values.email}
                   onChange={formik.handleChange}
                   className={cn(
-                    'font-mono text-sm',
+                    'text-[0.9375rem]',
                     formik.errors.email && 'border-destructive'
                   )}
                   required
                 />
                 {formik.errors.email && (
-                  <FieldDescription className="text-destructive font-mono text-xs">
+                  <FieldDescription className="text-destructive text-xs">
                     {formik.errors.email}
                   </FieldDescription>
                 )}
               </Field>
 
               <Field>
-                <Field className="grid grid-cols-2 gap-4">
+                <Field className="grid grid-cols-2 items-end gap-4">
                   <Field>
-                    <FieldLabel
-                      htmlFor="password"
-                      className="font-mono text-xs uppercase tracking-wider"
-                    >
+                    <FieldLabel htmlFor="password" className="warp-label">
                       {t('password')}
                     </FieldLabel>
                     <div className="relative">
@@ -335,7 +323,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                         value={formik.values.password}
                         onChange={formik.handleChange}
                         className={cn(
-                          'font-mono text-sm pr-10',
+                          'text-[0.9375rem] pr-10',
                           formik.errors.password && 'border-destructive'
                         )}
                         required
@@ -353,7 +341,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                       </button>
                     </div>
                     {formik.errors.password && (
-                      <FieldDescription className="text-destructive font-mono text-xs">
+                      <FieldDescription className="text-destructive text-xs">
                         {formik.errors.password}
                       </FieldDescription>
                     )}
@@ -361,7 +349,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                   <Field>
                     <FieldLabel
                       htmlFor="confirm-password"
-                      className="font-mono text-xs uppercase tracking-wider"
+                      className="warp-label"
                     >
                       {t('confirm-password') || 'Confirm Password'}
                     </FieldLabel>
@@ -369,7 +357,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                       id="confirm-password"
                       name="confirm-password"
                       type={isPasswordVisible ? 'text' : 'password'}
-                      className="font-mono text-sm pr-10"
+                      className="text-[0.9375rem] pr-10"
                     />
                   </Field>
                 </Field>
@@ -391,13 +379,13 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
                     formik.isSubmitting ||
                     tokenValidation.status !== 'valid'
                   }
-                  className="w-full font-mono text-xs uppercase tracking-wider"
+                  className="h-11 w-full rounded-full text-base font-medium"
                 >
                   {formik.isSubmitting
                     ? t('loading') || 'Loading...'
                     : t('create-account')}
                 </Button>
-                <FieldDescription className="text-center font-mono text-xs">
+                <FieldDescription className="text-center text-xs">
                   {t('already-have-an-account') || 'Already have an account?'}{' '}
                   <Link
                     href="/auth/login"
@@ -411,7 +399,7 @@ const Join = ({ recaptchaSiteKey }: JoinProps) => {
           </form>
         </CardContent>
       </Card>
-      {/* <FieldDescription className="px-6 text-center font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+      {/* <FieldDescription className="px-6 text-center warp-micro text-muted-foreground">
         <AgreeMessage text={t('create-account')} />
       </FieldDescription> */}
     </div>

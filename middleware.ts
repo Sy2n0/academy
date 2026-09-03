@@ -93,13 +93,22 @@ const unAuthenticatedRoutes = [
   '/login/saml',
   '/.well-known/*',
   '/', // 랜딩 페이지는 인증 없이 접근 가능
+  '/preview/*', // 디자인 시안 비교용 (확정 후 제거)
 ];
 
 // API routes that handle their own authentication
 const apiRoutesWithOwnAuth = [
   '/api/admin/**',
+  // The OpenVPN server posts tunnel events with no session; it authenticates
+  // with the shared X-Api-Key the route checks itself. Without this the hook is
+  // redirected to the login page and the app never learns anyone connected.
+  '/api/vpn/events',
   '/api/learn/modules/*/status', // 완료 상태 조회는 API에서 인증 처리
   '/api/learn/modules/*/complete', // 완료 처리 API는 API에서 인증 처리
+  // Both check the session themselves and answer 401 in JSON; without this the
+  // middleware answers a fetch() with an HTML redirect to the login page.
+  '/api/learn/modules/*/exercises',
+  '/api/learn/modules/*/verify',
 ];
 
 export default async function middleware(req: NextRequest) {
@@ -169,5 +178,10 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth/session).*)'],
+  // `fonts` is excluded alongside the _next assets: self-hosted webfonts are
+  // static files under public/, and routing them through auth turns a missing
+  // session into an HTML redirect served in place of the stylesheet.
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|fonts/|api/auth/session).*)',
+  ],
 };

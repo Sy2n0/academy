@@ -1,42 +1,18 @@
-import {
-  type ReactElement,
-  type ComponentType,
-  type ReactNode,
-  useState,
-  useEffect,
-} from 'react';
+import { type ReactElement, type ReactNode, useState, useEffect } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import {
-  Crown,
-  Server,
-  GraduationCap,
-  Flame,
-  Info,
-  Snowflake,
-  TrendingUp,
-  ChevronRight,
-} from 'lucide-react';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { getSession } from '@/lib/session';
 import { getUserBySession, updateUser } from 'models/user';
 import {
   getUserScoreStats,
   getUserRanking,
   getUserScoreHistory,
+  getUserActivity,
+  getUserActivityWeeks,
 } from 'models/score';
 import {
   calculateRank,
@@ -45,15 +21,12 @@ import {
   getPointsToNextRank,
 } from '@/lib/ranks';
 import Head from 'next/head';
+import { Flame } from 'lucide-react';
 
 type DashboardProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 const numberFormatter = new Intl.NumberFormat('en-US');
 const WEEKLY_POINTS_GOAL = 200;
-const STREAK_SAVERS = 3;
-
-// Premium elevated card surface.
-const CARD = 'rounded-xl border border-border/50 bg-card';
 
 function ClientDate({ dateStr }: { dateStr: string }) {
   const [mounted, setMounted] = useState(false);
@@ -74,22 +47,31 @@ function ClientDate({ dateStr }: { dateStr: string }) {
   );
 }
 
-function MiniStat({
-  icon: Icon,
+function Fact({
   label,
   value,
+  note,
+  icon,
 }: {
-  icon: ComponentType<{ className?: string }>;
   label: string;
   value: ReactNode;
+  note?: string;
+  // Sits inline with the number, not above the label — an icon stacked over a
+  // caption reads as decoration, next to the value it reads as part of it.
+  icon?: ReactNode;
 }) {
   return (
     <div>
-      <Icon className="h-4 w-4 text-primary/80" />
-      <div className="mt-2 text-xl font-semibold tabular-nums text-foreground">
-        {value}
-      </div>
-      <div className="text-[11px] text-muted-foreground">{label}</div>
+      <dt className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="mt-1.5 flex items-center gap-1.5 text-lg font-medium text-foreground">
+        {icon}
+        <span className="warp-num">{value}</span>
+      </dd>
+      {note ? (
+        <dd className="mt-0.5 text-[11px] text-muted-foreground">{note}</dd>
+      ) : null}
     </div>
   );
 }
@@ -130,26 +112,13 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
           <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/40">
-                <div className="flex items-center gap-2 px-6 md:px-10">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="text-sm font-medium">
-                          Dashboard
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
+              <AppTopBar crumbs={[{ label: 'Dashboard' }]} />
 
-              <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 p-5 md:p-8">
-                {/* profile header */}
-                <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-primary/40 bg-gradient-to-br from-primary/25 to-primary/5 text-lg font-bold text-primary shadow-[0_0_22px_rgba(63,224,127,0.2)]">
+              <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col p-5 md:px-10 md:py-12">
+                {/* Identity. Rank, level and global position are stated here and
+                    nowhere else on the page. */}
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-[var(--warp-surface)] text-sm font-medium text-foreground">
                     {image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -161,216 +130,138 @@ const Dashboard: NextPageWithLayout<DashboardProps> = ({
                       initials
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                        {name || 'Hacker'}
-                      </h1>
-                      <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                        {rankInfo.name}
-                      </span>
-                      <span className="rounded-md border border-border bg-muted/50 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                        LV {rankInfo.level}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-[13px] text-muted-foreground">
-                      Global #{ranking} ·{' '}
-                      <span className="text-primary">
-                        {numberFormatter.format(stats.totalPoints)} pts
-                      </span>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="truncate text-lg font-medium tracking-tight text-foreground">
+                      {name || 'Unnamed'}
+                    </h1>
+                    <p className="warp-num mt-1 text-[13px] text-muted-foreground">
+                      {rankInfo.name} · Lv {rankInfo.level} · Global #{ranking}
                     </p>
                   </div>
-                  <button className="hidden items-center gap-1 rounded-lg border border-border bg-muted/40 px-3.5 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-muted/70 sm:flex">
-                    View Profile
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
                 </div>
 
-                {/* hero row */}
-                <div className="grid gap-4 lg:grid-cols-3">
-                  {/* rank meter */}
-                  <div className={`${CARD} flex flex-col p-6`}>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="uppercase tracking-wider text-muted-foreground">
-                        Current Rank
-                      </span>
-                      <span className="text-muted-foreground">
-                        Lv {rankInfo.level} · {rankInfo.hex}
-                      </span>
-                    </div>
-                    <div className="flex flex-1 flex-col justify-center py-3">
-                      <div className="text-2xl font-bold tracking-tight text-foreground">
-                        {rankInfo.name}
-                      </div>
-                      <div className="mt-1 text-sm text-muted-foreground">
-                        {numberFormatter.format(stats.totalPoints)} pts earned
-                      </div>
-                    </div>
-                    <div>
-                      <div className="mb-2 flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium text-foreground">
-                          {nextRank ? `→ ${nextRank}` : 'MAX'}
-                        </span>
-                      </div>
-                      <div className="h-3 overflow-hidden rounded-full bg-background/70">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary"
-                          style={{
-                            width: nextRank
-                              ? `${Math.max(rankInfo.progress, 2)}%`
-                              : '100%',
-                          }}
-                        />
-                      </div>
-                      <div className="mt-2.5 text-xs text-muted-foreground">
-                        {nextRank
-                          ? `${numberFormatter.format(rankInfo.pointsToNext)} pts to next rank · ${rankInfo.progress.toFixed(0)}%`
-                          : 'Max rank reached'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* score + stats */}
-                  <div className={`${CARD} flex flex-col p-6`}>
-                    <span className="text-[13px] text-muted-foreground">
-                      Total Score
-                    </span>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="text-4xl font-bold tracking-tight tabular-nums text-foreground">
+                {/* From lg up the page splits: the score rail on the left, the
+                    running feed on the right, divided by a vertical hairline. A
+                    single centred column left the content floating in empty
+                    canvas — this spends the width on structure rather than
+                    stretching every activity row across it. */}
+                <div className="mt-12 grid gap-x-12 gap-y-14 lg:grid-cols-12">
+                  <div className="lg:col-span-5">
+                    {/* The one number this page is about. Nothing else competes
+                        with it for size, so no accent colour is needed to rank
+                        them. */}
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="warp-num text-6xl font-medium leading-none tracking-tight text-foreground">
                         {numberFormatter.format(stats.totalPoints)}
                       </span>
                       <span className="text-sm text-muted-foreground">pts</span>
                     </div>
-                    <div className="mt-auto grid grid-cols-3 gap-4 border-t border-border/40 pt-5">
-                      <MiniStat
-                        icon={Crown}
-                        label="Global rank"
-                        value={`#${ranking}`}
-                      />
-                      <MiniStat
-                        icon={Server}
-                        label="Machines"
-                        value={machineCount}
-                      />
-                      <MiniStat
-                        icon={GraduationCap}
-                        label="Tracks"
-                        value={trackCount}
+
+                    {/* Progress rides the section hairline rather than a pill,
+                        so it reads as part of the page rule, not as a widget. */}
+                    <div className="mt-7 h-px w-full bg-[var(--warp-rule)]">
+                      <div
+                        className="h-px bg-[var(--warp-parchment)]"
+                        style={{
+                          width: nextRank
+                            ? `${Math.max(rankInfo.progress, 1)}%`
+                            : '100%',
+                        }}
                       />
                     </div>
+                    <div className="mt-3 flex items-baseline justify-between gap-4 text-[13px] text-muted-foreground">
+                      <span>
+                        {nextRank ? (
+                          <>
+                            <span className="warp-num">
+                              {numberFormatter.format(rankInfo.pointsToNext)}
+                            </span>{' '}
+                            pts to {nextRank}
+                          </>
+                        ) : (
+                          'Max rank reached'
+                        )}
+                      </span>
+                      <span className="warp-num shrink-0">
+                        {rankInfo.progress.toFixed(0)}%
+                      </span>
+                    </div>
+
+                    {/* Supporting facts — each is a number the headline does not
+                        already say. No cards, no icons. */}
+                    <dl className="mt-12 grid grid-cols-2 gap-x-8 gap-y-7 border-t border-[var(--warp-rule)] pt-7">
+                      <Fact
+                        label="Streak"
+                        value={`${weekStreak}w`}
+                        note={`Best ${bestWeekStreak}w`}
+                        icon={
+                          <Flame
+                            className={
+                              weekStreak > 0
+                                ? 'h-[18px] w-[18px] text-foreground'
+                                : 'h-[18px] w-[18px] text-muted-foreground/40'
+                            }
+                            fill="currentColor"
+                            aria-hidden="true"
+                          />
+                        }
+                      />
+                      <Fact
+                        label="This week"
+                        value={numberFormatter.format(weeklyPoints)}
+                        note={`Goal ${WEEKLY_POINTS_GOAL}`}
+                      />
+                      <Fact label="Machines" value={machineCount} />
+                      <Fact label="Tracks" value={trackCount} />
+                    </dl>
                   </div>
 
-                  {/* weekly streak */}
-                  <div className={`${CARD} p-6`}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[15px] font-semibold text-foreground">
-                        Weekly Streak
-                      </span>
-                      <Info className="h-4 w-4 text-muted-foreground/60" />
-                    </div>
-                    <div className="mt-3 flex items-center gap-3">
-                      <Flame
-                        className="h-7 w-7 text-orange-500 drop-shadow-[0_0_10px_rgba(249,115,22,0.55)]"
-                        fill="currentColor"
-                      />
-                      <span className="text-3xl font-bold tracking-tight text-foreground">
-                        {weekStreak}{' '}
-                        <span className="text-2xl font-semibold text-muted-foreground">
-                          {weekStreak === 1 ? 'week' : 'weeks'}
-                        </span>
-                      </span>
-                    </div>
-                    <div className="mt-5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-foreground">
-                          Weekly Points
-                        </span>
-                        <span className="text-sm tabular-nums text-muted-foreground">
-                          {weeklyPoints}/{WEEKLY_POINTS_GOAL}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-background/70">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400"
-                          style={{
-                            width: `${Math.max(weeklyPct, weeklyPoints > 0 ? 4 : 0)}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className="my-4 border-t border-border/40" />
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-foreground">
-                        Streak Saver
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {Array.from({ length: STREAK_SAVERS }).map((_, i) => (
-                          <span
-                            key={i}
-                            className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground/70"
+                  {/* Activity. Hairline-separated rows instead of a bordered
+                      card — the same containment idiom the landing uses. */}
+                  <section className="lg:col-span-7 lg:border-l lg:border-[var(--warp-rule)] lg:pl-12">
+                    <h2 className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                      Recent activity
+                    </h2>
+                    {recentActivity.length > 0 ? (
+                      <ul className="mt-4 max-h-[490px] overflow-y-auto border-t border-[var(--warp-rule)]">
+                        {recentActivity.map((activity) => (
+                          <li
+                            key={activity.id}
+                            className="flex items-baseline gap-4 border-b border-[var(--warp-rule)] py-3.5"
                           >
-                            <Snowflake className="h-3.5 w-3.5" />
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="my-4 border-t border-border/40" />
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <TrendingUp className="h-4 w-4 text-primary" />
-                      Personal best: {bestWeekStreak}{' '}
-                      {bestWeekStreak === 1 ? 'week' : 'weeks'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* recent activity */}
-                <div className={CARD}>
-                  <div className="flex items-center justify-between border-b border-border/40 px-6 py-4">
-                    <span className="text-[15px] font-semibold text-foreground">
-                      Recent Activity
-                    </span>
-                    <span className="cursor-pointer text-xs text-primary">
-                      View all
-                    </span>
-                  </div>
-                  {recentActivity.length > 0 ? (
-                    <div className="max-h-[360px] overflow-y-auto p-2 no-scrollbar">
-                      {recentActivity.map((activity) => (
-                        <div
-                          key={activity.id}
-                          className="flex items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-muted/40"
-                        >
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-[11px] font-bold text-primary">
-                            {activity.type.slice(0, 1)}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm text-foreground">
+                            <span className="min-w-0 flex-1 truncate text-sm text-foreground">
                               {activity.description ||
                                 `${activity.type} completed`}
-                            </p>
-                            <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                              <ClientDate dateStr={activity.createdAt} />
-                              <span className="text-muted-foreground/40">
-                                ·
-                              </span>
+                            </span>
+                            <span className="hidden shrink-0 text-[11px] uppercase tracking-[0.08em] text-muted-foreground sm:inline">
                               {activity.type}
-                            </p>
-                          </div>
-                          <span className="shrink-0 text-sm font-semibold text-primary">
-                            +{activity.earnedPoints}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
-                      <Flame className="h-8 w-8 text-muted-foreground/30" />
-                      <p className="text-sm text-muted-foreground">
-                        No activity yet — start solving to earn points.
+                            </span>
+                            {/* "+0" reads as "earned nothing"; these events
+                                mostly have no score row at all, which is a
+                                different thing. */}
+                            <span
+                              className={`warp-num w-12 shrink-0 text-right text-sm ${
+                                activity.earnedPoints > 0
+                                  ? 'text-foreground'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
+                              {activity.earnedPoints > 0
+                                ? `+${activity.earnedPoints}`
+                                : '—'}
+                            </span>
+                            <span className="warp-num hidden w-24 shrink-0 text-right sm:inline">
+                              <ClientDate dateStr={activity.createdAt} />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-4 border-t border-[var(--warp-rule)] py-8 text-sm text-muted-foreground">
+                        Nothing yet. Points appear here as you solve.
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </section>
                 </div>
               </div>
             </SidebarInset>
@@ -395,10 +286,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const [stats, ranking, history] = await Promise.all([
+  const [stats, ranking, history, activity] = await Promise.all([
     getUserScoreStats(user.id),
     getUserRanking(user.id),
     getUserScoreHistory(user.id, undefined, 400),
+    getUserActivity(user.id, 50),
   ]);
 
   // Weekly streak / weekly points — 7-day weeks bucketed in Asia/Seoul.
@@ -410,10 +302,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const curWeek = weekOf(nowMs);
   const activeWeeks = new Set<number>();
   let weeklyPoints = 0;
+  // Points come from the ledger; the streak comes from activity, so weeks spent
+  // on things that award nothing still count as weeks you showed up.
   for (const h of history) {
-    const w = weekOf(new Date(h.createdAt).getTime());
-    activeWeeks.add(w);
-    if (w === curWeek) weeklyPoints += h.earnedPoints ?? 0;
+    if (weekOf(new Date(h.createdAt).getTime()) === curWeek) {
+      weeklyPoints += h.earnedPoints ?? 0;
+    }
+  }
+  for (const a of await getUserActivityWeeks(user.id)) {
+    activeWeeks.add(weekOf(a.getTime()));
   }
 
   let weekStreak = 0;
@@ -429,8 +326,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (run > bestWeekStreak) bestWeekStreak = run;
     prevWeek = w;
   }
-
-  const recentActivity = history.slice(0, 10);
 
   const calculatedRank = calculateRank(user.totalPoints);
   if (calculatedRank !== user.currentRank) {
@@ -467,12 +362,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       weekStreak,
       bestWeekStreak,
       weeklyPoints,
-      recentActivity: recentActivity.map((activity) => ({
-        id: activity.id,
-        type: activity.type,
-        earnedPoints: activity.earnedPoints,
-        description: activity.description,
-        createdAt: activity.createdAt.toISOString(),
+      recentActivity: activity.map((entry) => ({
+        id: entry.id,
+        type: entry.type,
+        earnedPoints: entry.earnedPoints,
+        description: entry.description,
+        createdAt: entry.createdAt.toISOString(),
       })),
     },
   };

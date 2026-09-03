@@ -1,38 +1,13 @@
-import { type ReactElement, useState } from 'react';
-import { useTranslation } from 'next-i18next';
+import { type ReactElement, useMemo, useState } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import Head from 'next/head';
-import { useSession } from 'next-auth/react';
-import { Plus } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import useSWR from 'swr';
-import toast from 'react-hot-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MachineDetailModal } from '@/components/machines/MachineDetailModal';
 
 interface Machine {
@@ -72,76 +47,9 @@ const fetcher = async (url: string) => {
   return data;
 };
 
-const getCategoryIcon = (category: string | undefined | null) => {
-  if (!category) {
-    return '';
-  }
-
-  const categoryLower = category.toLowerCase();
-  if (categoryLower.includes('misc')) {
-    return '';
-  } else if (categoryLower.includes('crypto')) {
-    return '';
-  } else if (categoryLower.includes('pwn')) {
-    return '';
-  } else if (categoryLower.includes('web')) {
-    return '';
-  } else if (
-    categoryLower.includes('revers') ||
-    categoryLower.includes('reverse')
-  ) {
-    return '';
-  } else if (categoryLower.includes('forensic')) {
-    return '';
-  } else if (categoryLower.includes('hardware')) {
-    return '';
-  } else if (
-    categoryLower.includes('ppc') ||
-    categoryLower.includes('programming')
-  ) {
-    return '';
-  } else if (
-    categoryLower.includes('pentest') ||
-    categoryLower.includes('network')
-  ) {
-    return '';
-  }
-  return '';
-};
-
-const getCategoryColor = (category: string | undefined | null) => {
-  if (!category) {
-    return 'bg-accent';
-  }
-
-  const categoryLower = category.toLowerCase();
-  if (categoryLower.includes('misc')) {
-    return 'bg-green-500';
-  } else if (categoryLower.includes('crypto')) {
-    return 'bg-purple-500';
-  } else if (categoryLower.includes('pwn')) {
-    return 'bg-red-500';
-  } else if (categoryLower.includes('web')) {
-    return 'bg-blue-500';
-  } else if (
-    categoryLower.includes('revers') ||
-    categoryLower.includes('reverse')
-  ) {
-    return 'bg-yellow-500';
-  } else if (categoryLower.includes('forensic')) {
-    return 'bg-purple-300';
-  } else if (categoryLower.includes('hardware')) {
-    return 'bg-white';
-  }
-  return 'bg-accent';
-};
-
 const MachinesPage: NextPageWithLayout = () => {
-  const { t } = useTranslation('common');
-  const { data: session } = useSession();
   const [hideSolved, setHideSolved] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [activeTab, setActiveTab] = useState('challenges');
   const [selectedMachineId, setSelectedMachineId] = useState<string | null>(
     null
   );
@@ -191,11 +99,26 @@ const MachinesPage: NextPageWithLayout = () => {
     if (selectedCategory !== 'All' && machine.difficulty !== selectedCategory) {
       return false;
     }
-    if (hideSolved && machine.solvedCount > 0) {
+    // isSolved is this viewer; solvedCount is everybody, so the old check hid
+    // every machine anyone had ever solved.
+    if (hideSolved && machine.isSolved) {
       return false;
     }
     return true;
   });
+
+  // Group the filtered list by category for the board's sections, preserving
+  // the order categories first appear so the board does not reshuffle.
+  const boardGroups = useMemo(() => {
+    const groups = new Map<string, Machine[]>();
+    for (const machine of filteredMachines) {
+      const key = machine.difficulty || 'Uncategorised';
+      const bucket = groups.get(key);
+      if (bucket) bucket.push(machine);
+      else groups.set(key, [machine]);
+    }
+    return Array.from(groups.entries());
+  }, [filteredMachines]);
 
   return (
     <>
@@ -203,286 +126,149 @@ const MachinesPage: NextPageWithLayout = () => {
         <title>Machines::HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
+      <div className="h-svh overflow-hidden bg-background">
+        <SidebarProvider className="h-full">
+          <AppSidebar />
+          <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+            {/* Top Bar */}
+            <AppTopBar
+              crumbs={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Machines' },
+              ]}
+            />
 
-        <div className="relative z-10">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen flex flex-col">
-              {/* Top Bar */}
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30 bg-background/60 backdrop-blur-sm">
-                <div className="flex items-center gap-2 px-6 h-full">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Machines
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                  <div className="ml-auto flex items-center gap-1 bg-background/40 border border-border/30 rounded-md p-1">
-                    {/* <button
-                      onClick={() => setActiveTab('challenges')}
-                      className={`px-4 py-2 rounded-md font-mono text-xs uppercase tracking-wider transition-all ${
-                        activeTab === 'challenges'
-                          ? 'bg-accent text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Challenges
-                    </button> */}
-                    {/* <button
-                      onClick={() => setActiveTab('monitoring')}
-                      className={`px-4 py-2 rounded-md font-mono text-xs uppercase tracking-wider transition-all ${
-                        activeTab === 'monitoring'
-                          ? 'bg-accent text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Monitoring
-                    </button> */}
-                  </div>
+            {/* Challenge board. One full-width surface grouped by category —
+                the list is the page, so it gets the whole width instead of
+                sharing it with panels that had nothing to show. */}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="mx-auto w-full max-w-[1240px] p-5 md:px-10 md:py-8">
+                {/* Board summary: what there is and how far you are. */}
+                <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <span>
+                    <span className="warp-num text-foreground">
+                      {machines.length}
+                    </span>{' '}
+                    machines
+                  </span>
+                  <span>
+                    <span className="warp-num text-foreground">
+                      {userStats.solvedCount}
+                    </span>{' '}
+                    solved
+                  </span>
+                  <span>
+                    <span className="warp-num text-foreground">
+                      {userStats.totalScore}
+                    </span>{' '}
+                    pts earned
+                  </span>
                 </div>
-              </header>
 
-              {/* Main Content Area */}
-              <div className="flex flex-1 overflow-hidden">
-                {/* Left Sidebar */}
-                <div className="w-64 border-r border-border/30 bg-background/40 backdrop-blur-sm overflow-y-auto p-4">
-                  <div className="space-y-6">
-                    {/* Hide Solved Toggle */}
-                    <div className="flex items-center justify-between">
-                      <label
-                        htmlFor="hide-solved"
-                        className="font-mono text-xs text-foreground cursor-pointer"
+                {/* Filter chips, inline. The category list was a 256px column
+                    for what amounts to a handful of words. */}
+                <div className="mt-5 flex flex-wrap items-center gap-2 border-y border-[var(--warp-rule)] py-3">
+                  {categories.map((category) => {
+                    const count = categoryCounts[category] || 0;
+                    const isSelected = selectedCategory === category;
+                    return (
+                      <button
+                        key={category}
+                        onClick={() => setSelectedCategory(category)}
+                        className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.1em] transition-colors ${
+                          isSelected
+                            ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10 text-foreground'
+                            : 'border-[var(--warp-rule)] text-muted-foreground hover:border-[var(--warp-ash)]/40 hover:text-foreground'
+                        }`}
                       >
-                        Hide Solved
-                      </label>
-                      <Switch
-                        id="hide-solved"
-                        checked={hideSolved}
-                        onCheckedChange={setHideSolved}
-                      />
-                    </div>
-
-                    {/* Categories */}
-                    <div className="space-y-1">
-                      {categories.map((category) => {
-                        const count = categoryCounts[category] || 0;
-                        const isSelected = selectedCategory === category;
-
-                        return (
-                          <button
-                            key={category}
-                            onClick={() => setSelectedCategory(category)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-md font-mono text-xs transition-all ${
-                              isSelected
-                                ? 'bg-accent text-foreground'
-                                : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-base leading-none">
-                                {getCategoryIcon(
-                                  category === 'All' ? 'misc' : category
-                                )}
-                              </span>
-                              <span>{category || 'Unknown'}</span>
-                            </div>
-                            <span className="text-xs">{count}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                        {category || 'Unknown'}{' '}
+                        <span className="warp-num">{count}</span>
+                      </button>
+                    );
+                  })}
+                  <label
+                    htmlFor="hide-solved"
+                    className="ml-auto flex cursor-pointer items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-muted-foreground"
+                  >
+                    Hide solved
+                    <Switch
+                      id="hide-solved"
+                      checked={hideSolved}
+                      onCheckedChange={setHideSolved}
+                    />
+                  </label>
                 </div>
 
-                {/* Center Content */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  {isLoading ? (
-                    <div className="text-center py-20">
-                      <p className="font-mono text-sm text-muted-foreground">
-                        Loading challenges...
-                      </p>
-                    </div>
-                  ) : error ? (
-                    <div className="text-center py-20">
-                      <p className="font-mono text-sm text-destructive">
-                        문제를 불러오지 못했습니다
-                      </p>
-                    </div>
-                  ) : filteredMachines.length === 0 ? (
-                    <div className="text-center py-20">
-                      <p className="font-mono text-sm text-muted-foreground">
-                        No challenges found
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {filteredMachines.map((machine) => {
-                        const colorClass = getCategoryColor(machine.difficulty);
-                        const isSolved = machine.isSolved === true;
+                {isLoading ? (
+                  <p className="py-20 text-center text-sm text-muted-foreground">
+                    Loading challenges...
+                  </p>
+                ) : error ? (
+                  <p className="py-20 text-center text-sm text-destructive">
+                    문제를 불러오지 못했습니다
+                  </p>
+                ) : filteredMachines.length === 0 ? (
+                  <p className="py-20 text-center text-sm text-muted-foreground">
+                    No challenges found
+                  </p>
+                ) : (
+                  boardGroups.map(([category, group]) => (
+                    <section key={category} className="mt-10">
+                      <div className="flex items-baseline gap-3">
+                        <h2 className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                          {category || 'Uncategorised'}
+                        </h2>
+                        <span className="warp-num text-[11px] text-muted-foreground">
+                          {group.length}
+                        </span>
+                        <span className="h-px flex-1 bg-[var(--warp-rule)]" />
+                      </div>
 
-                        return (
-                          <button
-                            key={machine.id}
-                            onClick={() => setSelectedMachineId(machine.id)}
-                            className={`group relative border rounded-md hover:border-accent/50 transition-all duration-200 overflow-hidden w-full text-left ${
-                              isSolved
-                                ? 'border-green-500 bg-green-500/10'
-                                : 'border-border/30 bg-card'
-                            }`}
-                          >
-                            <div className="p-4 flex flex-col h-full min-h-[140px]">
-                              {/* Title with Solved Badge */}
-                              <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-mono text-base font-semibold text-foreground">
+                      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {group.map((machine) => {
+                          const isSolved = machine.isSolved === true;
+                          return (
+                            <button
+                              key={machine.id}
+                              onClick={() => setSelectedMachineId(machine.id)}
+                              className={`group flex min-h-[104px] w-full flex-col rounded-md border p-4 text-left transition-colors ${
+                                isSolved
+                                  ? 'border-[var(--warp-ash)]/50 bg-[var(--warp-veil)]'
+                                  : 'border-[var(--warp-rule)] hover:border-[var(--warp-ash)]/40 hover:bg-white/[0.02]'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="min-w-0 text-sm font-medium leading-snug text-foreground">
                                   {machine.name || 'Untitled'}
                                 </h3>
                                 {isSolved && (
-                                  <span className="font-mono text-xs text-green-500 uppercase tracking-wider px-1.5 py-0.5 border border-green-500 rounded bg-green-500/20">
-                                    Solved
+                                  <span
+                                    aria-label="Solved"
+                                    className="shrink-0 text-xs text-foreground"
+                                  >
+                                    ✓
                                   </span>
                                 )}
                               </div>
-
-                              {/* Colored Line below Title */}
-                              <div
-                                className={`h-0.5 w-full ${colorClass} mb-auto`}
-                              ></div>
-
-                              {/* Bottom Section: Points and Solves */}
-                              <div className="flex items-center justify-between mt-auto pt-3">
-                                <span className="font-mono text-xs text-foreground">
-                                  {machine.points ?? 0} pts
+                              <div className="mt-auto flex items-baseline justify-between pt-4">
+                                <span className="warp-num text-lg font-medium text-foreground">
+                                  {machine.points ?? 0}
                                 </span>
-                                <span className="font-mono text-xs text-foreground uppercase">
-                                  {machine.solvedCount ?? 0} SOLVES
+                                <span className="warp-num text-[11px] text-muted-foreground">
+                                  {machine.solvedCount ?? 0} solves
                                 </span>
                               </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Right Sidebar */}
-                <div className="w-80 border-l border-border/30 bg-background/40 backdrop-blur-sm overflow-y-auto p-4">
-                  <div className="space-y-6">
-                    {/* User Panel */}
-                    {session && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                            <span className="font-mono text-sm font-bold text-foreground">
-                              {session.user?.name?.[0]?.toUpperCase() || 'A'}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-mono text-sm font-semibold text-foreground">
-                              {session.user?.name || 'ADMIN'}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Stats: Overall, Score, Solved */}
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="flex flex-col items-center">
-                            <span className="font-mono text-lg font-semibold text-foreground">
-                              {machines.length > 0
-                                ? Math.round(
-                                    (userStats.solvedCount / machines.length) *
-                                      100
-                                  )
-                                : 0}
-                              %
-                            </span>
-                            <span className="font-mono text-xs text-muted-foreground mt-1">
-                              Overall
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span className="font-mono text-lg font-semibold text-foreground">
-                              {userStats.totalScore}
-                            </span>
-                            <span className="font-mono text-xs text-muted-foreground mt-1">
-                              Score
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span className="font-mono text-lg font-semibold text-foreground">
-                              {userStats.solvedCount}
-                            </span>
-                            <span className="font-mono text-xs text-muted-foreground mt-1">
-                              Solved
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="w-full h-2 bg-background/60 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-accent rounded-full"
-                            style={{ width: '1%' }}
-                          ></div>
-                        </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                    )}
-
-                    {/* Activity Feed */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-1 bg-background/60 border border-border/30 rounded-md p-1">
-                        <button className="flex-1 px-2 py-1 rounded-md font-mono text-xs bg-accent text-foreground">
-                          All
-                        </button>
-                        <button className="flex-1 px-2 py-1 rounded-md font-mono text-xs text-muted-foreground hover:text-foreground">
-                          Notice
-                        </button>
-                        <button className="flex-1 px-2 py-1 rounded-md font-mono text-xs text-muted-foreground hover:text-foreground">
-                          News
-                        </button>
-                        <button className="flex-1 px-2 py-1 rounded-md font-mono text-xs text-muted-foreground hover:text-foreground">
-                          Challenge
-                        </button>
-                      </div>
-                      <div className="space-y-2">
-                        {machines.slice(0, 4).map((machine) => (
-                          <div
-                            key={machine.id}
-                            className="flex items-start gap-2"
-                          >
-                            <Plus className="h-3 w-3 text-accent mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <p className="font-mono text-xs text-muted-foreground">
-                                {new Date().toLocaleString('en-US', {
-                                  year: '2-digit',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                  second: '2-digit',
-                                  hour12: true,
-                                })}{' '}
-                                New challenge [{machine.name}] has been
-                                released.
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                    </section>
+                  ))
+                )}
               </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </div>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
 
       {/* Machine Detail Modal */}

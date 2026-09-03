@@ -62,7 +62,7 @@ const ForgotPassword: NextPageWithLayout<
       <Head>
         <title>HUB ACADEMY</title>
       </Head>
-      <div className="rounded p-6 border">
+      <div className="warp-card">
         <form onSubmit={formik.handleSubmit}>
           <div className="space-y-2">
             <InputWithLabel
@@ -94,11 +94,11 @@ const ForgotPassword: NextPageWithLayout<
           </div>
         </form>
       </div>
-      <p className="text-center text-sm text-gray-600 mt-3">
+      <p className="mt-4 text-center text-sm text-[var(--warp-stone)]">
         {t('already-have-an-account')}
         <Link
           href="/auth/login"
-          className="font-medium text-primary hover:text-[color-mix(in_oklab,oklch(var(--p)),black_7%)]"
+          className="warp-link font-medium underline underline-offset-4 hover:text-[var(--warp-parchment)]"
         >
           &nbsp;{t('sign-in')}
         </Link>

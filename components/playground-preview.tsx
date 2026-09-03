@@ -55,8 +55,12 @@ const parseScheduleDate = (
 };
 
 export function PlaygroundPreview({ settings }: PlaygroundPreviewProps) {
+  // Scoped to the season being previewed. Unscoped, the admin previewing a
+  // brand-new season saw the previous season's board under it.
   const { data } = useSWR<PlaygroundLeaderboardResponse>(
-    '/api/rankings/playground',
+    settings.codeName
+      ? `/api/rankings/playground?season=${encodeURIComponent(settings.codeName)}`
+      : null,
     fetcher
   );
   const [timeLeft, setTimeLeft] = useState({

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
 import { awardPoints } from 'models/score';
+import { calculateDynamicValue } from '@/lib/ranks';
 
 export default async function handler(
   req: NextApiRequest,
@@ -39,18 +40,44 @@ export default async function handler(
 
     // 플래그 비교
     const correct = problem.flag?.trim() === flag.trim();
+    let earnedPoints: number | null = null;
     if (correct) {
+      // Count solves before recording this one, so the first solver is credited
+      // with the full initialValue.
+      const priorSolves = await prisma.sandboxSolve.count({
+        where: { problemId },
+      });
+      const value = calculateDynamicValue(
+        problem.initialValue,
+        problem.minimumValue,
+        problem.decay,
+        priorSolves
+      );
+
       await prisma.sandboxSolve.create({ data: { userId, problemId } });
       // 점수 획득 — Recent Activity/스트릭/랭크에 반영
-      await awardPoints(userId, 'SANDBOX', 0, `Solved: ${problem.title}`, {
-        problemId,
-        problemTitle: problem.title,
-      });
+      const result = await awardPoints(
+        userId,
+        'SANDBOX',
+        value,
+        `Solved: ${problem.title}`,
+        {
+          problemId,
+          problemTitle: problem.title,
+          priorSolves,
+          dynamicValue: value,
+          firstBlood: priorSolves === 0,
+        }
+      );
+      earnedPoints = result.pointsEarned;
     }
 
-    return res
-      .status(200)
-      .json({ data: { result: correct ? 'correct' : 'wrong' } });
+    return res.status(200).json({
+      data: {
+        result: correct ? 'correct' : 'wrong',
+        ...(correct ? { earnedPoints } : {}),
+      },
+    });
   }
 
   // GET: 솔버 목록

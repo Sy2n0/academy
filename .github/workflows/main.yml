@@ -111,7 +111,7 @@ jobs:
           SKIPPED=$(jq '(.numPendingTests // 0) + (.numTodoTests // 0)' jest-results.json 2>/dev/null || echo 0)
           SUCCESS=$(jq '.success' jest-results.json 2>/dev/null || echo false)
           STATUS=$([ "$SUCCESS" = "true" ] && echo "PASSED" || echo "FAILED")
-          SUITES=$(jq '[.testResults[]? | {file: .testFilePath, passed: .numPassingTests, failed: .numFailingTests}]' jest-results.json 2>/dev/null || echo '[]')
+          SUITES=$(jq '[.testResults[]? | {file: .name, passed: ([.assertionResults[]? | select(.status == "passed")] | length), failed: ([.assertionResults[]? | select(.status == "failed")] | length)}]' jest-results.json 2>/dev/null || echo '[]')
 
           curl -s -X POST "${PLATFORM_URL}/api/admin/test-runs/report" \
             -H "Content-Type: application/json" \

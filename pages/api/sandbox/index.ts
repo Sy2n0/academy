@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
+import { calculateDynamicValue } from '@/lib/ranks';
 
 export default async function handler(
   req: NextApiRequest,
@@ -31,6 +32,10 @@ export default async function handler(
         orderIndex: true,
         dockerImage: true,
         containerPort: true,
+        initialValue: true,
+        minimumValue: true,
+        decay: true,
+        _count: { select: { solves: true } },
       },
     });
 
@@ -44,7 +49,22 @@ export default async function handler(
         ).map((s) => s.problemId)
       : [];
 
-    res.status(200).json({ data: { problems, solvedIds } });
+    res.status(200).json({
+      data: {
+        problems: problems.map(({ _count, ...p }) => ({
+          ...p,
+          solveCount: _count.solves,
+          // What the next person to solve it would earn.
+          currentValue: calculateDynamicValue(
+            p.initialValue,
+            p.minimumValue,
+            p.decay,
+            _count.solves
+          ),
+        })),
+        solvedIds,
+      },
+    });
   } catch (error: any) {
     const message = error.message || 'Something went wrong';
     res.status(500).json({ error: { message } });

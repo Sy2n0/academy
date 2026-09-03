@@ -3,27 +3,15 @@ import { useTranslation } from 'next-i18next';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { AppSidebar } from '@/components/app-sidebar';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useRouter } from 'next/router';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import useSWR from 'swr';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import toast from 'react-hot-toast';
@@ -367,6 +355,40 @@ const parseJsonOrThrow = async (res: Response) => {
   return body;
 };
 
+const pgButton =
+  'inline-flex items-center justify-center rounded border border-[var(--warp-rule)] px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:bg-white/[0.03] hover:text-foreground disabled:pointer-events-none disabled:opacity-40';
+
+const pgButtonPrimary =
+  'inline-flex items-center justify-center rounded border border-foreground/25 bg-[var(--warp-veil)] px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-foreground transition-colors hover:bg-white/[0.07] disabled:pointer-events-none disabled:opacity-40';
+
+/** Static copy the two secondary tabs render; it was three pasted cards each. */
+const FAQ: [string, string][] = [
+  [
+    'Playground는 언제 시작되나요?',
+    '설정된 시작일 이후 자동으로 참여가 활성화됩니다.',
+  ],
+  [
+    '점수는 어디서 확인하나요?',
+    'Overview 탭의 리더보드에서 실시간 순위를 확인할 수 있습니다.',
+  ],
+  [
+    '종료된 Playground는 다시 참여할 수 있나요?',
+    '종료 후에는 참여가 제한되며, 관련 콘텐츠는 머신 페이지에서 확인할 수 있습니다.',
+  ],
+];
+
+const HOW_TO_PLAY: [string, string][] = [
+  [
+    '등록 상태 확인',
+    'Playground가 시작 상태인지 확인하고 참여 가능한 기간에 접속하세요.',
+  ],
+  [
+    '문제 풀이 및 점수 획득',
+    '문제를 해결하면 점수가 누적되고 리더보드에 반영됩니다.',
+  ],
+  ['순위 확인', 'Overview 탭에서 본인의 현재 순위와 점수를 확인하세요.'],
+];
+
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   return parseJsonOrThrow(res);
@@ -439,10 +461,6 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
   const [ticketQrImage, setTicketQrImage] = useState(
     '/playground_qr/test/frame.png'
   );
-  const { data, error, isLoading } = useSWR<PlaygroundLeaderboardResponse>(
-    '/api/rankings/playground',
-    fetcher
-  );
   const settingsApiUrl = seasonSlug
     ? `/api/playground/settings?season=${encodeURIComponent(seasonSlug)}`
     : '/api/playground/settings';
@@ -462,7 +480,6 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
     seconds: 0,
   });
 
-  const rankings = data?.data?.rankings || [];
   const settings = previewSettings ||
     settingsData?.data || {
       name: 'Recruiting Playground',
@@ -472,6 +489,17 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
       startDate: '2026-03-01',
       endDate: '2026-06-30',
     };
+
+  // Scoped to the season on screen. Without the parameter the board summed
+  // every season that had ever run, so a new one opened with the previous
+  // standings already on it.
+  const { data, error, isLoading } = useSWR<PlaygroundLeaderboardResponse>(
+    settings.codeName
+      ? `/api/rankings/playground?season=${encodeURIComponent(settings.codeName)}`
+      : null,
+    fetcher
+  );
+  const rankings = data?.data?.rankings || [];
   const startDate = parseScheduleDate(settings.startDate, 'start');
   const endDate = parseScheduleDate(settings.endDate, 'end');
   const now = new Date();
@@ -704,450 +732,318 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
       </Head>
 
       <div
-        className={`relative ${previewSettings ? 'min-h-screen' : 'h-screen'} bg-background ${previewSettings ? '' : 'overflow-hidden'}`}
+        className={`${previewSettings ? 'min-h-svh' : 'h-svh overflow-hidden'} bg-background`}
       >
-        <AnimatedNoise opacity={0.03} />
+        <SidebarProvider className="h-full">
+          <AppSidebar />
+          <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+            <AppTopBar crumbs={[{ label: 'Playground' }]} />
 
-        <div className="relative z-10 h-full">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="h-full flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Playground
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
-              <div className="flex-1 overflow-y-auto">
-                {/* Header */}
-                <div className="w-full pt-4 px-6 md:px-12 pb-2">
-                  <div className="flex items-center justify-between flex-wrap gap-3">
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-mono text-xs font-semibold text-foreground">
-                        {settings.name || 'Playground'}
-                      </h2>
-                      <span
-                        className={`px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider ${status.color === 'text-destructive' ? 'bg-destructive/20 text-destructive' : status.color === 'text-accent' ? 'bg-accent text-foreground' : 'bg-accent text-foreground'}`}
-                      >
-                        {status.text}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('overview')}
-                        className={`font-mono text-[10px] px-2.5 py-1 rounded border transition-colors ${activeTab === 'overview' ? 'bg-primary text-primary-foreground border-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border/50 hover:bg-muted/40'}`}
-                      >
-                        OVERVIEW
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('faq')}
-                        className={`font-mono text-[10px] px-2.5 py-1 rounded border transition-colors ${activeTab === 'faq' ? 'bg-primary text-primary-foreground border-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border/50 hover:bg-muted/40'}`}
-                      >
-                        FAQ
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('how-to-play')}
-                        className={`font-mono text-[10px] px-2.5 py-1 rounded border transition-colors ${activeTab === 'how-to-play' ? 'bg-primary text-primary-foreground border-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border/50 hover:bg-muted/40'}`}
-                      >
-                        HOW TO PLAY
-                      </button>
-                    </div>
-                    <div className="font-mono text-[10px] text-destructive">
-                      {settings.description || 'No description provided.'}
-                    </div>
+            <div
+              className={
+                previewSettings
+                  ? 'flex-1 overflow-y-auto'
+                  : 'flex min-h-0 flex-1 flex-col'
+              }
+            >
+              <div
+                className={`mx-auto w-full max-w-[1100px] px-5 pb-5 pt-5 md:px-10 md:pb-6 md:pt-6 ${
+                  previewSettings ? '' : 'flex min-h-0 flex-1 flex-col'
+                }`}
+              >
+                <header className="grid shrink-0 gap-6 border-b border-[var(--warp-rule)] pb-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-10">
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {status.text}
+                    </p>
+                    <h1 className="warp-display mt-2 max-w-[14ch]">
+                      {settings.name || 'Playground'}
+                    </h1>
+                    {settings.codeName && (
+                      <p className="warp-heading mt-1 text-[var(--warp-stone)]">
+                        {settings.codeName}
+                      </p>
+                    )}
+                    {/* The description used to render in `destructive` — the
+                        warning colour — for no reason but that it was at hand. */}
+                    {settings.description && (
+                      <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                        {settings.description}
+                      </p>
+                    )}
                   </div>
-                </div>
+
+                  {/* The live element of an event page, so it keeps its size —
+                      it sits beside the title rather than under it so the fold
+                      is spent on the leaderboard. */}
+                  <div className="shrink-0">
+                    <dl className="flex gap-x-8">
+                      {(
+                        [
+                          ['Days', timeLeft.days],
+                          ['Hours', timeLeft.hours],
+                          ['Min', timeLeft.minutes],
+                          ['Sec', timeLeft.seconds],
+                        ] as const
+                      ).map(([label, value]) => (
+                        <div key={label}>
+                          <dd className="warp-num text-3xl tracking-tight text-foreground md:text-4xl">
+                            {String(value).padStart(2, '0')}
+                          </dd>
+                          <dt className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                            {label}
+                          </dt>
+                        </div>
+                      ))}
+                    </dl>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      {seasonDisplayText}
+                    </p>
+                  </div>
+                </header>
+
+                <nav className="mt-5 flex shrink-0 gap-6 border-b border-[var(--warp-rule)]">
+                  {(
+                    [
+                      ['overview', 'Overview'],
+                      ['faq', 'FAQ'],
+                      ['how-to-play', 'How to play'],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setActiveTab(key)}
+                      className={`-mb-px border-b px-0.5 pb-2.5 text-[11px] uppercase tracking-[0.12em] transition-colors ${
+                        activeTab === key
+                          ? 'border-foreground text-foreground'
+                          : 'border-transparent text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </nav>
 
                 {activeTab === 'overview' && (
-                  <>
-                    {/* Main Hero Section */}
-                    <section className="relative flex flex-col items-center justify-center px-6 md:px-12 pt-16 md:pt-20 pb-4 md:pb-6">
-                      <div className="relative w-full max-w-6xl mx-auto text-center">
-                        {/* Main Title */}
-                        <div className="relative mb-4">
-                          <h1
-                            className="font-[var(--font-bebas)] text-7xl md:text-8xl tracking-tight text-foreground mb-2"
-                            style={{ fontStyle: 'italic' }}
-                          >
-                            PLAYGROUND
-                          </h1>
-                          <p className="font-mono text-xs text-foreground/80">
-                            {settings.type
-                              ? settings.type.toUpperCase()
-                              : 'RECRUITING'}{' '}
-                            FOR PLAYGROUND
+                  <section className="mt-6 grid min-h-0 flex-1 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-14">
+                    <div className="flex min-h-0 min-w-0 flex-col">
+                      <h2 className="shrink-0 border-b border-[var(--warp-rule)] pb-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                        Leaderboard
+                      </h2>
+
+                      {isLoading ? (
+                        <p className="py-8 text-sm text-muted-foreground">
+                          불러오는 중...
+                        </p>
+                      ) : error ? (
+                        <p className="py-8 text-sm text-destructive">
+                          리더보드를 불러오지 못했습니다.
+                        </p>
+                      ) : rankings.length === 0 ? (
+                        <p className="py-8 text-sm text-muted-foreground">
+                          아직 순위가 없습니다.
+                        </p>
+                      ) : (
+                        <div className="flex min-h-0 flex-1 flex-col">
+                          <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+                            {rankings.map((user, index) => (
+                              <li
+                                key={user.id}
+                                className="flex items-center gap-3 border-b border-[var(--warp-rule)] py-2.5"
+                              >
+                                {/* Rank is ordinal, so it rides the
+                                      brightness ramp rather than a colour. */}
+                                <span
+                                  className={`warp-num w-8 shrink-0 text-sm ${
+                                    index === 0
+                                      ? 'text-foreground'
+                                      : index < 3
+                                        ? 'text-[var(--warp-ash)]'
+                                        : 'text-muted-foreground'
+                                  }`}
+                                >
+                                  {index + 1}
+                                </span>
+                                <Avatar className="h-6 w-6 shrink-0">
+                                  <AvatarImage
+                                    src={user.image || undefined}
+                                    alt={user.name}
+                                  />
+                                  <AvatarFallback className="bg-[var(--warp-veil)] text-[9px] text-foreground">
+                                    {getInitials(user.name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                                  {user.name}
+                                </span>
+                                <span className="warp-num shrink-0 text-sm text-foreground">
+                                  {formatPoints(user.points)}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                          {/* The table this replaces was capped at
+                                rankings.slice(0, 3) with nothing linking
+                                onwards, so a leaderboard of any size showed
+                                three rows and stopped. */}
+                          <p className="shrink-0 pt-3 text-xs text-muted-foreground">
+                            {rankings.length}명
                           </p>
                         </div>
+                      )}
+                    </div>
 
-                        {/* Status Messages */}
-                        <div className="mb-4">
-                          {isBeforeStart ? (
-                            <>
-                              <p className="font-mono text-sm text-foreground mb-1">
-                                {settings.name || 'Playground'} 참가 신청
-                                기간입니다.
-                              </p>
-                              <p className="font-mono text-xs text-foreground">
-                                시작 전까지 참가 신청을 완료해주세요.
-                              </p>
-                            </>
-                          ) : isOngoing ? (
-                            <>
-                              <p className="font-mono text-sm text-foreground mb-1">
-                                {settings.name || 'Playground'} 진행 중입니다.
-                              </p>
-                              <p className="font-mono text-xs text-foreground">
-                                종료 전까지 자유롭게 참여할 수 있습니다.
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="font-mono text-sm text-foreground mb-1">
-                                {settings.name || 'Playground'}가
-                                종료되었습니다.
-                              </p>
-                              <p className="font-mono text-xs text-destructive">
-                                이번 시즌 참여가 마감되었습니다.
-                              </p>
-                            </>
-                          )}
-                        </div>
+                    <div className="min-w-0">
+                      <h2 className="border-b border-[var(--warp-rule)] pb-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                        {alreadyJoined ? 'Your entry' : 'Join'}
+                      </h2>
+                      <div className="pt-4">
+                        {!isEnded || alreadyJoined ? (
+                          <>
+                            <p className="text-sm text-foreground">
+                              {alreadyJoined
+                                ? isOngoing
+                                  ? '현재 참가 중입니다.'
+                                  : '참가 신청이 완료되었습니다.'
+                                : isOngoing
+                                  ? '지금 참가할 수 있습니다.'
+                                  : '시작 전까지 참가 신청을 완료해주세요.'}
+                            </p>
+                            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                              {alreadyJoined
+                                ? isOngoing
+                                  ? '종료 전까지 문제를 풀고 점수를 올려보세요.'
+                                  : '신청 내역이 확인되었습니다.'
+                                : isOngoing
+                                  ? '참여 즉시 점수가 반영됩니다.'
+                                  : '시작 시각에 자동으로 열립니다.'}
+                            </p>
 
-                        {/* Background Circle Effect */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent/5 rounded-full blur-3xl -z-10" />
-                      </div>
-                    </section>
-
-                    {/* Content Section */}
-                    <section className="px-6 md:px-12 pt-8 md:pt-12 pb-4 md:pb-6">
-                      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
-                        {/* Left Column - Countdown */}
-                        <div>
-                          <h2 className="font-[var(--font-bebas)] text-5xl md:text-6xl tracking-tight text-primary italic mb-2">
-                            {settings.codeName || 'BREEZY'}
-                          </h2>
-                          <p className="font-mono text-xs text-muted-foreground mb-3">
-                            {seasonDisplayText}
-                          </p>
-                          <div className="font-mono text-xl md:text-2xl text-foreground">
-                            <span>{timeLeft.days}D</span>{' '}
-                            <span>{timeLeft.hours}H</span>{' '}
-                            <span>{timeLeft.minutes}M</span>{' '}
-                            <span>{timeLeft.seconds}S</span>
-                          </div>
-                        </div>
-
-                        {/* Right Column - CTA */}
-                        <div className="flex flex-col justify-center">
-                          {!isEnded || alreadyJoined ? (
-                            <>
-                              <h3 className="font-mono text-sm text-foreground mb-2">
-                                {alreadyJoined
-                                  ? isOngoing
-                                    ? '현재 참가 중입니다.'
-                                    : '이미 참가 신청이 완료되었습니다.'
-                                  : isOngoing
-                                    ? `${settings.name || 'Playground'} 지금 참가하기`
-                                    : `${settings.name || 'Playground'} 참가신청하기`}
-                              </h3>
-                              <p className="font-mono text-xs text-muted-foreground mb-3">
-                                {alreadyJoined
-                                  ? isOngoing
-                                    ? '종료 전까지 문제를 풀고 점수를 올려보세요.'
-                                    : '신청 내역이 확인되었습니다.'
-                                  : isOngoing
-                                    ? '지금 바로 참여할 수 있습니다.'
-                                    : '시작 전까지 참가 신청을 완료해주세요.'}
-                              </p>
+                            <div className="mt-5 flex flex-wrap gap-2">
                               {!alreadyJoined &&
                                 (isCurrentUserAdmin ? (
-                                  <Button
+                                  <button
                                     type="button"
                                     onClick={() => setAdminPanelOpen(true)}
-                                    className="font-mono text-[10px] uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground h-8"
+                                    className={pgButtonPrimary}
                                   >
-                                    Admin Panel
-                                  </Button>
+                                    Admin panel
+                                  </button>
                                 ) : (
-                                  <Button
+                                  <button
                                     type="button"
                                     onClick={handlePlaygroundJoin}
                                     disabled={joining}
-                                    className="font-mono text-[10px] uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground h-8"
+                                    className={pgButtonPrimary}
                                   >
-                                    {joining
-                                      ? '신청 중...'
-                                      : isOngoing
-                                        ? `${settings.name || 'Playground'} 참가하기`
-                                        : `${settings.name || 'Playground'} 참가신청`}
-                                  </Button>
+                                    {joining ? '신청 중...' : '참가 신청'}
+                                  </button>
                                 ))}
                               {alreadyJoined && (
-                                <div className="flex flex-col gap-2">
-                                  <Button
+                                <>
+                                  <button
                                     type="button"
-                                    variant="outline"
                                     onClick={() => setTicketModalOpen(true)}
-                                    className="font-mono text-[10px] uppercase tracking-wider h-8"
+                                    className={pgButton}
                                   >
-                                    TICKET
-                                  </Button>
+                                    Ticket
+                                  </button>
                                   {isOngoing && (
-                                    <Button
-                                      asChild
-                                      className="font-mono text-[10px] uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground h-8"
+                                    <Link
+                                      href={
+                                        seasonRouteSlug
+                                          ? `/playground-season/${seasonRouteSlug}`
+                                          : '/playground'
+                                      }
+                                      className={pgButtonPrimary}
                                     >
-                                      <a
-                                        href={
-                                          seasonRouteSlug
-                                            ? `/playground-season/${seasonRouteSlug}`
-                                            : '/playground'
-                                        }
-                                      >
-                                        Go to {settings.name || 'Playground'}
-                                      </a>
-                                    </Button>
+                                      Enter
+                                    </Link>
                                   )}
-                                </div>
+                                </>
                               )}
-                            </>
-                          ) : (
-                            <>
-                              <h3 className="font-mono text-sm text-foreground mb-2">
-                                이번 {settings.name || 'Playground'} 콘텐츠를
-                                놓치셨나요?
-                              </h3>
-                              <p className="font-mono text-xs text-muted-foreground mb-3">
-                                만약 놓치셨다면 PLAYGROUND Machine에서 경험할 수
-                                있습니다!
-                              </p>
-                              {isWithin24hAfterEnd ? (
-                                <Button
-                                  asChild
-                                  className="font-mono text-[10px] uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground h-8"
-                                >
-                                  <Link
-                                    href={
-                                      seasonRouteSlug
-                                        ? `/playground-season/${seasonRouteSlug}`
-                                        : '/playground'
-                                    }
-                                  >
-                                    PLAYGROUND 접속
-                                  </Link>
-                                </Button>
-                              ) : (
-                                <Button
-                                  asChild
-                                  className="font-mono text-[10px] uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground h-8"
-                                >
-                                  <Link href="/arena/machine">
-                                    PLAYGROUND MACHINES NOW
-                                  </Link>
-                                </Button>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </section>
-
-                    {/* Leaderboard Section */}
-                    <section className="px-6 md:px-12 py-4 md:py-6 pb-4">
-                      <div className="max-w-6xl mx-auto">
-                        <h2 className="font-mono text-lg text-foreground text-center mb-4 uppercase tracking-wider">
-                          {settings.name || 'Recruiting Playground'} LEADERBOARD
-                        </h2>
-
-                        {isLoading ? (
-                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md p-6 text-center">
-                            <p className="font-mono text-xs text-muted-foreground">
-                              Loading leaderboard...
-                            </p>
-                          </div>
-                        ) : error ? (
-                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md p-6 text-center">
-                            <p className="font-mono text-xs text-destructive">
-                              리더보드를 불러오지 못했습니다
-                            </p>
-                          </div>
-                        ) : rankings.length === 0 ? (
-                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md p-6 text-center">
-                            <p className="font-mono text-xs text-muted-foreground">
-                              No leaderboard data available
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="border border-border/30 bg-background/50 backdrop-blur-sm rounded-md overflow-hidden">
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
-                                <thead>
-                                  <tr className="border-b border-border/20 bg-background/40">
-                                    <th className="px-4 py-2 text-left font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium">
-                                      Rank
-                                    </th>
-                                    <th className="px-4 py-2 text-left font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium">
-                                      User
-                                    </th>
-                                    <th className="px-4 py-2 text-right font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground font-medium">
-                                      Points
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {rankings.slice(0, 3).map((user, index) => {
-                                    const rank = index + 1;
-
-                                    return (
-                                      <tr
-                                        key={user.id}
-                                        className="border-b border-border/10 transition-colors hover:bg-background/50"
-                                      >
-                                        <td className="px-4 py-2">
-                                          <span className="font-mono text-xs font-semibold text-foreground">
-                                            #{rank}
-                                          </span>
-                                        </td>
-                                        <td className="px-4 py-2">
-                                          <div className="flex items-center gap-2">
-                                            <Avatar className="h-6 w-6">
-                                              <AvatarImage
-                                                src={user.image || undefined}
-                                                alt={user.name}
-                                              />
-                                              <AvatarFallback className="bg-muted text-foreground font-mono text-[9px]">
-                                                {getInitials(user.name)}
-                                              </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                              <p className="font-mono text-xs font-medium text-foreground">
-                                                {user.name}
-                                              </p>
-                                              <p className="font-mono text-[10px] text-muted-foreground">
-                                                {user.email}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </td>
-                                        <td className="px-4 py-2 text-right">
-                                          <p className="font-mono text-xs font-semibold text-foreground">
-                                            {formatPoints(user.points)}
-                                          </p>
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
                             </div>
-                          </div>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm text-foreground">
+                              이번 시즌은 종료되었습니다.
+                            </p>
+                            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                              놓치셨다면 Playground Machine에서 같은 문제를
+                              경험할 수 있습니다.
+                            </p>
+                            <div className="mt-5">
+                              <Link
+                                href={
+                                  isWithin24hAfterEnd && seasonRouteSlug
+                                    ? `/playground-season/${seasonRouteSlug}`
+                                    : '/arena/machine'
+                                }
+                                className={pgButtonPrimary}
+                              >
+                                {isWithin24hAfterEnd
+                                  ? 'Playground 접속'
+                                  : 'Machines'}
+                              </Link>
+                            </div>
+                          </>
                         )}
                       </div>
-                    </section>
-                  </>
+                    </div>
+                  </section>
                 )}
 
                 {activeTab === 'faq' && (
-                  <section className="px-6 md:px-12 pt-10 pb-8">
-                    <div className="max-w-4xl mx-auto">
-                      <h2 className="font-mono text-lg text-foreground mb-6 uppercase tracking-wider">
-                        FAQ
-                      </h2>
-                      <div className="space-y-4">
-                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
-                          <p className="font-mono text-sm text-foreground mb-2">
-                            Q. Playground는 언제 시작되나요?
-                          </p>
-                          <p className="font-mono text-xs text-muted-foreground">
-                            설정된 시작일 이후 자동으로 참여가 활성화됩니다.
-                          </p>
-                        </div>
-                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
-                          <p className="font-mono text-sm text-foreground mb-2">
-                            Q. 점수는 어디서 확인하나요?
-                          </p>
-                          <p className="font-mono text-xs text-muted-foreground">
-                            OVERVIEW 탭의 리더보드에서 실시간 순위를 확인할 수
-                            있습니다.
-                          </p>
-                        </div>
-                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
-                          <p className="font-mono text-sm text-foreground mb-2">
-                            Q. 종료된 Playground는 다시 참여 가능한가요?
-                          </p>
-                          <p className="font-mono text-xs text-muted-foreground">
-                            종료 후에는 참여가 제한되며, 관련 콘텐츠는 머신
-                            페이지에서 확인 가능합니다.
-                          </p>
-                        </div>
+                  <dl className="mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-[var(--warp-rule)] pr-1">
+                    {FAQ.map(([q, a]) => (
+                      <div
+                        key={q}
+                        className="border-b border-[var(--warp-rule)] py-4"
+                      >
+                        <dt className="text-sm text-foreground">{q}</dt>
+                        <dd className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                          {a}
+                        </dd>
                       </div>
-                    </div>
-                  </section>
+                    ))}
+                  </dl>
                 )}
 
                 {activeTab === 'how-to-play' && (
-                  <section className="px-6 md:px-12 pt-10 pb-8">
-                    <div className="max-w-4xl mx-auto">
-                      <h2 className="font-mono text-lg text-foreground mb-6 uppercase tracking-wider">
-                        HOW TO PLAY
-                      </h2>
-                      <div className="space-y-4">
-                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
-                          <p className="font-mono text-sm text-foreground mb-2">
-                            1. 등록 상태 확인
-                          </p>
-                          <p className="font-mono text-xs text-muted-foreground">
-                            Playground가 시작 상태인지 확인하고 참여 가능한
-                            기간에 접속하세요.
-                          </p>
-                        </div>
-                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
-                          <p className="font-mono text-sm text-foreground mb-2">
-                            2. 문제 풀이 및 점수 획득
-                          </p>
-                          <p className="font-mono text-xs text-muted-foreground">
-                            문제를 해결하면 점수가 누적되고 리더보드에
-                            반영됩니다.
+                  <ol className="mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-[var(--warp-rule)] pr-1">
+                    {HOW_TO_PLAY.map(([title, detail], i) => (
+                      <li
+                        key={title}
+                        className="flex gap-4 border-b border-[var(--warp-rule)] py-4"
+                      >
+                        <span className="warp-num shrink-0 text-sm text-muted-foreground">
+                          {i + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm text-foreground">{title}</p>
+                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                            {detail}
                           </p>
                         </div>
-                        <div className="rounded-md border border-border/30 bg-card/50 backdrop-blur-sm p-5">
-                          <p className="font-mono text-sm text-foreground mb-2">
-                            3. 순위 확인
-                          </p>
-                          <p className="font-mono text-xs text-muted-foreground">
-                            OVERVIEW 탭에서 본인의 현재 순위와 점수를
-                            확인하세요.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
+                      </li>
+                    ))}
+                  </ol>
                 )}
               </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </div>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
 
       <Dialog open={joinModalOpen} onOpenChange={setJoinModalOpen}>
-        <DialogContent className="border-border/30 bg-card/95 backdrop-blur-sm">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-mono text-xs uppercase tracking-wider text-foreground">
+            <DialogTitle className="text-base font-normal">
               PLAYGROUND
             </DialogTitle>
-            <DialogDescription className="font-mono text-sm text-foreground">
+            <DialogDescription className="text-sm text-foreground">
               {joinModalMessage}
             </DialogDescription>
           </DialogHeader>
@@ -1155,53 +1051,45 @@ const Playground: NextPageWithLayout<PlaygroundProps> = ({
       </Dialog>
 
       <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
-        <DialogContent className="border-border/30 bg-card/95 backdrop-blur-sm sm:max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-mono text-xs uppercase tracking-wider text-foreground">
+            <DialogTitle className="text-base font-normal">
               Admin Panel
             </DialogTitle>
-            <DialogDescription className="font-mono text-xs text-muted-foreground">
+            <DialogDescription className="text-xs text-muted-foreground">
               원하는 관리 작업을 선택하세요.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2 pt-2">
-            <Button
-              asChild
-              className="w-full justify-start font-mono text-xs uppercase tracking-wider"
+            <Link
+              href={
+                seasonRouteSlug
+                  ? `/playground-season/${seasonRouteSlug}`
+                  : '/playground'
+              }
+              className={`${pgButtonPrimary} w-full justify-start`}
             >
-              <Link
-                href={
-                  seasonRouteSlug
-                    ? `/playground-season/${seasonRouteSlug}`
-                    : '/playground'
-                }
-              >
-                1. PLAYGROUND 접속
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="w-full justify-start font-mono text-xs uppercase tracking-wider"
+              Playground 접속
+            </Link>
+            <Link
+              href="/admin/playground"
+              className={`${pgButton} w-full justify-start`}
             >
-              <Link href="/admin/playground">2. PLAYGROUND 설정</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="w-full justify-start font-mono text-xs uppercase tracking-wider"
+              Playground 설정
+            </Link>
+            <Link
+              href="/admin/playground/challenges"
+              className={`${pgButton} w-full justify-start`}
             >
-              <Link href="/admin/playground/challenges">
-                3. PG CHALLENGE 설정
-              </Link>
-            </Button>
+              Challenge 설정
+            </Link>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={ticketModalOpen} onOpenChange={setTicketModalOpen}>
-        <DialogContent className="border-border/30 bg-card/95 backdrop-blur-sm max-w-[520px] w-[92vw] h-[68vh] p-0 overflow-hidden">
+        <DialogContent className="h-[68vh] w-[92vw] max-w-[520px] overflow-hidden p-0">
           <div className="h-full w-full">
             <iframe
               srcDoc={ticketSrcDoc}

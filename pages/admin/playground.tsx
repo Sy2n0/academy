@@ -3,20 +3,16 @@ import { useTranslation } from 'next-i18next';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
+  adminInputClass,
+  adminTabsListClass,
+  adminTabsTriggerClass,
+} from '@/components/admin/styles';
 import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  adminButtonClass,
+  adminButtonPrimaryClass,
+} from '@/components/admin/styles';
 import {
   Dialog,
   DialogContent,
@@ -377,504 +373,441 @@ const AdminPlayground: NextPageWithLayout = () => {
         <title>Playground Settings - Admin - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative h-screen bg-background overflow-hidden">
-        <AnimatedNoise opacity={0.03} />
-
-        <div className="relative z-10 h-full">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="h-full flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Playground Settings
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
+      <AdminLayout title="Playground" description="시즌과 코드네임 설정">
+        {/* Main Content: Two Column Layout */}
+        <section className="px-6 md:px-12 py-4 md:py-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column: Settings History */}
+              <div className="space-y-4">
+                <div>
+                  <h2
+                    className="mb-1 text-base tracking-tight text-foreground"
+                    style={{ fontStyle: 'italic' }}
+                  >
+                    SETTINGS HISTORY
+                  </h2>
+                  <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+                    Previously Saved Configurations
+                  </p>
                 </div>
-              </header>
 
-              <div className="flex-1 overflow-y-auto">
-                {/* Hero Section */}
-                <section className="relative px-6 md:px-12 pt-4 md:pt-6 pb-4">
-                  <div className="max-w-7xl mx-auto">
-                    <h1
-                      className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground mb-0.5"
-                      style={{ fontStyle: 'italic' }}
-                    >
-                      PLAYGROUND SETTINGS
-                    </h1>
-                    <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
-                      Configure Playground Information
+                {settingsHistory.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <p className="font-mono text-sm text-muted-foreground">
+                      No saved settings yet. Save your first configuration to
+                      see it here.
                     </p>
                   </div>
-                </section>
-
-                {/* Main Content: Two Column Layout */}
-                <section className="px-6 md:px-12 py-4 md:py-6">
-                  <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Left Column: Settings History */}
-                      <div className="space-y-4">
-                        <div>
-                          <h2
-                            className="font-[var(--font-bebas)] text-xl tracking-tight text-foreground mb-1"
-                            style={{ fontStyle: 'italic' }}
-                          >
-                            SETTINGS HISTORY
-                          </h2>
-                          <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
-                            Previously Saved Configurations
-                          </p>
-                        </div>
-
-                        {settingsHistory.length === 0 ? (
-                          <div className="border border-border/30 rounded-lg backdrop-blur-sm bg-background/40 p-6 text-center">
-                            <p className="font-mono text-sm text-muted-foreground">
-                              No saved settings yet. Save your first
-                              configuration to see it here.
+                ) : (
+                  <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                    {settingsHistory.map((setting) => (
+                      <div
+                        key={setting.id}
+                        className={`w-full rounded border p-4 text-left transition-colors group ${
+                          setting.isActive
+                            ? 'border-foreground/25 bg-[var(--warp-veil)]'
+                            : 'border-border/30 hover:border-accent/50 hover:bg-background/60'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              {setting.isActive && (
+                                <span className="text-[10px] uppercase tracking-[0.14em] text-foreground">
+                                  ACTIVE
+                                </span>
+                              )}
+                              <span className="font-mono text-sm font-semibold text-foreground">
+                                {setting.codeName}
+                              </span>
+                              <span className="font-mono text-xs text-muted-foreground">
+                                ({setting.name})
+                              </span>
+                              <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider px-2 py-0.5 border border-border/30 rounded">
+                                {setting.type}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <span className="font-mono">
+                                Season: {setting.season}
+                              </span>
+                              {setting.startDate && setting.endDate && (
+                                <span className="font-mono">
+                                  {new Date(
+                                    setting.startDate
+                                  ).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}{' '}
+                                  -{' '}
+                                  {new Date(setting.endDate).toLocaleDateString(
+                                    'en-US',
+                                    {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      year: 'numeric',
+                                    }
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
+                              Saved
+                            </p>
+                            <p className="font-mono text-xs text-foreground">
+                              {new Date(setting.updatedAt).toLocaleDateString(
+                                'en-US',
+                                {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                }
+                              )}
+                            </p>
+                            <p className="font-mono text-[9px] text-muted-foreground">
+                              {new Date(setting.updatedAt).toLocaleTimeString(
+                                'en-US',
+                                {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                }
+                              )}
                             </p>
                           </div>
-                        ) : (
-                          <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
-                            {settingsHistory.map((setting) => (
-                              <div
-                                key={setting.id}
-                                className={`w-full border rounded-lg backdrop-blur-sm bg-background/40 p-4 transition-all duration-200 group ${
-                                  setting.isActive
-                                    ? 'border-accent/50 bg-accent/5'
-                                    : 'border-border/30 hover:border-accent/50 hover:bg-background/60'
-                                }`}
-                              >
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      {setting.isActive && (
-                                        <span className="font-mono text-[9px] text-accent uppercase tracking-wider px-2 py-0.5 border border-accent/30 rounded bg-accent/10">
-                                          ACTIVE
-                                        </span>
-                                      )}
-                                      <span className="font-mono text-sm font-semibold text-foreground">
-                                        {setting.codeName}
-                                      </span>
-                                      <span className="font-mono text-xs text-muted-foreground">
-                                        ({setting.name})
-                                      </span>
-                                      <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider px-2 py-0.5 border border-border/30 rounded">
-                                        {setting.type}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                      <span className="font-mono">
-                                        Season: {setting.season}
-                                      </span>
-                                      {setting.startDate && setting.endDate && (
-                                        <span className="font-mono">
-                                          {new Date(
-                                            setting.startDate
-                                          ).toLocaleDateString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                          })}{' '}
-                                          -{' '}
-                                          {new Date(
-                                            setting.endDate
-                                          ).toLocaleDateString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                          })}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="text-right flex-shrink-0">
-                                    <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider mb-1">
-                                      Saved
-                                    </p>
-                                    <p className="font-mono text-xs text-foreground">
-                                      {new Date(
-                                        setting.updatedAt
-                                      ).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric',
-                                      })}
-                                    </p>
-                                    <p className="font-mono text-[9px] text-muted-foreground">
-                                      {new Date(
-                                        setting.updatedAt
-                                      ).toLocaleTimeString('en-US', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/20">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditSetting(setting);
-                                    }}
-                                    className="flex-1 font-mono text-xs uppercase tracking-wider px-3 py-1.5 border border-border/30 rounded hover:border-accent/50 hover:bg-background/60 transition-colors"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedSetting(setting);
-                                      setIsDetailOpen(true);
-                                    }}
-                                    className="flex-1 font-mono text-xs uppercase tracking-wider px-3 py-1.5 border border-border/30 rounded hover:border-accent/50 hover:bg-background/60 transition-colors"
-                                  >
-                                    View Details
-                                  </button>
-                                  {!setting.isActive && (
-                                    <Button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleSetActive(setting.id);
-                                      }}
-                                      className="flex-1 font-mono text-xs uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground"
-                                    >
-                                      Set as Active
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Right Column: Settings Form */}
-                      <div className="space-y-4">
-                        <div>
-                          <h2
-                            className="font-[var(--font-bebas)] text-xl tracking-tight text-foreground mb-1"
-                            style={{ fontStyle: 'italic' }}
-                          >
-                            {editingSettingId
-                              ? 'EDIT SETTINGS'
-                              : 'CONFIGURE SETTINGS'}
-                          </h2>
-                          <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
-                            {editingSettingId
-                              ? 'Update Existing Playground Configuration'
-                              : 'Create or Update Playground Configuration'}
-                          </p>
                         </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                          <Tabs
-                            value={activeFormTab}
-                            onValueChange={(value) =>
-                              setActiveFormTab(
-                                value as 'basic' | 'schedule' | 'badge'
-                              )
-                            }
-                            className="w-full"
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/20">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditSetting(setting);
+                            }}
+                            className="flex-1 font-mono text-xs uppercase tracking-wider px-3 py-1.5 border border-border/30 rounded hover:border-accent/50 hover:bg-background/60 transition-colors"
                           >
-                            <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-background/40 border border-border/30 p-1 gap-0 w-auto">
-                              <TabsTrigger
-                                value="basic"
-                                className="font-mono text-[10px] uppercase tracking-wider"
-                              >
-                                Basic
-                              </TabsTrigger>
-                              <TabsTrigger
-                                value="schedule"
-                                className="font-mono text-[10px] uppercase tracking-wider"
-                              >
-                                Schedule
-                              </TabsTrigger>
-                              <TabsTrigger
-                                value="badge"
-                                className="font-mono text-[10px] uppercase tracking-wider"
-                              >
-                                Badge
-                              </TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent
-                              value="basic"
-                              className="mt-4 space-y-4"
-                            >
-                              <div className="space-y-2">
-                                <Label
-                                  htmlFor="name"
-                                  className="font-mono text-xs uppercase tracking-wider"
-                                >
-                                  Playground Name
-                                </Label>
-                                <Input
-                                  id="name"
-                                  type="text"
-                                  value={formData.name}
-                                  onChange={(e) =>
-                                    handleChange('name', e.target.value)
-                                  }
-                                  placeholder="e.g., Recruiting Playground"
-                                  className="font-mono text-sm"
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label
-                                  htmlFor="codeName"
-                                  className="font-mono text-xs uppercase tracking-wider"
-                                >
-                                  Code Name
-                                </Label>
-                                <Input
-                                  id="codeName"
-                                  type="text"
-                                  value={formData.codeName}
-                                  onChange={(e) =>
-                                    handleChange('codeName', e.target.value)
-                                  }
-                                  placeholder="e.g., BREEZY"
-                                  className="font-mono text-sm"
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label
-                                  htmlFor="description"
-                                  className="font-mono text-xs uppercase tracking-wider"
-                                >
-                                  Description
-                                </Label>
-                                <textarea
-                                  id="description"
-                                  value={formData.description}
-                                  onChange={(e) =>
-                                    handleChange('description', e.target.value)
-                                  }
-                                  placeholder="Playground description..."
-                                  rows={4}
-                                  className="w-full px-3 py-2 border border-border/30 rounded-lg backdrop-blur-sm bg-background/40 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-colors"
-                                />
-                              </div>
-                            </TabsContent>
-
-                            <TabsContent
-                              value="schedule"
-                              className="mt-4 space-y-4"
-                            >
-                              <div className="space-y-2">
-                                <Label
-                                  htmlFor="season"
-                                  className="font-mono text-xs uppercase tracking-wider"
-                                >
-                                  Season
-                                </Label>
-                                <Input
-                                  id="season"
-                                  type="text"
-                                  value={formData.season}
-                                  onChange={(e) =>
-                                    handleChange('season', e.target.value)
-                                  }
-                                  placeholder="e.g., MAR-JUN 2026, Season 1"
-                                  className="font-mono text-sm"
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label
-                                  htmlFor="type"
-                                  className="font-mono text-xs uppercase tracking-wider"
-                                >
-                                  Playground Type
-                                </Label>
-                                <Select
-                                  value={formData.type}
-                                  onValueChange={(value) =>
-                                    handleChange('type', value)
-                                  }
-                                >
-                                  <SelectTrigger className="font-mono text-sm">
-                                    <SelectValue placeholder="Select playground type" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="beta">Beta</SelectItem>
-                                    <SelectItem value="recruiting">
-                                      Recruiting
-                                    </SelectItem>
-                                    <SelectItem value="regular">
-                                      Regular
-                                    </SelectItem>
-                                    <SelectItem value="special">
-                                      Special
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label
-                                    htmlFor="startDate"
-                                    className="font-mono text-xs uppercase tracking-wider"
-                                  >
-                                    Start DateTime
-                                  </Label>
-                                  <Input
-                                    id="startDate"
-                                    type="datetime-local"
-                                    step={1}
-                                    value={formData.startDate}
-                                    onChange={(e) =>
-                                      handleChange('startDate', e.target.value)
-                                    }
-                                    className="font-mono text-sm"
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label
-                                    htmlFor="endDate"
-                                    className="font-mono text-xs uppercase tracking-wider"
-                                  >
-                                    End DateTime
-                                  </Label>
-                                  <Input
-                                    id="endDate"
-                                    type="datetime-local"
-                                    step={1}
-                                    value={formData.endDate}
-                                    onChange={(e) =>
-                                      handleChange('endDate', e.target.value)
-                                    }
-                                    className="font-mono text-sm"
-                                  />
-                                </div>
-                              </div>
-                            </TabsContent>
-
-                            <TabsContent
-                              value="badge"
-                              className="mt-4 space-y-4"
-                            >
-                              <div className="space-y-2">
-                                <Label
-                                  htmlFor="badgeName"
-                                  className="font-mono text-xs uppercase tracking-wider"
-                                >
-                                  Badge Name (linked by CODENAME)
-                                </Label>
-                                <Input
-                                  id="badgeName"
-                                  type="text"
-                                  value={formData.badgeName}
-                                  onChange={(e) =>
-                                    handleChange('badgeName', e.target.value)
-                                  }
-                                  placeholder="e.g., Recruiting CTF"
-                                  className="font-mono text-sm"
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label
-                                  htmlFor="badgeImage"
-                                  className="font-mono text-xs uppercase tracking-wider"
-                                >
-                                  Badge Image URL
-                                </Label>
-                                <Input
-                                  id="badgeImage"
-                                  type="text"
-                                  value={formData.badgeImage}
-                                  onChange={(e) =>
-                                    handleChange('badgeImage', e.target.value)
-                                  }
-                                  placeholder="https://.../recruiting-ctf.png"
-                                  className="font-mono text-sm"
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label
-                                  htmlFor="badgeDescription"
-                                  className="font-mono text-xs uppercase tracking-wider"
-                                >
-                                  Badge Description
-                                </Label>
-                                <textarea
-                                  id="badgeDescription"
-                                  value={formData.badgeDescription}
-                                  onChange={(e) =>
-                                    handleChange(
-                                      'badgeDescription',
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Badge description shown on the badge page..."
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-border/30 rounded-lg backdrop-blur-sm bg-background/40 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-colors"
-                                />
-                              </div>
-                            </TabsContent>
-                          </Tabs>
-
-                          {/* Action Buttons */}
-                          <div className="pt-4 flex items-center gap-3">
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedSetting(setting);
+                              setIsDetailOpen(true);
+                            }}
+                            className="flex-1 font-mono text-xs uppercase tracking-wider px-3 py-1.5 border border-border/30 rounded hover:border-accent/50 hover:bg-background/60 transition-colors"
+                          >
+                            View Details
+                          </button>
+                          {!setting.isActive && (
                             <Button
-                              type="submit"
-                              disabled={loading}
-                              className="font-mono text-xs uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetActive(setting.id);
+                              }}
+                              className={`${adminButtonPrimaryClass} flex-1`}
                             >
-                              {loading
-                                ? 'Saving...'
-                                : editingSettingId
-                                  ? 'Update Settings'
-                                  : 'Save Settings'}
+                              Set as Active
                             </Button>
-                            {editingSettingId && (
-                              <Button
-                                type="button"
-                                onClick={handleCancelEdit}
-                                variant="outline"
-                                className="font-mono text-xs uppercase tracking-wider"
-                              >
-                                Cancel Edit
-                              </Button>
-                            )}
-                            <Button
-                              type="button"
-                              onClick={() => setIsPreviewOpen(true)}
-                              variant="outline"
-                              className="font-mono text-xs uppercase tracking-wider"
-                            >
-                              <Eye className="h-3 w-3 mr-2" />
-                              Preview
-                            </Button>
-                          </div>
-                        </form>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </section>
+                )}
               </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </div>
-      </div>
+
+              {/* Right Column: Settings Form */}
+              <div className="space-y-4">
+                <div>
+                  <h2
+                    className="mb-1 text-base tracking-tight text-foreground"
+                    style={{ fontStyle: 'italic' }}
+                  >
+                    {editingSettingId ? 'EDIT SETTINGS' : 'CONFIGURE SETTINGS'}
+                  </h2>
+                  <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+                    {editingSettingId
+                      ? 'Update Existing Playground Configuration'
+                      : 'Create or Update Playground Configuration'}
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Tabs
+                    value={activeFormTab}
+                    onValueChange={(value) =>
+                      setActiveFormTab(value as 'basic' | 'schedule' | 'badge')
+                    }
+                    className="w-full"
+                  >
+                    <TabsList className={adminTabsListClass}>
+                      <TabsTrigger
+                        value="basic"
+                        className={adminTabsTriggerClass}
+                      >
+                        Basic
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="schedule"
+                        className={adminTabsTriggerClass}
+                      >
+                        Schedule
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="badge"
+                        className={adminTabsTriggerClass}
+                      >
+                        Badge
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="basic" className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="name"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
+                          Playground Name
+                        </Label>
+                        <Input
+                          id="name"
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => handleChange('name', e.target.value)}
+                          placeholder="e.g., Recruiting Playground"
+                          className="font-mono text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="codeName"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
+                          Code Name
+                        </Label>
+                        <Input
+                          id="codeName"
+                          type="text"
+                          value={formData.codeName}
+                          onChange={(e) =>
+                            handleChange('codeName', e.target.value)
+                          }
+                          placeholder="e.g., BREEZY"
+                          className="font-mono text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="description"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
+                          Description
+                        </Label>
+                        <textarea
+                          id="description"
+                          value={formData.description}
+                          onChange={(e) =>
+                            handleChange('description', e.target.value)
+                          }
+                          placeholder="Playground description..."
+                          rows={4}
+                          className={adminInputClass}
+                        />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="schedule" className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="season"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
+                          Season
+                        </Label>
+                        <Input
+                          id="season"
+                          type="text"
+                          value={formData.season}
+                          onChange={(e) =>
+                            handleChange('season', e.target.value)
+                          }
+                          placeholder="e.g., MAR-JUN 2026, Season 1"
+                          className="font-mono text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="type"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
+                          Playground Type
+                        </Label>
+                        <Select
+                          value={formData.type}
+                          onValueChange={(value) => handleChange('type', value)}
+                        >
+                          <SelectTrigger className="font-mono text-sm">
+                            <SelectValue placeholder="Select playground type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="beta">Beta</SelectItem>
+                            <SelectItem value="recruiting">
+                              Recruiting
+                            </SelectItem>
+                            <SelectItem value="regular">Regular</SelectItem>
+                            <SelectItem value="special">Special</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="startDate"
+                            className="font-mono text-xs uppercase tracking-wider"
+                          >
+                            Start DateTime
+                          </Label>
+                          <Input
+                            id="startDate"
+                            type="datetime-local"
+                            step={1}
+                            value={formData.startDate}
+                            onChange={(e) =>
+                              handleChange('startDate', e.target.value)
+                            }
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="endDate"
+                            className="font-mono text-xs uppercase tracking-wider"
+                          >
+                            End DateTime
+                          </Label>
+                          <Input
+                            id="endDate"
+                            type="datetime-local"
+                            step={1}
+                            value={formData.endDate}
+                            onChange={(e) =>
+                              handleChange('endDate', e.target.value)
+                            }
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="badge" className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="badgeName"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
+                          Badge Name (linked by CODENAME)
+                        </Label>
+                        <Input
+                          id="badgeName"
+                          type="text"
+                          value={formData.badgeName}
+                          onChange={(e) =>
+                            handleChange('badgeName', e.target.value)
+                          }
+                          placeholder="e.g., Recruiting CTF"
+                          className="font-mono text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="badgeImage"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
+                          Badge Image URL
+                        </Label>
+                        <Input
+                          id="badgeImage"
+                          type="text"
+                          value={formData.badgeImage}
+                          onChange={(e) =>
+                            handleChange('badgeImage', e.target.value)
+                          }
+                          placeholder="https://.../recruiting-ctf.png"
+                          className="font-mono text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="badgeDescription"
+                          className="font-mono text-xs uppercase tracking-wider"
+                        >
+                          Badge Description
+                        </Label>
+                        <textarea
+                          id="badgeDescription"
+                          value={formData.badgeDescription}
+                          onChange={(e) =>
+                            handleChange('badgeDescription', e.target.value)
+                          }
+                          placeholder="Badge description shown on the badge page..."
+                          rows={3}
+                          className={adminInputClass}
+                        />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+
+                  {/* Action Buttons */}
+                  <div className="pt-4 flex items-center gap-3">
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className={adminButtonPrimaryClass}
+                    >
+                      {loading
+                        ? 'Saving...'
+                        : editingSettingId
+                          ? 'Update Settings'
+                          : 'Save Settings'}
+                    </Button>
+                    {editingSettingId && (
+                      <Button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        variant="outline"
+                        className="font-mono text-xs uppercase tracking-wider"
+                      >
+                        Cancel Edit
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      onClick={() => setIsPreviewOpen(true)}
+                      variant="outline"
+                      className="font-mono text-xs uppercase tracking-wider"
+                    >
+                      <Eye className="h-3 w-3 mr-2" />
+                      Preview
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+      </AdminLayout>
 
       {/* Settings Detail Modal */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-[600px] rounded-xl border-border/30 bg-background/50 backdrop-blur-sm p-6 max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="font-[var(--font-bebas)] text-3xl tracking-tight text-foreground mb-2">
+            <DialogTitle className="mb-2 text-lg font-normal tracking-tight text-foreground">
               SETTINGS DETAIL
             </DialogTitle>
             <DialogDescription className="font-mono text-xs text-muted-foreground">

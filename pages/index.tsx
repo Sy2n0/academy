@@ -1,40 +1,54 @@
-import Link from 'next/link';
 import { type ReactElement } from 'react';
-import { useTranslation } from 'next-i18next';
 import type { NextPageWithLayout } from 'types';
-import { GetServerSidePropsContext } from 'next';
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { HeroSection } from '@/components/hero-section';
-import { SignalsSection } from '@/components/signals-section';
-import { WorkSection } from '@/components/work-section';
-import { PrinciplesSection } from '@/components/principles-section';
-import { ColophonSection } from '@/components/colophon-section';
-import { SideNav } from '@/components/side-nav';
-import { Navbar } from '@/components/landing/Navbar';
-import env from '@/lib/env';
 import Head from 'next/head';
+import env from '@/lib/env';
+import { getLandingData } from '@/lib/landing';
 
-const Home: NextPageWithLayout = () => {
-  const { t } = useTranslation('common');
+import { WarpNav } from '@/components/landing/warp/WarpNav';
+import { WarpSideNav } from '@/components/landing/warp/WarpSideNav';
+import { WarpHero } from '@/components/landing/warp/WarpHero';
+import { WarpStatsBand } from '@/components/landing/warp/WarpStatsBand';
+import { WarpPlatform } from '@/components/landing/warp/WarpPlatform';
+import { WarpCategories } from '@/components/landing/warp/WarpCategories';
+import { WarpFooter } from '@/components/landing/warp/WarpFooter';
 
+type Props = InferGetServerSidePropsType<typeof getServerSideProps>;
+
+const Home: NextPageWithLayout<Props> = ({ data }: Props) => {
   return (
     <>
       <Head>
         <title>HUB ACADEMY</title>
+        <meta
+          name="description"
+          content="백석대학교 HUB의 보안 학습 플랫폼 — 학습 모듈, CTF 챌린지, 격리된 실습 컨테이너, 랭킹."
+        />
+        <meta name="theme-color" content="#131311" />
       </Head>
 
-      <main className="relative min-h-screen bg-background">
-        <SideNav />
-        <div className="grid-bg fixed inset-0 opacity-30" aria-hidden="true" />
+      <div className="relative min-h-svh bg-[var(--warp-void)] text-[var(--warp-parchment)]">
+        <div
+          className="warp-grid-bg pointer-events-none fixed inset-0 opacity-60"
+          aria-hidden="true"
+        />
 
-        <div className="relative z-10">
-          <HeroSection />
-          {/* <SignalsSection /> */}
-          <WorkSection />
-          {/* <PrinciplesSection /> */}
-          <ColophonSection />
+        <div className="relative">
+          <WarpNav />
+          <WarpSideNav />
+          <main>
+            <WarpHero
+              challenges={data?.challenges ?? []}
+              challengeCount={data?.stats.challengesLive ?? 0}
+            />
+            <WarpStatsBand stats={data?.stats ?? null} />
+            <WarpPlatform data={data} />
+            <WarpCategories stats={data?.categories ?? []} />
+          </main>
+          <WarpFooter />
         </div>
-      </main>
+      </div>
     </>
   );
 };
@@ -56,6 +70,7 @@ export const getServerSideProps = async (
 
   return {
     props: {
+      data: await getLandingData(),
       ...(locale ? await serverSideTranslations(locale, ['common']) : {}),
     },
   };

@@ -67,6 +67,9 @@ export default async function handler(
       },
     });
 
+    // Completing a module deliberately awards no points — the completion is the
+    // record, and the dashboard reads activity from UserModuleCompletion rather
+    // than from the score ledger (see getUserActivity).
     res.status(200).json({
       data: {
         message: 'Module completed successfully',

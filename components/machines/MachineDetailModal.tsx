@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useSession } from 'next-auth/react';
 import useSWR from 'swr';
@@ -92,8 +92,20 @@ export function MachineDetailModal({
   const [hashInfo, setHashInfo] = useState<{
     sha256: string;
     size: number;
+    filename?: string;
   } | null>(null);
   const [loadingHash, setLoadingHash] = useState(false);
+
+  const fetchHash = useCallback(async () => {
+    if (!machineId) return null;
+    const response = await fetch(`/api/machines/${machineId}/hash`);
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error?.message || 'Hash 계산 실패');
+    }
+    setHashInfo(result.data);
+    return result.data;
+  }, [machineId]);
 
   const handleShowHash = async () => {
     if (!machineId) return;
@@ -101,11 +113,7 @@ export function MachineDetailModal({
     if (hashInfo) return;
     setLoadingHash(true);
     try {
-      const response = await fetch(`/api/machines/${machineId}/hash`);
-      const result = await response.json();
-      if (!response.ok)
-        throw new Error(result.error?.message || 'Hash 계산 실패');
-      setHashInfo(result.data);
+      await fetchHash();
     } catch (error: any) {
       toast.error(error.message || 'Hash 계산 실패');
       setShowHashModal(false);
@@ -123,6 +131,15 @@ export function MachineDetailModal({
 
   const machine = data?.data?.machine;
   const container = containerData?.data?.instance;
+
+  // Size lives in the hash payload, so fetch it as soon as the modal opens on a
+  // machine that has a file — the attachment row used to print a literal "2 KB".
+  useEffect(() => {
+    if (!open || !machine?.attachmentUrl) return;
+    fetchHash().catch(() => {
+      /* the key button surfaces this; the inline size just stays blank */
+    });
+  }, [open, machine?.attachmentUrl, fetchHash]);
 
   // 시도 횟수 조회 (임시로 0으로 설정, 실제로는 API에서 가져와야 함)
   const attemptCount = 0;
@@ -216,50 +233,21 @@ export function MachineDetailModal({
     }
   };
 
-  const getCategoryColor = (category: string | undefined | null) => {
-    if (!category) {
-      return 'bg-accent';
-    }
-
-    const categoryLower = category.toLowerCase();
-    if (categoryLower.includes('misc')) {
-      return 'bg-green-500';
-    } else if (categoryLower.includes('crypto')) {
-      return 'bg-purple-500';
-    } else if (categoryLower.includes('pwn')) {
-      return 'bg-red-500';
-    } else if (categoryLower.includes('web')) {
-      return 'bg-blue-500';
-    } else if (
-      categoryLower.includes('revers') ||
-      categoryLower.includes('reverse')
-    ) {
-      return 'bg-yellow-500';
-    } else if (categoryLower.includes('forensic')) {
-      return 'bg-purple-300';
-    } else if (categoryLower.includes('hardware')) {
-      return 'bg-white';
-    }
-    return 'bg-accent';
-  };
-
   if (!open || !machineId) return null;
-
-  const colorClass = getCategoryColor(machine?.category);
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl bg-background border-border/30">
+        <DialogContent className="max-w-2xl bg-background border-[var(--warp-rule)]">
           {isLoading ? (
             <div className="text-center py-20">
-              <p className="font-mono text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Loading challenge details...
               </p>
             </div>
           ) : error || !machine ? (
             <div className="text-center py-20">
-              <p className="font-mono text-sm text-destructive">
+              <p className="text-sm text-destructive">
                 Failed to load challenge details
               </p>
             </div>
@@ -267,27 +255,31 @@ export function MachineDetailModal({
             <div className="space-y-4">
               {/* Header Section */}
               <div className="space-y-3">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-bold text-foreground">
-                    {machine.title}
-                  </h1>
-                  <div className="text-lg font-semibold text-foreground">
-                    {machine.score} pts
-                  </div>
+                <h1 className="text-2xl font-medium tracking-tight text-foreground">
+                  {machine.title}
+                </h1>
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <span>{machine.category || 'Uncategorised'}</span>
+                  <span>
+                    <span className="warp-num text-foreground">
+                      {machine.score}
+                    </span>{' '}
+                    pts
+                  </span>
                 </div>
-                <div className={`h-0.5 w-full ${colorClass}`}></div>
+                <div className="h-px w-full bg-[var(--warp-rule)]" />
               </div>
 
               {/* Description */}
               {machine.description && (
                 <div
-                  className="border-l-2 border-border/50 pl-3 prose prose-invert prose-sm max-w-none
+                  className="border-l-2 border-[var(--warp-rule)] pl-3 prose prose-invert prose-sm max-w-none
                 prose-p:text-muted-foreground prose-p:my-1
                 prose-strong:text-foreground
-                prose-code:text-accent prose-code:bg-muted/40 prose-code:px-1 prose-code:rounded
-                prose-headings:text-foreground prose-headings:font-mono
-                prose-a:text-accent prose-a:no-underline hover:prose-a:underline
-                prose-hr:border-border/30"
+                prose-code:text-foreground prose-code:bg-muted/40 prose-code:px-1 prose-code:rounded
+                prose-headings:text-foreground 
+                prose-a:text-foreground prose-a:no-underline hover:prose-a:underline
+                prose-hr:border-[var(--warp-rule)]"
                 >
                   <ReactMarkdown>{machine.description}</ReactMarkdown>
                 </div>
@@ -297,7 +289,7 @@ export function MachineDetailModal({
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-base font-bold text-foreground mb-1">
+                    <p className="text-base font-medium text-foreground mb-1">
                       This challenge requires creating an instance
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -308,7 +300,7 @@ export function MachineDetailModal({
                     <Button
                       onClick={handleStopContainer}
                       disabled={stoppingContainer}
-                      className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2"
+                      className="bg-[var(--warp-parchment)] text-[var(--warp-void)] hover:bg-[var(--warp-ash)] px-4 py-2"
                     >
                       <Square className="h-4 w-4 mr-2" />
                       {stoppingContainer ? 'Stopping...' : 'Stop'}
@@ -317,7 +309,7 @@ export function MachineDetailModal({
                     <Button
                       onClick={handleStartContainer}
                       disabled={startingContainer}
-                      className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2"
+                      className="bg-[var(--warp-parchment)] text-[var(--warp-void)] hover:bg-[var(--warp-ash)] px-4 py-2"
                     >
                       <Play className="h-4 w-4 mr-2" />
                       {startingContainer ? 'Creating...' : 'Create'}
@@ -335,7 +327,7 @@ export function MachineDetailModal({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {/* Folder Icon */}
-                      <div className="w-12 h-12 rounded bg-background/60 border border-border/50 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded bg-[var(--warp-surface)] border border-[var(--warp-rule)] flex items-center justify-center">
                         <Folder className="h-6 w-6 text-foreground" />
                       </div>
                       <div>
@@ -343,13 +335,17 @@ export function MachineDetailModal({
                           {machine.attachmentUrl.split('/').pop() ||
                             'attachment.zip'}
                         </p>
-                        <p className="text-xs text-muted-foreground">2 KB</p>
+                        <p className="warp-num text-xs text-muted-foreground">
+                          {hashInfo
+                            ? `${(hashInfo.size / 1024).toFixed(1)} KB`
+                            : '—'}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
                         asChild
-                        className="bg-accent hover:bg-accent/90 text-foreground px-4 py-2 rounded-md flex items-center gap-2 border border-accent/50"
+                        className="bg-[var(--warp-parchment)] text-[var(--warp-void)] hover:bg-[var(--warp-ash)] px-4 py-2 rounded-md flex items-center gap-2"
                       >
                         <a href={`/api/machines/${machineId}/download`}>
                           Download Files
@@ -359,7 +355,7 @@ export function MachineDetailModal({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-10 h-10 bg-background/60 border border-border/50"
+                        className="w-10 h-10 bg-[var(--warp-surface)] border border-[var(--warp-rule)]"
                         onClick={handleShowHash}
                         title="SHA256 Hash"
                       >
@@ -372,7 +368,7 @@ export function MachineDetailModal({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {/* Folder Icon (open) */}
-                      <div className="w-12 h-12 rounded bg-background/60 border border-border/50 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded bg-[var(--warp-surface)] border border-[var(--warp-rule)] flex items-center justify-center">
                         <Folder className="h-6 w-6 text-foreground" />
                       </div>
                       <div>
@@ -385,7 +381,7 @@ export function MachineDetailModal({
                     <div className="flex items-center gap-2">
                       <Button
                         disabled
-                        className="bg-accent/50 hover:bg-accent/50 text-foreground/50 px-4 py-2 rounded-md flex items-center gap-2 cursor-not-allowed border border-accent/30"
+                        className="bg-[var(--warp-earth)] text-[var(--warp-stone)] hover:bg-[var(--warp-earth)] px-4 py-2 rounded-md flex items-center gap-2 cursor-not-allowed border border-[var(--warp-rule)]"
                       >
                         Download Files
                         <ChevronDown className="h-4 w-4" />
@@ -393,9 +389,11 @@ export function MachineDetailModal({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-10 h-10 bg-background/60 border border-border/50"
+                        disabled
+                        title="첨부 파일이 없습니다"
+                        className="h-10 w-10 cursor-not-allowed border border-[var(--warp-rule)] bg-[var(--warp-surface)]"
                       >
-                        <Key className="h-4 w-4 text-foreground" />
+                        <Key className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
                   </div>
@@ -416,14 +414,14 @@ export function MachineDetailModal({
                       placeholder="HUB{...}"
                       value={flag}
                       onChange={(e) => setFlag(e.target.value)}
-                      className="flex-1 h-11 bg-background/60 border-border/50 text-foreground placeholder:text-muted-foreground"
+                      className="flex-1 h-11 bg-[var(--warp-surface)] border-[var(--warp-rule)] text-foreground placeholder:text-muted-foreground"
                       disabled={submitting}
                       required
                     />
                     <Button
                       type="submit"
                       disabled={submitting || !flag.trim()}
-                      className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2 h-11"
+                      className="bg-[var(--warp-parchment)] text-[var(--warp-void)] hover:bg-[var(--warp-ash)] px-4 py-2 h-11"
                     >
                       {submitting ? 'Submitting...' : 'Submit Flag'}
                     </Button>
@@ -433,13 +431,13 @@ export function MachineDetailModal({
 
               {/* Container Info (if running) */}
               {container && container.status === 'running' && (
-                <div className="p-4 border border-border/30 rounded-lg bg-background/40">
+                <div className="p-4 border border-[var(--warp-rule)] rounded-lg bg-[var(--warp-surface)]">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">
                         IP Address:
                       </span>
-                      <code className="text-sm font-mono font-bold text-foreground">
+                      <code className="text-sm warp-num font-medium text-foreground">
                         {container.ipAddress}
                       </code>
                     </div>
@@ -451,7 +449,7 @@ export function MachineDetailModal({
                         <span className="text-sm text-muted-foreground">
                           Port:
                         </span>
-                        <code className="text-sm font-mono font-bold text-foreground">
+                        <code className="text-sm warp-num font-medium text-foreground">
                           {port}
                         </code>
                       </div>
@@ -469,29 +467,31 @@ export function MachineDetailModal({
       <Dialog open={showHashModal} onOpenChange={setShowHashModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-mono flex items-center gap-2">
+            <DialogTitle className="warp-num flex items-center gap-2">
               <Hash className="h-4 w-4" />
               File Hash
             </DialogTitle>
             <DialogDescription>
-              문제 파일의 무결성을 확인하세요.
+              {hashInfo?.filename
+                ? `${hashInfo.filename} 의 무결성을 확인하세요.`
+                : '문제 파일의 무결성을 확인하세요.'}
             </DialogDescription>
           </DialogHeader>
           {loadingHash ? (
-            <p className="font-mono text-sm text-muted-foreground py-4 text-center">
+            <p className="warp-num text-sm text-muted-foreground py-4 text-center">
               Computing hash...
             </p>
           ) : hashInfo ? (
             <div className="space-y-3">
               <div>
-                <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-wider">
+                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">
                   SHA256
                 </p>
-                <code className="block w-full break-all bg-muted/40 px-3 py-2 rounded text-xs font-mono text-foreground select-all">
+                <code className="block w-full break-all bg-muted/40 px-3 py-2 rounded text-xs warp-num text-foreground select-all">
                   {hashInfo.sha256}
                 </code>
               </div>
-              <p className="font-mono text-xs text-muted-foreground">
+              <p className="warp-num text-xs text-muted-foreground">
                 Size: {(hashInfo.size / 1024).toFixed(1)} KB
               </p>
             </div>

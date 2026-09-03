@@ -44,7 +44,7 @@ export default async function handler(
 const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getSession(req, res);
 
-  if (!session || !session.user) {
+  if (!session?.user?.id) {
     throw new ApiError(401, 'Unauthorized');
   }
 

@@ -1,7 +1,6 @@
 import app from '@/lib/app';
 import { SessionProvider } from 'next-auth/react';
 import { appWithTranslation } from 'next-i18next';
-import { JetBrains_Mono } from 'next/font/google';
 import Head from 'next/head';
 import { Toaster } from 'react-hot-toast';
 import colors from 'tailwindcss/colors';
@@ -9,6 +8,10 @@ import type { AppPropsWithLayout } from 'types';
 import mixpanel from 'mixpanel-browser';
 
 import '@boxyhq/react-ui/dist/react-ui.css';
+// Self-hosted Pretendard (Hangul). Dynamic subset — 92 unicode-range slices, so
+// a page downloads only the few it actually renders. Declaring the faces app-wide
+// is inert: only .warp-theme names Pretendard in its font stack.
+import '../styles/pretendard.css';
 import '../styles/globals.css';
 import { useEffect } from 'react';
 import env from '@/lib/env';
@@ -17,14 +20,8 @@ import { Themer } from '@boxyhq/react-ui/shared';
 
 import { useRouter } from 'next/router';
 import { DefaultLayout } from '@/components/layouts';
-
-// App-wide UI font for the redesigned (Direction C — hacker console) surfaces:
-// monospace-native (JetBrains Mono). Legacy surfaces (landing + /auth) restore
-// the previous system font via .legacy-theme.
-const jbMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jb-mono',
-});
+import { THEME_CLASSES, themeClassFor } from '@/lib/theme-routes';
+import { fontVariables } from '@/lib/fonts';
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const { session, ...props } = pageProps;
@@ -46,10 +43,17 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     }
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove(...THEME_CLASSES);
+    const themeClass = themeClassFor(router.pathname);
+    if (themeClass) root.classList.add(themeClass);
+  }, [router.pathname]);
+
   // sandbox 경로일 때는 레이아웃 없이 렌더링
   if (router.pathname.startsWith('/sandbox')) {
     return (
-      <div className={`${jbMono.variable} ${jbMono.className} contents`}>
+      <div className={`${fontVariables} contents`}>
         <Component {...props} />
       </div>
     );
@@ -58,14 +62,10 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout =
     Component.getLayout || ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
-  // Landing (/) and auth (/auth/*) keep the previous design — scope them to the
-  // legacy token set so the refactor only touches the app + admin surfaces.
-  const isLegacySurface =
-    router.pathname === '/' || router.pathname.startsWith('/auth');
   const page = getLayout(<Component {...props} />);
 
   return (
-    <div className={`${jbMono.variable} ${jbMono.className} contents`}>
+    <div className={`${fontVariables} contents`}>
       <Head>
         <title>HUB ACADEMY</title>
       </Head>
@@ -87,11 +87,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
             '--primary-color-950': colors.blue['950'],
           }}
         >
-          {isLegacySurface ? (
-            <div className="legacy-theme contents">{page}</div>
-          ) : (
-            page
-          )}
+          {page}
         </Themer>
       </SessionProvider>
     </div>

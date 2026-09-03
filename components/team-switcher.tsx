@@ -37,9 +37,11 @@ export function TeamSwitcher({
             isCollapsed && 'justify-center'
           )}
         >
-          {isCollapsed ? (
-            <Shield className="size-5 shrink-0" />
-          ) : (
+          {/* Shown in both states so the header shares the rail's icon column
+              and its text starts where the nav labels do. No explicit size —
+              the button's [&>svg]:size-4 sets it, same as every nav icon. */}
+          <Shield className="shrink-0" />
+          {!isCollapsed && (
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-semibold">
                 Highest Unique Batch

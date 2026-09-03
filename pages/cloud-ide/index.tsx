@@ -3,20 +3,9 @@ import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { StatBar } from '@/components/layouts/StatBar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -149,235 +138,203 @@ const CloudIDEPage: NextPageWithLayout = () => {
         <title>Cloud IDE - HUB ACADEMY</title>
       </Head>
 
-      <SidebarProvider defaultOpen={false}>
-        <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-            <div className="flex items-center gap-2 px-6 md:px-12">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      href="/dashboard"
-                      className="font-mono text-xs uppercase tracking-wider"
-                    >
-                      Dashboard
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                      Cloud IDE
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-          </header>
+      <div className="h-svh overflow-hidden bg-background">
+        <SidebarProvider className="h-full">
+          <AppSidebar />
+          <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+            <AppTopBar
+              crumbs={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Cloud IDE' },
+              ]}
+            />
 
-          <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6 overflow-y-auto">
-            <div className="max-w-7xl mx-auto w-full space-y-5">
-              <section className="rounded-xl border border-border/40 bg-card p-5 md:p-6">
-                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <h1 className="font-mono text-2xl md:text-3xl text-foreground uppercase">
-                      Cloud IDE
-                    </h1>
-                    <p className="font-mono text-xs text-muted-foreground mt-2">
-                      code-server 기반 개발 환경을 실행하고 브라우저에서 바로
-                      접속합니다.
-                    </p>
-                  </div>
-                  <div className="w-11 h-11 rounded-lg flex items-center justify-center border border-border/40 bg-muted/30">
-                    <Code2 className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="mx-auto w-full max-w-[1240px] p-5 md:px-10 md:py-8">
+                <section>
+                  <h1 className="text-3xl tracking-tight text-foreground md:text-4xl">
+                    Cloud IDE
+                  </h1>
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                    code-server 기반 개발 환경을 실행하고 브라우저에서 바로
+                    접속합니다.
+                  </p>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-                  <div className="rounded-md border border-border/50 bg-background/70 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Status
-                    </p>
-                    <p className="font-mono text-sm text-foreground mt-1">
-                      {connectionInfo ? 'Running' : 'Stopped'}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/70 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Host
-                    </p>
-                    <p className="font-mono text-sm text-foreground mt-1 truncate">
-                      {connectionInfo?.host || '-'}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/70 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Port
-                    </p>
-                    <p className="font-mono text-sm text-foreground mt-1">
-                      {connectionInfo ? String(connectionInfo.port) : '-'}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/70 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Container
-                    </p>
-                    <p className="font-mono text-sm text-foreground mt-1 truncate">
-                      {connectionInfo?.containerName || '-'}
-                    </p>
-                  </div>
-                </div>
-              </section>
+                  <StatBar
+                    stats={[
+                      {
+                        label: 'Status',
+                        value: connectionInfo ? 'Running' : 'Stopped',
+                        mono: false,
+                      },
+                      {
+                        label: 'Host',
+                        value: connectionInfo?.host || '—',
+                        mono: false,
+                      },
+                      {
+                        label: 'Port',
+                        value: connectionInfo ? connectionInfo.port : '—',
+                      },
+                      {
+                        label: 'Container',
+                        value: connectionInfo?.containerName || '—',
+                        mono: false,
+                      },
+                    ]}
+                  />
+                </section>
 
-              <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,22rem)_1fr] gap-5">
-                <Card className="border-border/40 bg-card/70 p-4 space-y-4">
-                  <div>
-                    <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                      Launch Settings
-                    </p>
-                    <p className="font-mono text-[11px] text-muted-foreground mt-1">
-                      Run 시 사용 가능한 포트를 자동으로 할당합니다.
-                    </p>
-                  </div>
-
-                  {!connectionInfo ? (
-                    <Button
-                      size="sm"
-                      className="font-mono"
-                      disabled={launching}
-                      onClick={openRunModal}
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      {launching ? '실행 중…' : 'Run Cloud IDE'}
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="font-mono"
-                      disabled={stopping}
-                      onClick={handleStop}
-                    >
-                      <Square className="h-4 w-4 mr-2" />
-                      {stopping ? '중지 중…' : 'Stop'}
-                    </Button>
-                  )}
-                </Card>
-
-                <Card className="border-border/40 bg-card/70 overflow-hidden">
-                  <div className="p-5 border-b border-border/30 flex items-start justify-between gap-4 flex-wrap">
+                <div className="mt-8 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,22rem)_1fr]">
+                  <Card className="space-y-4 border-[var(--warp-rule)] bg-transparent p-4">
                     <div>
-                      <h2 className="font-mono font-semibold text-foreground">
-                        Connection Panel
-                      </h2>
-                      <p className="font-mono text-xs text-muted-foreground mt-0.5">
-                        {connectionInfo
-                          ? '연결 가능한 상태입니다.'
-                          : '아직 실행 중인 IDE가 없습니다.'}
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Launch Settings
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Run 시 사용 가능한 포트를 자동으로 할당합니다.
                       </p>
                     </div>
-                    {connectionInfo && (
-                      <Button size="sm" className="font-mono" asChild>
-                        <a
-                          href={ideUrl!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          IDE 열기
-                        </a>
+
+                    {!connectionInfo ? (
+                      <Button
+                        size="sm"
+                        className=""
+                        disabled={launching}
+                        onClick={openRunModal}
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        {launching ? '실행 중…' : 'Run Cloud IDE'}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className=""
+                        disabled={stopping}
+                        onClick={handleStop}
+                      >
+                        <Square className="h-4 w-4 mr-2" />
+                        {stopping ? '중지 중…' : 'Stop'}
                       </Button>
                     )}
-                  </div>
+                  </Card>
 
-                  {connectionInfo ? (
-                    <div className="p-5 space-y-4">
-                      <div className="rounded-lg border border-border/40 bg-muted/20 p-4 font-mono text-xs space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-muted-foreground">URL</span>
+                  <Card className="overflow-hidden border-[var(--warp-rule)] bg-transparent">
+                    <div className="p-5 border-b border-[var(--warp-rule)] flex items-start justify-between gap-4 flex-wrap">
+                      <div>
+                        <h2 className="font-semibold text-foreground">
+                          Connection Panel
+                        </h2>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {connectionInfo
+                            ? '연결 가능한 상태입니다.'
+                            : '아직 실행 중인 IDE가 없습니다.'}
+                        </p>
+                      </div>
+                      {connectionInfo && (
+                        <Button size="sm" className="" asChild>
                           <a
                             href={ideUrl!}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-foreground hover:underline break-all"
                           >
-                            {ideUrl}
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            IDE 열기
                           </a>
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-muted-foreground">
-                            Password
-                          </span>
-                          <span className="text-foreground font-mono">
-                            {connectionInfo.password}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="font-mono text-xs text-muted-foreground">
-                        URL 접속 후 비밀번호를 입력하면 VS Code 환경이 열립니다.
-                      </p>
+                        </Button>
+                      )}
                     </div>
-                  ) : (
-                    <div className="p-6">
-                      <p className="font-mono text-sm text-muted-foreground">
-                        Run을 누르면{' '}
-                        <strong className="text-foreground">cloud-ide</strong>{' '}
-                        컨테이너가 시작되고 code-server에 접속할 수 있습니다.
-                      </p>
-                    </div>
-                  )}
-                </Card>
-              </div>
-            </div>
-          </div>
 
-          <Dialog open={runModalOpen} onOpenChange={setRunModalOpen}>
-            <DialogContent className="font-mono max-w-sm">
-              <DialogHeader>
-                <DialogTitle className="font-mono text-lg uppercase tracking-wider">
-                  Run Cloud IDE
-                </DialogTitle>
-                <DialogDescription className="font-mono text-xs text-muted-foreground">
-                  포트는 자동으로 할당됩니다. 비밀번호를 비우면 자동 생성됩니다.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label
-                    htmlFor="cloudide-password"
-                    className="font-mono text-xs"
-                  >
-                    Password (선택, 비우면 자동 생성)
-                  </Label>
-                  <Input
-                    id="cloudide-password"
-                    type="text"
-                    placeholder="비워두면 자동 생성"
-                    value={runPassword}
-                    onChange={(e) => setRunPassword(e.target.value)}
-                    className="font-mono"
-                  />
+                    {connectionInfo ? (
+                      <div className="p-5 space-y-4">
+                        <div className="rounded-lg border border-[var(--warp-rule)] bg-[var(--warp-surface)] p-4 text-xs space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">URL</span>
+                            <a
+                              href={ideUrl!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-foreground hover:underline break-all"
+                            >
+                              {ideUrl}
+                            </a>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground">
+                              Password
+                            </span>
+                            <span className="text-foreground warp-num">
+                              {connectionInfo.password}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          URL 접속 후 비밀번호를 입력하면 VS Code 환경이
+                          열립니다.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-6">
+                        <p className="text-sm text-muted-foreground">
+                          Run을 누르면{' '}
+                          <strong className="text-foreground">cloud-ide</strong>{' '}
+                          컨테이너가 시작되고 code-server에 접속할 수 있습니다.
+                        </p>
+                      </div>
+                    )}
+                  </Card>
                 </div>
               </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="font-mono"
-                  onClick={() => setRunModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button size="sm" className="font-mono" onClick={handleLaunch}>
-                  Run
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </SidebarInset>
-      </SidebarProvider>
+            </div>
+
+            <Dialog open={runModalOpen} onOpenChange={setRunModalOpen}>
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle className="text-lg uppercase tracking-wider">
+                    Run Cloud IDE
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground">
+                    포트는 자동으로 할당됩니다. 비밀번호를 비우면 자동
+                    생성됩니다.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label
+                      htmlFor="cloudide-password"
+                      className="warp-num text-xs"
+                    >
+                      Password (선택, 비우면 자동 생성)
+                    </Label>
+                    <Input
+                      id="cloudide-password"
+                      type="text"
+                      placeholder="비워두면 자동 생성"
+                      value={runPassword}
+                      onChange={(e) => setRunPassword(e.target.value)}
+                      className=""
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className=""
+                    onClick={() => setRunModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button size="sm" className="" onClick={handleLaunch}>
+                    Run
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
     </>
   );
 };

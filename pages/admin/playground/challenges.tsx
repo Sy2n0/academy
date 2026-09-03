@@ -3,20 +3,12 @@ import { useTranslation } from 'next-i18next';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { StatBar } from '@/components/layouts/StatBar';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  adminButtonClass,
+  adminButtonPrimaryClass,
+} from '@/components/admin/styles';
 import {
   Dialog,
   DialogContent,
@@ -811,608 +803,520 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
         <title>Playground Challenges - Admin - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
+      <AdminLayout title="Challenges" description="Playground 문제 등록">
+        <StatBar
+          stats={[
+            { label: 'Challenges', value: drafts.length },
+            { label: 'Total points', value: totalPoints },
+          ]}
+        />
 
-        <div className="relative z-10">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Playground Challenges
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
+        <div className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)] gap-5">
+            <form
+              onSubmit={handleCreateDraft}
+              className="space-y-3 border-r border-[var(--warp-rule)] pr-6"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Plus className="h-4 w-4 text-foreground" />
+                <h2 className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                  Create Challenge Draft
+                </h2>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Playground CodeName
+                </Label>
+                <Select
+                  value={formData.playgroundCodeName}
+                  onValueChange={(value) => {
+                    handleChange('playgroundCodeName', value);
+                    loadChallenges(value);
+                  }}
+                >
+                  <SelectTrigger className="font-mono text-xs">
+                    <SelectValue placeholder="Select codeName" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {playgroundOptions.map((option) => (
+                      <SelectItem
+                        key={option.id}
+                        value={option.codeName}
+                        className="font-mono text-xs"
+                      >
+                        {option.codeName.toUpperCase()} ({option.season})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="title"
+                  className="font-mono text-[10px] uppercase tracking-wider"
+                >
+                  Title
+                </Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleChange('title', e.target.value)}
+                  placeholder="e.g., SQL Ghost"
+                  className="font-mono text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Category
+                  </Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => handleChange('category', value)}
+                  >
+                    <SelectTrigger className="font-mono text-xs">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {challengeCategories.map((category) => (
+                        <SelectItem
+                          key={category}
+                          value={category}
+                          className="font-mono text-xs"
+                        >
+                          {category.toUpperCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </header>
 
-              <div className="flex-1 overflow-y-auto px-6 md:px-12 py-4 md:py-6">
-                <div className="max-w-7xl mx-auto space-y-5">
-                  <div className="flex flex-wrap items-end justify-between gap-3">
-                    <div>
-                      <h1
-                        className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground"
-                        style={{ fontStyle: 'italic' }}
-                      >
-                        PLAYGROUND CHALLENGES
-                      </h1>
-                      <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
-                        CTFd-style challenge drafting before API/DB wiring
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="px-3 py-2 border border-border/30 rounded bg-background/40">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase">
-                          Drafts
-                        </p>
-                        <p className="font-mono text-sm text-foreground">
-                          {drafts.length}
-                        </p>
-                      </div>
-                      <div className="px-3 py-2 border border-border/30 rounded bg-background/40">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase">
-                          Total Points
-                        </p>
-                        <p className="font-mono text-sm text-foreground">
-                          {totalPoints}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)] gap-5">
-                    <form
-                      onSubmit={handleCreateDraft}
-                      className="space-y-3 border border-border/30 rounded-lg bg-background/50 p-4"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <Plus className="h-4 w-4 text-foreground" />
-                        <h2 className="font-mono text-xs uppercase tracking-wider text-foreground">
-                          Create Challenge Draft
-                        </h2>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="font-mono text-[10px] uppercase tracking-wider">
-                          Playground CodeName
-                        </Label>
-                        <Select
-                          value={formData.playgroundCodeName}
-                          onValueChange={(value) => {
-                            handleChange('playgroundCodeName', value);
-                            loadChallenges(value);
-                          }}
-                        >
-                          <SelectTrigger className="font-mono text-xs">
-                            <SelectValue placeholder="Select codeName" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {playgroundOptions.map((option) => (
-                              <SelectItem
-                                key={option.id}
-                                value={option.codeName}
-                                className="font-mono text-xs"
-                              >
-                                {option.codeName.toUpperCase()} ({option.season}
-                                )
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="title"
-                          className="font-mono text-[10px] uppercase tracking-wider"
-                        >
-                          Title
-                        </Label>
-                        <Input
-                          id="title"
-                          value={formData.title}
-                          onChange={(e) =>
-                            handleChange('title', e.target.value)
-                          }
-                          placeholder="e.g., SQL Ghost"
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Difficulty
+                  </Label>
+                  <Select
+                    value={formData.difficulty}
+                    onValueChange={(value) => handleChange('difficulty', value)}
+                  >
+                    <SelectTrigger className="font-mono text-xs">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {difficultyLevels.map((difficulty) => (
+                        <SelectItem
+                          key={difficulty}
+                          value={difficulty}
                           className="font-mono text-xs"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                          <Label className="font-mono text-[10px] uppercase tracking-wider">
-                            Category
-                          </Label>
-                          <Select
-                            value={formData.category}
-                            onValueChange={(value) =>
-                              handleChange('category', value)
-                            }
-                          >
-                            <SelectTrigger className="font-mono text-xs">
-                              <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {challengeCategories.map((category) => (
-                                <SelectItem
-                                  key={category}
-                                  value={category}
-                                  className="font-mono text-xs"
-                                >
-                                  {category.toUpperCase()}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label className="font-mono text-[10px] uppercase tracking-wider">
-                            Difficulty
-                          </Label>
-                          <Select
-                            value={formData.difficulty}
-                            onValueChange={(value) =>
-                              handleChange('difficulty', value)
-                            }
-                          >
-                            <SelectTrigger className="font-mono text-xs">
-                              <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {difficultyLevels.map((difficulty) => (
-                                <SelectItem
-                                  key={difficulty}
-                                  value={difficulty}
-                                  className="font-mono text-xs"
-                                >
-                                  {difficulty}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                          <Label
-                            htmlFor="value"
-                            className="font-mono text-[10px] uppercase tracking-wider"
-                          >
-                            Value
-                          </Label>
-                          <Input
-                            id="value"
-                            type="number"
-                            min={1}
-                            value={formData.value}
-                            onChange={(e) =>
-                              handleChange('value', e.target.value)
-                            }
-                            className="font-mono text-xs"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label className="font-mono text-[10px] uppercase tracking-wider">
-                            Flag Type
-                          </Label>
-                          <Select
-                            value={formData.flagType}
-                            onValueChange={(value) =>
-                              handleChange('flagType', value)
-                            }
-                          >
-                            <SelectTrigger className="font-mono text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem
-                                value="static"
-                                className="font-mono text-xs"
-                              >
-                                STATIC
-                              </SelectItem>
-                              <SelectItem
-                                value="regex"
-                                className="font-mono text-xs"
-                              >
-                                REGEX
-                              </SelectItem>
-                              <SelectItem
-                                value="dynamic"
-                                className="font-mono text-xs"
-                              >
-                                DYNAMIC
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="font-mono text-[10px] uppercase tracking-wider">
-                          Instance 사용
-                        </Label>
-                        <Select
-                          value={formData.useInstance ? 'enabled' : 'disabled'}
-                          onValueChange={(value) =>
-                            handleChange('useInstance', value === 'enabled')
-                          }
                         >
-                          <SelectTrigger className="font-mono text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem
-                              value="disabled"
-                              className="font-mono text-xs"
-                            >
-                              사용 안 함
-                            </SelectItem>
-                            <SelectItem
-                              value="enabled"
-                              className="font-mono text-xs"
-                            >
-                              사용 함
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {formData.useInstance && (
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1.5">
-                            <Label
-                              htmlFor="serverAddress"
-                              className="font-mono text-[10px] uppercase tracking-wider"
-                            >
-                              Server Address
-                            </Label>
-                            <Input
-                              id="serverAddress"
-                              value={formData.serverAddress}
-                              onChange={(e) =>
-                                handleChange('serverAddress', e.target.value)
-                              }
-                              placeholder="e.g., 10.0.0.5 or ctf.example.com"
-                              className="font-mono text-xs"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label
-                              htmlFor="serverPort"
-                              className="font-mono text-[10px] uppercase tracking-wider"
-                            >
-                              PORT
-                            </Label>
-                            <Input
-                              id="serverPort"
-                              type="number"
-                              min={1}
-                              max={65535}
-                              value={formData.serverPort}
-                              onChange={(e) =>
-                                handleChange('serverPort', e.target.value)
-                              }
-                              placeholder="e.g., 8080"
-                              className="font-mono text-xs"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="flag"
-                          className="font-mono text-[10px] uppercase tracking-wider"
-                        >
-                          Flag
-                        </Label>
-                        <Input
-                          id="flag"
-                          value={formData.flag}
-                          onChange={(e) => handleChange('flag', e.target.value)}
-                          placeholder="HUB{example_flag}"
-                          className="font-mono text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="description"
-                          className="font-mono text-[10px] uppercase tracking-wider"
-                        >
-                          Description
-                        </Label>
-                        <textarea
-                          id="description"
-                          rows={5}
-                          value={formData.description}
-                          onChange={(e) =>
-                            handleChange('description', e.target.value)
-                          }
-                          placeholder="Challenge description (Markdown-ready)"
-                          className="w-full px-3 py-2 border border-border/30 rounded bg-background/60 font-mono text-xs text-foreground placeholder:text-muted-foreground resize-none"
-                        />
-                        <div className="rounded border border-border/30 bg-background/40 p-3">
-                          <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                            Markdown Preview
-                          </p>
-                          <DescriptionMarkdownPreview
-                            value={formData.description}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="attachments"
-                          className="font-mono text-[10px] uppercase tracking-wider"
-                        >
-                          Attachments
-                        </Label>
-                        <label
-                          htmlFor="attachments"
-                          className="flex items-center justify-between gap-2 px-3 py-3 border border-dashed border-border/40 rounded bg-background/40 cursor-pointer hover:border-accent/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Paperclip className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-mono text-xs text-muted-foreground">
-                              Add challenge files (zip, txt, image, etc.)
-                            </span>
-                          </div>
-                          <span className="font-mono text-[10px] uppercase text-foreground">
-                            Select
-                          </span>
-                        </label>
-                        <input
-                          id="attachments"
-                          type="file"
-                          multiple
-                          onChange={handleFileSelect}
-                          className="hidden"
-                        />
-
-                        {selectedFiles.length > 0 && (
-                          <div className="space-y-1.5 border border-border/20 rounded p-2 bg-background/30">
-                            {selectedFiles.map((file) => (
-                              <div
-                                key={`${file.name}-${file.size}-${file.lastModified}`}
-                                className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-background/60"
-                              >
-                                <div className="min-w-0">
-                                  <p className="font-mono text-xs text-foreground truncate">
-                                    {file.name}
-                                  </p>
-                                  <p className="font-mono text-[10px] text-muted-foreground">
-                                    {(file.size / 1024).toFixed(1)} KB
-                                    {file.type ? ` · ${file.type}` : ''}
-                                  </p>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveFile(file)}
-                                  className="p-1 rounded hover:bg-background/80 text-muted-foreground hover:text-foreground"
-                                >
-                                  <X className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {isProgrammingCategory(formData.category) && (
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="answer-code"
-                            className="font-mono text-[10px] uppercase tracking-wider"
-                          >
-                            Correct Code File (Programming)
-                          </Label>
-                          <label
-                            htmlFor="answer-code"
-                            className="flex items-center justify-between gap-2 px-3 py-3 border border-dashed border-border/40 rounded bg-background/40 cursor-pointer hover:border-accent/50 transition-colors"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Paperclip className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-mono text-xs text-muted-foreground">
-                                Upload the official solution code file
-                              </span>
-                            </div>
-                            <span className="font-mono text-[10px] uppercase text-foreground">
-                              Select
-                            </span>
-                          </label>
-                          <input
-                            id="answer-code"
-                            type="file"
-                            onChange={handleAnswerFileSelect}
-                            className="hidden"
-                          />
-
-                          {selectedAnswerFile && (
-                            <div className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-background/60 border border-border/20">
-                              <div className="min-w-0">
-                                <p className="font-mono text-xs text-foreground truncate">
-                                  {selectedAnswerFile.name}
-                                </p>
-                                <p className="font-mono text-[10px] text-muted-foreground">
-                                  {(selectedAnswerFile.size / 1024).toFixed(1)}{' '}
-                                  KB
-                                  {selectedAnswerFile.type
-                                    ? ` · ${selectedAnswerFile.type}`
-                                    : ''}
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedAnswerFile(null)}
-                                className="p-1 rounded hover:bg-background/80 text-muted-foreground hover:text-foreground"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      <Button
-                        type="submit"
-                        disabled={submitting}
-                        className="w-full font-mono text-xs uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground"
-                      >
-                        {submitting ? 'Adding...' : 'Add Challenge Draft'}
-                      </Button>
-                    </form>
-
-                    <div className="border border-border/30 rounded-lg bg-background/50 p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Flag className="h-4 w-4 text-foreground" />
-                        <h2 className="font-mono text-xs uppercase tracking-wider text-foreground">
-                          Draft Challenge List
-                        </h2>
-                      </div>
-
-                      {loadingList ? (
-                        <div className="py-8 text-center border border-dashed border-border/40 rounded">
-                          <p className="font-mono text-xs text-muted-foreground">
-                            Loading challenge list...
-                          </p>
-                        </div>
-                      ) : drafts.length === 0 ? (
-                        <div className="py-8 text-center border border-dashed border-border/40 rounded">
-                          <p className="font-mono text-xs text-muted-foreground">
-                            No challenge drafts yet.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="overflow-x-auto border border-border/20 rounded">
-                          <table className="w-full min-w-[720px]">
-                            <thead>
-                              <tr className="border-b border-border/20 bg-background/70">
-                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  CodeName
-                                </th>
-                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  Title
-                                </th>
-                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  Category
-                                </th>
-                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  Difficulty
-                                </th>
-                                <th className="px-3 py-2 text-right font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  Points
-                                </th>
-                                <th className="px-3 py-2 text-right font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  Files
-                                </th>
-                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  Flag Type
-                                </th>
-                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  Created
-                                </th>
-                                <th className="px-3 py-2 text-right font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  Actions
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {drafts.map((challenge) => (
-                                <tr
-                                  key={challenge.id}
-                                  className="border-b border-border/10 last:border-b-0"
-                                >
-                                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground uppercase">
-                                    {challenge.playgroundCodeName}
-                                  </td>
-                                  <td className="px-3 py-2 font-mono text-xs text-foreground">
-                                    {challenge.title}
-                                  </td>
-                                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground uppercase">
-                                    {challenge.category}
-                                  </td>
-                                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground uppercase">
-                                    {challenge.difficulty}
-                                  </td>
-                                  <td className="px-3 py-2 font-mono text-xs text-right text-foreground">
-                                    {challenge.value}
-                                  </td>
-                                  <td className="px-3 py-2 font-mono text-xs text-right text-foreground">
-                                    {challenge.attachments.length}
-                                  </td>
-                                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground uppercase">
-                                    {challenge.flagType}
-                                  </td>
-                                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
-                                    {new Date(
-                                      challenge.createdAt
-                                    ).toLocaleString('ko-KR', {
-                                      month: '2-digit',
-                                      day: '2-digit',
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                    })}
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <div className="flex items-center justify-end gap-2">
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() =>
-                                          handleEditDraft(challenge)
-                                        }
-                                        className="h-7 px-2 font-mono text-[10px] uppercase"
-                                      >
-                                        Edit
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="destructive"
-                                        onClick={() =>
-                                          handleDeleteDraft(challenge)
-                                        }
-                                        disabled={deletingId === challenge.id}
-                                        className="h-7 px-2 font-mono text-[10px] uppercase"
-                                      >
-                                        {deletingId === challenge.id
-                                          ? 'Deleting...'
-                                          : 'Delete'}
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                          {difficulty}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </SidebarInset>
-          </SidebarProvider>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="value"
+                    className="font-mono text-[10px] uppercase tracking-wider"
+                  >
+                    Value
+                  </Label>
+                  <Input
+                    id="value"
+                    type="number"
+                    min={1}
+                    value={formData.value}
+                    onChange={(e) => handleChange('value', e.target.value)}
+                    className="font-mono text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Flag Type
+                  </Label>
+                  <Select
+                    value={formData.flagType}
+                    onValueChange={(value) => handleChange('flagType', value)}
+                  >
+                    <SelectTrigger className="font-mono text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="static" className="font-mono text-xs">
+                        STATIC
+                      </SelectItem>
+                      <SelectItem value="regex" className="font-mono text-xs">
+                        REGEX
+                      </SelectItem>
+                      <SelectItem value="dynamic" className="font-mono text-xs">
+                        DYNAMIC
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Instance 사용
+                </Label>
+                <Select
+                  value={formData.useInstance ? 'enabled' : 'disabled'}
+                  onValueChange={(value) =>
+                    handleChange('useInstance', value === 'enabled')
+                  }
+                >
+                  <SelectTrigger className="font-mono text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="disabled" className="font-mono text-xs">
+                      사용 안 함
+                    </SelectItem>
+                    <SelectItem value="enabled" className="font-mono text-xs">
+                      사용 함
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.useInstance && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="serverAddress"
+                      className="font-mono text-[10px] uppercase tracking-wider"
+                    >
+                      Server Address
+                    </Label>
+                    <Input
+                      id="serverAddress"
+                      value={formData.serverAddress}
+                      onChange={(e) =>
+                        handleChange('serverAddress', e.target.value)
+                      }
+                      placeholder="e.g., 10.0.0.5 or ctf.example.com"
+                      className="font-mono text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="serverPort"
+                      className="font-mono text-[10px] uppercase tracking-wider"
+                    >
+                      PORT
+                    </Label>
+                    <Input
+                      id="serverPort"
+                      type="number"
+                      min={1}
+                      max={65535}
+                      value={formData.serverPort}
+                      onChange={(e) =>
+                        handleChange('serverPort', e.target.value)
+                      }
+                      placeholder="e.g., 8080"
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="flag"
+                  className="font-mono text-[10px] uppercase tracking-wider"
+                >
+                  Flag
+                </Label>
+                <Input
+                  id="flag"
+                  value={formData.flag}
+                  onChange={(e) => handleChange('flag', e.target.value)}
+                  placeholder="HUB{example_flag}"
+                  className="font-mono text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="description"
+                  className="font-mono text-[10px] uppercase tracking-wider"
+                >
+                  Description
+                </Label>
+                <textarea
+                  id="description"
+                  rows={5}
+                  value={formData.description}
+                  onChange={(e) => handleChange('description', e.target.value)}
+                  placeholder="Challenge description (Markdown-ready)"
+                  className="w-full px-3 py-2 border border-border/30 rounded bg-background/60 font-mono text-xs text-foreground placeholder:text-muted-foreground resize-none"
+                />
+                <div className="rounded border border-border/30 bg-background/40 p-3">
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Markdown Preview
+                  </p>
+                  <DescriptionMarkdownPreview value={formData.description} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="attachments"
+                  className="font-mono text-[10px] uppercase tracking-wider"
+                >
+                  Attachments
+                </Label>
+                <label
+                  htmlFor="attachments"
+                  className="flex items-center justify-between gap-2 px-3 py-3 border border-dashed border-border/40 rounded bg-background/40 cursor-pointer hover:border-accent/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Paperclip className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-mono text-xs text-muted-foreground">
+                      Add challenge files (zip, txt, image, etc.)
+                    </span>
+                  </div>
+                  <span className="font-mono text-[10px] uppercase text-foreground">
+                    Select
+                  </span>
+                </label>
+                <input
+                  id="attachments"
+                  type="file"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {selectedFiles.length > 0 && (
+                  <div className="space-y-1.5 border border-border/20 rounded p-2 bg-background/30">
+                    {selectedFiles.map((file) => (
+                      <div
+                        key={`${file.name}-${file.size}-${file.lastModified}`}
+                        className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-background/60"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-mono text-xs text-foreground truncate">
+                            {file.name}
+                          </p>
+                          <p className="font-mono text-[10px] text-muted-foreground">
+                            {(file.size / 1024).toFixed(1)} KB
+                            {file.type ? ` · ${file.type}` : ''}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(file)}
+                          className="p-1 rounded hover:bg-background/80 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {isProgrammingCategory(formData.category) && (
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="answer-code"
+                    className="font-mono text-[10px] uppercase tracking-wider"
+                  >
+                    Correct Code File (Programming)
+                  </Label>
+                  <label
+                    htmlFor="answer-code"
+                    className="flex items-center justify-between gap-2 px-3 py-3 border border-dashed border-border/40 rounded bg-background/40 cursor-pointer hover:border-accent/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Paperclip className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-mono text-xs text-muted-foreground">
+                        Upload the official solution code file
+                      </span>
+                    </div>
+                    <span className="font-mono text-[10px] uppercase text-foreground">
+                      Select
+                    </span>
+                  </label>
+                  <input
+                    id="answer-code"
+                    type="file"
+                    onChange={handleAnswerFileSelect}
+                    className="hidden"
+                  />
+
+                  {selectedAnswerFile && (
+                    <div className="flex items-center justify-between gap-2 px-2 py-1 rounded bg-background/60 border border-border/20">
+                      <div className="min-w-0">
+                        <p className="font-mono text-xs text-foreground truncate">
+                          {selectedAnswerFile.name}
+                        </p>
+                        <p className="font-mono text-[10px] text-muted-foreground">
+                          {(selectedAnswerFile.size / 1024).toFixed(1)} KB
+                          {selectedAnswerFile.type
+                            ? ` · ${selectedAnswerFile.type}`
+                            : ''}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAnswerFile(null)}
+                        className="p-1 rounded hover:bg-background/80 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={submitting}
+                className={`${adminButtonPrimaryClass} w-full`}
+              >
+                {submitting ? 'Adding...' : 'Add Challenge Draft'}
+              </Button>
+            </form>
+
+            <div className="border border-border/30 rounded-lg bg-background/50 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Flag className="h-4 w-4 text-foreground" />
+                <h2 className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                  Draft Challenge List
+                </h2>
+              </div>
+
+              {loadingList ? (
+                <div className="py-8 text-center border border-dashed border-border/40 rounded">
+                  <p className="font-mono text-xs text-muted-foreground">
+                    Loading challenge list...
+                  </p>
+                </div>
+              ) : drafts.length === 0 ? (
+                <div className="py-8 text-center border border-dashed border-border/40 rounded">
+                  <p className="font-mono text-xs text-muted-foreground">
+                    No challenge drafts yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[720px]">
+                    <thead>
+                      <tr className="border-b border-[var(--warp-rule)]">
+                        <th className="py-2 pr-4 text-left text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          CodeName
+                        </th>
+                        <th className="py-2 pr-4 text-left text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          Title
+                        </th>
+                        <th className="py-2 pr-4 text-left text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          Category
+                        </th>
+                        <th className="py-2 pr-4 text-left text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          Difficulty
+                        </th>
+                        <th className="py-2 pr-4 text-right text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          Points
+                        </th>
+                        <th className="py-2 pr-4 text-right text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          Files
+                        </th>
+                        <th className="py-2 pr-4 text-left text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          Flag Type
+                        </th>
+                        <th className="py-2 pr-4 text-left text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          Created
+                        </th>
+                        <th className="py-2 pr-4 text-right text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {drafts.map((challenge) => (
+                        <tr
+                          key={challenge.id}
+                          className="border-b border-[var(--warp-rule)]"
+                        >
+                          <td className="py-2.5 pr-4 text-xs uppercase text-muted-foreground">
+                            {challenge.playgroundCodeName}
+                          </td>
+                          <td className="py-2.5 pr-4 text-sm text-foreground">
+                            {challenge.title}
+                          </td>
+                          <td className="py-2.5 pr-4 text-xs uppercase text-muted-foreground">
+                            {challenge.category}
+                          </td>
+                          <td className="py-2.5 pr-4 text-xs uppercase text-muted-foreground">
+                            {challenge.difficulty}
+                          </td>
+                          <td className="warp-num py-2.5 pr-4 text-right text-sm text-foreground">
+                            {challenge.value}
+                          </td>
+                          <td className="warp-num py-2.5 pr-4 text-right text-sm text-foreground">
+                            {challenge.attachments.length}
+                          </td>
+                          <td className="py-2.5 pr-4 text-xs uppercase text-muted-foreground">
+                            {challenge.flagType}
+                          </td>
+                          <td className="warp-num py-2.5 pr-4 text-xs text-muted-foreground">
+                            {new Date(challenge.createdAt).toLocaleString(
+                              'ko-KR',
+                              {
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              }
+                            )}
+                          </td>
+                          <td className="py-2 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                type="button"
+                                onClick={() => handleEditDraft(challenge)}
+                                className={adminButtonClass}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                type="button"
+                                onClick={() => handleDeleteDraft(challenge)}
+                                disabled={deletingId === challenge.id}
+                                className={`${adminButtonClass} hover:text-destructive`}
+                              >
+                                {deletingId === challenge.id
+                                  ? 'Deleting...'
+                                  : 'Delete'}
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </AdminLayout>
 
       <Dialog open={isEditModalOpen} onOpenChange={handleEditModalOpenChange}>
-        <DialogContent className="border-border/30 bg-card/95 backdrop-blur-sm w-[92vw] max-w-[720px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] w-[92vw] max-w-[720px] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-mono text-xs uppercase tracking-wider text-foreground">
               Edit Challenge Draft
@@ -1421,7 +1325,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
 
           <form onSubmit={handleUpdateDraft} className="space-y-3">
             <div className="space-y-1.5">
-              <Label className="font-mono text-[10px] uppercase tracking-wider">
+              <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Playground CodeName
               </Label>
               <Select
@@ -1448,7 +1352,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="font-mono text-[10px] uppercase tracking-wider">
+              <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Title
               </Label>
               <Input
@@ -1461,7 +1365,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="font-mono text-[10px] uppercase tracking-wider">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Category
                 </Label>
                 <Select
@@ -1486,7 +1390,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="font-mono text-[10px] uppercase tracking-wider">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Difficulty
                 </Label>
                 <Select
@@ -1515,7 +1419,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="font-mono text-[10px] uppercase tracking-wider">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Value
                 </Label>
                 <Input
@@ -1528,7 +1432,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="font-mono text-[10px] uppercase tracking-wider">
+                <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Flag Type
                 </Label>
                 <Select
@@ -1554,7 +1458,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="font-mono text-[10px] uppercase tracking-wider">
+              <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Instance 사용
               </Label>
               <Select
@@ -1580,7 +1484,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
             {editFormData.useInstance && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="font-mono text-[10px] uppercase tracking-wider">
+                  <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                     Server Address
                   </Label>
                   <Input
@@ -1594,7 +1498,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="font-mono text-[10px] uppercase tracking-wider">
+                  <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                     PORT
                   </Label>
                   <Input
@@ -1613,7 +1517,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
             )}
 
             <div className="space-y-1.5">
-              <Label className="font-mono text-[10px] uppercase tracking-wider">
+              <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Flag
               </Label>
               <Input
@@ -1625,7 +1529,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="font-mono text-[10px] uppercase tracking-wider">
+              <Label className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Description
               </Label>
               <textarea
@@ -1822,7 +1726,7 @@ const PlaygroundChallengesPage: NextPageWithLayout = () => {
               <Button
                 type="submit"
                 disabled={editSubmitting}
-                className="font-mono text-xs uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground"
+                className={adminButtonPrimaryClass}
               >
                 {editSubmitting ? 'Updating...' : 'Save Changes'}
               </Button>

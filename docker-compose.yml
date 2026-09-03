@@ -8,3 +8,101 @@ services:
       POSTGRES_DB: saas-starter-kit
     ports:
       - 5434:5432
+    # Without this the data lives in the container's writable layer, and a
+    # single `docker compose down` — the ordinary way to recreate a network or
+    # change a service — destroys the database along with the container.
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  # Machines are reachable only from inside the tunnel. Until this runs, leave
+  # VPN_REQUIRED unset — the app's gate would otherwise refuse every machine
+  # without there being a way to satisfy it.
+  #
+  # First run, once, to create the CA and server config. -d matters: without it
+  # ovpn_genconfig pushes `redirect-gateway def1`, which sends the client's
+  # entire internet through this server. Students only need to reach the machine
+  # subnet, so that one route is pushed and everything else keeps its normal
+  # path — a split tunnel.
+  #
+  #   docker compose run --rm openvpn ovpn_genconfig \
+  #     -u udp://vpn.example.com:1194 \
+  #     -s 10.8.0.0/24 \
+  #     -d \
+  #     -p "route 10.10.10.0 255.255.255.0" \
+  #     -e "status /etc/openvpn/openvpn-status.log" \
+  #     -e "status-version 2"
+  #   docker compose run --rm openvpn ovpn_initpki
+  #
+  # The two status lines are what vpn-sync reads; without them connection state
+  # is only ever as fresh as the last connect hook.
+  openvpn:
+    image: kylemanna/openvpn:latest
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - '1194:1194/udp'
+    volumes:
+      - openvpn-data:/etc/openvpn
+      - ./docker/openvpn/hooks:/etc/openvpn/hooks:ro
+      - vpn-geo:/etc/openvpn/geo:ro
+    environment:
+      # Where the connect/disconnect hooks report to. From inside the container
+      # the app is not on localhost, hence host.docker.internal on Docker
+      # Desktop; on Linux use the host address or put both on one network.
+      PLATFORM_URL: ${VPN_PLATFORM_URL:-http://host.docker.internal:4003}
+      PLATFORM_API_KEY: ${PLATFORM_API_KEY:-}
+      # Countries whose addresses may open a tunnel, space separated. A profile
+      # shared with someone abroad stops being usable; the account is untouched.
+      VPN_ALLOWED_COUNTRIES: ${VPN_ALLOWED_COUNTRIES:-kr}
+      # Whether a missing country list blocks everyone. Default allows, because
+      # a failed download should not take the platform down — the hook logs it.
+      VPN_GEO_FAIL_CLOSED: ${VPN_GEO_FAIL_CLOSED:-false}
+    networks:
+      - default
+      - machines
+
+  # Keeps connection state true. The connect/disconnect hooks report changes;
+  # this reports what is actually up, so a tunnel that died without a clean
+  # teardown stops counting and a live one does not age out of the app's trust
+  # window.
+  vpn-sync:
+    image: alpine:3.20
+    restart: always
+    depends_on:
+      - openvpn
+    volumes:
+      - openvpn-data:/etc/openvpn:ro
+      - vpn-geo:/geo
+      - ./docker/openvpn/sync.sh:/sync.sh:ro
+    environment:
+      PLATFORM_URL: ${VPN_PLATFORM_URL:-http://host.docker.internal:4003}
+      PLATFORM_API_KEY: ${PLATFORM_API_KEY:-}
+      VPN_SYNC_INTERVAL: ${VPN_SYNC_INTERVAL:-60}
+      VPN_ALLOWED_COUNTRIES: ${VPN_ALLOWED_COUNTRIES:-kr}
+    entrypoint:
+      [
+        '/bin/sh',
+        '-c',
+        'apk add --no-cache curl >/dev/null && exec /bin/sh /sync.sh',
+      ]
+
+# The subnet machine containers join. Nothing publishes to the host from here,
+# so the only route in is the tunnel.
+networks:
+  machines:
+    name: hub-machines
+    driver: bridge
+    # Pinned so the address range pushed to VPN clients is a fixed, known value
+    # rather than whatever Docker picks next. Kept to a /24 on purpose: the
+    # route is pushed into every client's table, and campus networks commonly
+    # hand out 10.x addresses — a narrow block is far less likely to shadow a
+    # student's own network while they are connected.
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+
+volumes:
+  postgres-data:
+  openvpn-data:
+  vpn-geo:

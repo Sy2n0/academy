@@ -261,11 +261,36 @@ export async function getUserRanking(userId: string): Promise<number> {
 /**
  * 특정 타입의 점수만으로 랭킹을 조회합니다.
  */
-export async function getRankingsByType(type: ScoreType, limit: number = 100) {
+/**
+ * Narrows a score query to one Playground season.
+ *
+ * ScoreHistory has no season column, so a PLAYGROUND ranking summed every
+ * season that had ever run — a new season opened with the previous one's
+ * standings already on the board. The season is in metadata: submit-flag writes
+ * `playgroundCodeName` on every solve, always lowercased (challenges normalize
+ * the code name on write), so the lookup lowercases to match.
+ */
+function seasonFilter(seasonCodeName?: string | null) {
+  if (!seasonCodeName?.trim()) return {};
+  return {
+    metadata: {
+      path: ['playgroundCodeName'],
+      equals: seasonCodeName.trim().toLowerCase(),
+    },
+  } as const;
+}
+
+export async function getRankingsByType(
+  type: ScoreType,
+  limit: number = 100,
+  seasonCodeName?: string | null
+) {
+  const season = seasonFilter(seasonCodeName);
+
   // 각 사용자의 해당 타입 점수 합계 계산
   const userScores = await prisma.scoreHistory.groupBy({
     by: ['userId'],
-    where: { type },
+    where: { type, ...season },
     _sum: {
       earnedPoints: true,
     },
@@ -306,6 +331,7 @@ export async function getRankingsByType(type: ScoreType, limit: number = 100) {
           where: {
             userId,
             type,
+            ...season,
           },
           orderBy: {
             createdAt: 'desc',
@@ -319,6 +345,7 @@ export async function getRankingsByType(type: ScoreType, limit: number = 100) {
           where: {
             userId,
             type,
+            ...season,
           },
           select: {
             metadata: true,
@@ -342,15 +369,20 @@ export async function getRankingsByType(type: ScoreType, limit: number = 100) {
       // metadata나 description에서 machine 이름 추출
       let machineName: string | null = null;
       if (lastSolve) {
-        if (
-          lastSolve.metadata &&
-          typeof lastSolve.metadata === 'object' &&
-          'machineName' in lastSolve.metadata
-        ) {
-          machineName = lastSolve.metadata.machineName as string;
-        } else if (lastSolve.description) {
-          machineName = lastSolve.description;
-        }
+        const meta =
+          lastSolve.metadata && typeof lastSolve.metadata === 'object'
+            ? (lastSolve.metadata as Record<string, any>)
+            : null;
+        // Only machines record a machineName. Playground and sandbox name the
+        // thing solved differently, and without these the fallback reached the
+        // description — which for playground is the constant string
+        // "solved a challenge" for every row.
+        machineName =
+          (meta?.machineName as string) ??
+          (meta?.challengeTitle as string) ??
+          (meta?.problemTitle as string) ??
+          lastSolve.description ??
+          null;
       }
 
       return { userId, machineName, firstBloodCount };
@@ -388,8 +420,11 @@ export async function getRankingsByType(type: ScoreType, limit: number = 100) {
  */
 export async function getUserRankingByType(
   userId: string,
-  type: ScoreType
+  type: ScoreType,
+  seasonCodeName?: string | null
 ): Promise<number> {
+  const season = seasonFilter(seasonCodeName);
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { role: true },
@@ -419,6 +454,7 @@ export async function getUserRankingByType(
     where: {
       userId,
       type,
+      ...season,
     },
     _sum: {
       earnedPoints: true,
@@ -432,6 +468,7 @@ export async function getUserRankingByType(
     by: ['userId'],
     where: {
       type,
+      ...season,
       userId: {
         in: nonAdminUserIds,
       },
@@ -449,4 +486,243 @@ export async function getUserRankingByType(
   });
 
   return usersWithHigherPoints.length + 1;
+}
+
+/**
+ * Sandbox rankings.
+ *
+ * Ranked on solve count rather than points, because the sandbox is a finite
+ * curriculum — completing it is the goal, not accumulating an open-ended score.
+ * Solves come from SandboxSolve, which is the authoritative record; ScoreHistory
+ * only carries SANDBOX rows for solves made after awardPoints was wired into
+ * the submit handler, so points are reported alongside but never used to sort.
+ */
+export async function getSandboxRankings(limit: number = 100) {
+  const [problems, solves, pointRows] = await Promise.all([
+    prisma.sandboxProblem.findMany({
+      where: { isActive: true },
+      select: { id: true, category: true },
+    }),
+    prisma.sandboxSolve.findMany({
+      select: {
+        userId: true,
+        solvedAt: true,
+        problem: { select: { id: true, category: true, isActive: true } },
+      },
+    }),
+    prisma.scoreHistory.groupBy({
+      by: ['userId'],
+      where: { type: ScoreType.SANDBOX },
+      _sum: { earnedPoints: true },
+    }),
+  ]);
+
+  // Category totals drive the per-category "n/13" denominators.
+  const categoryTotals: Record<string, number> = {};
+  for (const p of problems) {
+    categoryTotals[p.category] = (categoryTotals[p.category] ?? 0) + 1;
+  }
+  const totalProblems = problems.length;
+
+  const pointsByUser = new Map(
+    pointRows.map((r) => [r.userId, r._sum.earnedPoints ?? 0])
+  );
+
+  type Agg = {
+    solved: number;
+    byCategory: Record<string, number>;
+    lastSolvedAt: Date | null;
+  };
+  const agg = new Map<string, Agg>();
+
+  for (const s of solves) {
+    // A retired problem should not inflate a total the denominator excludes.
+    if (!s.problem.isActive) continue;
+    const cur = agg.get(s.userId) ?? {
+      solved: 0,
+      byCategory: {},
+      lastSolvedAt: null,
+    };
+    cur.solved += 1;
+    cur.byCategory[s.problem.category] =
+      (cur.byCategory[s.problem.category] ?? 0) + 1;
+    if (!cur.lastSolvedAt || s.solvedAt > cur.lastSolvedAt) {
+      cur.lastSolvedAt = s.solvedAt;
+    }
+    agg.set(s.userId, cur);
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      id: { in: Array.from(agg.keys()) },
+      role: { not: UserRole.ADMIN },
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      currentRank: true,
+    },
+  });
+
+  return {
+    totalProblems,
+    categoryTotals,
+    rankings: users
+      .map((u) => {
+        const a = agg.get(u.id)!;
+        return {
+          ...u,
+          solved: a.solved,
+          byCategory: a.byCategory,
+          // Earliest finisher outranks a later one on equal counts.
+          lastSolvedAt: a.lastSolvedAt ? a.lastSolvedAt.toISOString() : null,
+          points: pointsByUser.get(u.id) ?? 0,
+        };
+      })
+      .sort(
+        (a, b) =>
+          b.solved - a.solved ||
+          (a.lastSolvedAt ?? '').localeCompare(b.lastSolvedAt ?? '')
+      )
+      .slice(0, limit),
+  };
+}
+
+export type ActivityEntry = {
+  id: string;
+  type: string;
+  description: string;
+  createdAt: Date;
+  /** Points credited for this event, when it carried any. */
+  earnedPoints: number;
+};
+
+/**
+ * What the user actually did, merged from the records that hold it.
+ *
+ * The dashboard used to read ScoreHistory for this, which is a points ledger,
+ * not an activity log — so anything that happened without awarding points was
+ * invisible. Module completions were the clearest case: sixteen of them existed
+ * and none appeared, because completing a module never wrote a score row.
+ *
+ * Each activity is read from its own source table so nothing is double-counted:
+ * sandbox solves live in SandboxSolve *and* (since the backfill) in
+ * ScoreHistory, so ScoreHistory is consulted only for the types that have no
+ * other record of their own.
+ */
+export async function getUserActivity(
+  userId: string,
+  limit: number = 20
+): Promise<ActivityEntry[]> {
+  const [completions, solves, scored] = await Promise.all([
+    prisma.userModuleCompletion.findMany({
+      where: { userId },
+      orderBy: { completedAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        moduleId: true,
+        completedAt: true,
+        module: { select: { title: true } },
+      },
+    }),
+    prisma.sandboxSolve.findMany({
+      where: { userId },
+      orderBy: { solvedAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        problemId: true,
+        solvedAt: true,
+        problem: { select: { title: true } },
+      },
+    }),
+    prisma.scoreHistory.findMany({
+      where: {
+        userId,
+        type: { in: [ScoreType.MACHINE, ScoreType.PLAYGROUND] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        type: true,
+        description: true,
+        earnedPoints: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  // Points for module and sandbox events, keyed by the id stored in metadata,
+  // so a row can show what it was worth without being sourced from the ledger.
+  const pointRows = await prisma.scoreHistory.findMany({
+    where: { userId, type: { in: [ScoreType.TRACK, ScoreType.SANDBOX] } },
+    select: { earnedPoints: true, metadata: true },
+  });
+  const pointsByKey = new Map<string, number>();
+  for (const row of pointRows) {
+    const meta = (row.metadata ?? {}) as Record<string, unknown>;
+    const key = (meta.moduleId ?? meta.problemId) as string | undefined;
+    if (key) pointsByKey.set(key, row.earnedPoints);
+  }
+
+  const entries: ActivityEntry[] = [
+    ...completions.map((c) => ({
+      id: `module-${c.id}`,
+      type: 'MODULE',
+      description: `Completed: ${c.module?.title ?? 'module'}`,
+      createdAt: c.completedAt,
+      earnedPoints: pointsByKey.get(c.moduleId) ?? 0,
+    })),
+    ...solves.map((s) => ({
+      id: `sandbox-${s.id}`,
+      type: 'SANDBOX',
+      description: `Solved: ${s.problem?.title ?? 'problem'}`,
+      createdAt: s.solvedAt,
+      earnedPoints: pointsByKey.get(s.problemId) ?? 0,
+    })),
+    ...scored.map((h) => ({
+      id: `score-${h.id}`,
+      type: h.type,
+      description: h.description ?? `${h.type} completed`,
+      createdAt: h.createdAt,
+      earnedPoints: h.earnedPoints,
+    })),
+  ];
+
+  return entries
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, limit);
+}
+
+/**
+ * Every timestamp on which the user did something, for the weekly streak.
+ *
+ * The streak used to be derived from ScoreHistory, so a week spent completing
+ * modules — which awarded no points — counted as a week off.
+ */
+export async function getUserActivityWeeks(userId: string): Promise<Date[]> {
+  const [completions, solves, scored] = await Promise.all([
+    prisma.userModuleCompletion.findMany({
+      where: { userId },
+      select: { completedAt: true },
+    }),
+    prisma.sandboxSolve.findMany({
+      where: { userId },
+      select: { solvedAt: true },
+    }),
+    prisma.scoreHistory.findMany({
+      where: { userId },
+      select: { createdAt: true },
+    }),
+  ]);
+
+  return [
+    ...completions.map((c) => c.completedAt),
+    ...solves.map((s) => s.solvedAt),
+    ...scored.map((h) => h.createdAt),
+  ];
 }

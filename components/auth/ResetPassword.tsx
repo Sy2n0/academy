@@ -65,7 +65,7 @@ const ResetPassword = () => {
   });
 
   return (
-    <div className="rounded p-6 border">
+    <div className="warp-card">
       <form onSubmit={formik.handleSubmit}>
         <div className="space-y-2">
           <InputWithLabel

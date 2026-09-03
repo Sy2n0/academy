@@ -69,6 +69,7 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
         createdAt: true,
         totalPoints: true,
         currentRank: true,
+        isBlocked: true,
       },
       orderBy: {
         createdAt: 'desc',

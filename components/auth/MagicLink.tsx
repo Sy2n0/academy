@@ -70,7 +70,7 @@ const MagicLink = ({ csrfToken }: MagicLinkProps) => {
       <Head>
         <title>{t('magic-link-title')}</title>
       </Head>
-      <div className="rounded p-6 border">
+      <div className="warp-card">
         <form onSubmit={formik.handleSubmit}>
           <div className="space-y-2">
             <InputWithLabel
@@ -95,24 +95,24 @@ const MagicLink = ({ csrfToken }: MagicLinkProps) => {
             </Button>
           </div>
         </form>
-        <div className="divider"></div>
+        <div className="my-6 border-t border-[var(--warp-rule)]" />
         <div className="space-y-3">
           <Link
             href={`/auth/login/${params}`}
-            className="btn btn-outline w-full"
+            className="warp-pill-outline w-full"
           >
             &nbsp;{t('sign-in-with-password')}
           </Link>
-          <Link href="/auth/sso" className="btn btn-outline w-full">
+          <Link href="/auth/sso" className="warp-pill-outline w-full">
             &nbsp;{t('continue-with-saml-sso')}
           </Link>
         </div>
       </div>
-      <p className="text-center text-sm text-gray-600 mt-3">
+      <p className="mt-4 text-center text-sm text-[var(--warp-stone)]">
         {t('dont-have-an-account')}
         <Link
           href={`/auth/join${params}`}
-          className="font-medium text-indigo-600 hover:text-indigo-500"
+          className="warp-link font-medium underline underline-offset-4 hover:text-[var(--warp-parchment)]"
         >
           &nbsp;{t('create-a-free-account')}
         </Link>

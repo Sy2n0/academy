@@ -90,17 +90,25 @@ async function executeTests(
   const skipped = (parsed?.numPendingTests ?? 0) + (parsed?.numTodoTests ?? 0);
   const success = parsed?.success ?? false;
 
-  const suites = (parsed?.testResults ?? []).map((suite: any) => ({
-    file: suite.testFilePath?.replace(appDir, '').replace(/^\//, ''),
-    passed: suite.numPassingTests,
-    failed: suite.numFailingTests,
-    tests: (suite.testResults ?? []).map((t: any) => ({
-      name: t.fullName,
-      status: t.status,
-      duration: t.duration,
-      failureMessages: t.failureMessages,
-    })),
-  }));
+  // Jest's --json output names these `name` and `assertionResults`; the four
+  // keys read here before (testFilePath, numPassingTests, numFailingTests,
+  // testResults) exist on none of them. Every suite therefore stored as
+  // {tests: []} with no file and no counts, so the detail panel had nothing to
+  // show even though the top-level totals were right.
+  const suites = (parsed?.testResults ?? []).map((suite: any) => {
+    const assertions: any[] = suite.assertionResults ?? [];
+    return {
+      file: (suite.name ?? '').replace(appDir, '').replace(/^\//, ''),
+      passed: assertions.filter((t) => t.status === 'passed').length,
+      failed: assertions.filter((t) => t.status === 'failed').length,
+      tests: assertions.map((t) => ({
+        name: t.fullName,
+        status: t.status,
+        duration: t.duration,
+        failureMessages: t.failureMessages,
+      })),
+    };
+  });
 
   await prisma.testRun.update({
     where: { id: runId },

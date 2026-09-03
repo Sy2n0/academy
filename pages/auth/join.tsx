@@ -6,8 +6,8 @@ import { useTranslation } from 'next-i18next';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { type ReactElement, useEffect } from 'react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { Navbar } from '@/components/landing/Navbar';
-import { AnimatedNoise } from '@/components/animated-noise';
+import { WarpAuthShell } from '@/components/auth/WarpAuthShell';
+import { getAuthStats } from '@/lib/landing';
 import type { NextPageWithLayout } from 'types';
 import { authProviderEnabled } from '@/lib/auth';
 import { JoinWithInvitation, Join } from '@/components/auth';
@@ -17,7 +17,7 @@ import env from '@/lib/env';
 
 const Signup: NextPageWithLayout<
   InferGetServerSidePropsType<typeof getServerSideProps>
-> = ({ authProviders, recaptchaSiteKey }) => {
+> = ({ authProviders, recaptchaSiteKey, authStats }) => {
   const router = useRouter();
   const { status } = useSession();
   const { t } = useTranslation('common');
@@ -44,43 +44,43 @@ const Signup: NextPageWithLayout<
       <Head>
         <title>HUB ACADEMY</title>
       </Head>
-      <main className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
-        <div className="grid-bg fixed inset-0 opacity-30" aria-hidden="true" />
-
-        <div className="relative z-10">
-          <div className="w-full pt-4">
-            <Navbar hideAuthButtons />
-          </div>
-
-          <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center px-6 py-12 md:px-12">
-            <div className="w-full max-w-md space-y-6">
-              {authProviders.credentials && (
-                <>
-                  {token ? (
-                    <JoinWithInvitation
-                      inviteToken={token}
-                      recaptchaSiteKey={recaptchaSiteKey}
-                    />
-                  ) : (
-                    <Join recaptchaSiteKey={recaptchaSiteKey} />
-                  )}
-                </>
+      <WarpAuthShell
+        stats={authStats}
+        aside={{
+          label: 'Create account',
+          heading: 'Start with the first challenge',
+          body: '학교 메일로 가입하면 학습 모듈과 활성 문제, 샌드박스 컨테이너가 바로 열립니다.',
+        }}
+      >
+        <div className="space-y-6">
+          {authProviders.credentials && (
+            <>
+              {token ? (
+                <JoinWithInvitation
+                  inviteToken={token}
+                  recaptchaSiteKey={recaptchaSiteKey}
+                />
+              ) : (
+                <Join recaptchaSiteKey={recaptchaSiteKey} />
               )}
+            </>
+          )}
 
-              <p className="text-center text-sm text-muted-foreground">
-                {t('already-have-an-account')}{' '}
-                <Link
-                  href={`/auth/login/${params}`}
-                  className="font-medium text-foreground hover:text-accent transition-colors underline underline-offset-4"
-                >
-                  {t('sign-in')}
-                </Link>
-              </p>
-            </div>
-          </div>
+          {/* The plain Join card ends with this prompt itself; the invitation
+              form does not, so it is only rendered on that branch. */}
+          {token && (
+            <p className="text-center text-sm text-[var(--warp-stone)]">
+              {t('already-have-an-account')}{' '}
+              <Link
+                href={`/auth/login${params}`}
+                className="warp-link underline underline-offset-4 hover:text-[var(--warp-parchment)]"
+              >
+                {t('sign-in')}
+              </Link>
+            </p>
+          )}
         </div>
-      </main>
+      </WarpAuthShell>
     </>
   );
 };
@@ -99,6 +99,7 @@ export const getServerSideProps = async (
       ...(locale ? await serverSideTranslations(locale, ['common']) : {}),
       authProviders: authProviderEnabled(),
       recaptchaSiteKey: env.recaptcha.siteKey,
+      authStats: await getAuthStats(),
     },
   };
 };

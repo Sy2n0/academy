@@ -81,7 +81,7 @@ const SSO: NextPageWithLayout<
       <Head>
         <title>HUB ACADEMY</title>
       </Head>
-      <div className="rounded p-6 border">
+      <div className="warp-card">
         <form onSubmit={formik.handleSubmit}>
           <div className="space-y-2">
             {useEmail ? (
@@ -118,12 +118,12 @@ const SSO: NextPageWithLayout<
             </Button>
           </div>
         </form>
-        <div className="divider"></div>
+        <div className="my-6 border-t border-[var(--warp-rule)]" />
         <div className="space-y-3">
-          <Link href="/auth/login" className="btn btn-outline w-full">
+          <Link href="/auth/login" className="warp-pill-outline w-full">
             {t('sign-in-with-password')}
           </Link>
-          <Link href="/auth/magic-link" className="btn btn-outline w-full">
+          <Link href="/auth/magic-link" className="warp-pill-outline w-full">
             {t('sign-in-with-email')}
           </Link>
         </div>

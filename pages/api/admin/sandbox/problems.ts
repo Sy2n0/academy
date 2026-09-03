@@ -16,11 +16,32 @@ const createSchema = z.object({
   positionX: z.number().min(0).max(1),
   positionY: z.number().min(0).max(1),
   orderIndex: z.number().int().optional(),
+  // Dynamic scoring. minimumValue may not exceed initialValue, or the curve
+  // would climb instead of decay.
+  initialValue: z.number().int().min(1).max(100000).optional(),
+  minimumValue: z.number().int().min(1).max(100000).optional(),
+  decay: z.number().int().min(1).max(10000).optional(),
+  // CTFd calls this a challenge's state: a hidden problem stays in the admin
+  // list but does not appear on the map.
+  isActive: z.boolean().optional(),
 });
 
-const updateSchema = createSchema.extend({
-  id: z.string().uuid(),
-});
+const withValueOrder = <T extends z.ZodTypeAny>(schema: T) =>
+  schema.refine(
+    (v: any) =>
+      v.initialValue === undefined ||
+      v.minimumValue === undefined ||
+      v.minimumValue <= v.initialValue,
+    {
+      message: '최소 배점은 초기 배점보다 클 수 없습니다',
+      path: ['minimumValue'],
+    }
+  );
+
+const createBody = withValueOrder(createSchema);
+const updateBody = withValueOrder(
+  createSchema.extend({ id: z.string().uuid() })
+);
 
 const deleteSchema = z.object({
   id: z.string().uuid(),
@@ -63,12 +84,20 @@ export default async function handler(
 async function handleGET(_req: NextApiRequest, res: NextApiResponse) {
   const list = await prisma.sandboxProblem.findMany({
     orderBy: [{ category: 'asc' }, { orderIndex: 'asc' }, { createdAt: 'asc' }],
+    // The admin list shows each problem's current value, which depends on how
+    // many people have cleared it.
+    include: { _count: { select: { solves: true } } },
   });
-  return res.json({ data: list });
+  return res.json({
+    data: list.map(({ _count, ...problem }) => ({
+      ...problem,
+      solveCount: _count.solves,
+    })),
+  });
 }
 
 async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
-  const body = createSchema.parse(req.body);
+  const body = createBody.parse(req.body);
   const sameCategory = await prisma.sandboxProblem.findMany({
     where: { category: body.category },
     select: { orderIndex: true },
@@ -87,6 +116,9 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
       flag: body.flag?.trim() || null,
       positionX: body.positionX,
       positionY: body.positionY,
+      initialValue: body.initialValue ?? 300,
+      minimumValue: body.minimumValue ?? 100,
+      decay: body.decay ?? 15,
       orderIndex: body.orderIndex ?? maxOrder + 1,
       isActive: true,
     },
@@ -95,7 +127,7 @@ async function handlePOST(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handlePUT(req: NextApiRequest, res: NextApiResponse) {
-  const body = updateSchema.parse(req.body);
+  const body = updateBody.parse(req.body);
   const updated = await prisma.sandboxProblem.update({
     where: { id: body.id },
     data: {
@@ -107,6 +139,9 @@ async function handlePUT(req: NextApiRequest, res: NextApiResponse) {
       flag: body.flag?.trim() || null,
       positionX: body.positionX,
       positionY: body.positionY,
+      initialValue: body.initialValue ?? 300,
+      minimumValue: body.minimumValue ?? 100,
+      decay: body.decay ?? 15,
       orderIndex: body.orderIndex ?? 0,
     },
   });

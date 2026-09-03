@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { prisma } from '@/lib/prisma';
+import { downloadFile } from '@/lib/storage';
 
 export default async function handler(
   req: NextApiRequest,
@@ -34,17 +35,24 @@ export default async function handler(
       return res.status(404).json({ error: { message: '파일이 없습니다' } });
     }
 
-    const fileRes = await fetch(machine.attachmentUrl);
-    if (!fileRes.ok) {
-      return res
-        .status(502)
-        .json({ error: { message: '파일을 가져오지 못했습니다' } });
-    }
+    // Fetch through the S3 client, as /download does. A plain fetch of
+    // attachmentUrl only works if the object is public — it is not, so this
+    // endpoint returned 502 for every machine that had a file.
+    const url = new URL(machine.attachmentUrl);
+    const parts = url.pathname.replace(/^\//, '').split('/');
+    const bucket = parts[0];
+    const key = parts.slice(1).join('/');
 
-    const buffer = Buffer.from(await fileRes.arrayBuffer());
+    const buffer = await downloadFile(bucket, key);
     const sha256 = createHash('sha256').update(buffer).digest('hex');
 
-    return res.status(200).json({ data: { sha256, size: buffer.length } });
+    return res.status(200).json({
+      data: {
+        sha256,
+        size: buffer.length,
+        filename: key.split('/').pop() || 'attachment',
+      },
+    });
   } catch (error) {
     console.error('Error computing file hash:', error);
     return res

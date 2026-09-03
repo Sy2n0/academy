@@ -1,58 +1,31 @@
-import { type ReactElement, useState, useEffect } from 'react';
-import { useTranslation } from 'next-i18next';
+import { type ReactElement, useState } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { StatBar } from '@/components/layouts/StatBar';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  adminButtonClass,
+  adminButtonPrimaryClass,
+  adminInputClass,
+} from '@/components/admin/styles';
+import { matches } from '@/lib/admin-ui';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
 import Head from 'next/head';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import toast from 'react-hot-toast';
-import { useRouter } from 'next/router';
-import {
-  Server,
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  Power,
-  PowerOff,
-} from 'lucide-react';
-import useSWR from 'swr';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import toast from 'react-hot-toast';
+import { Plus, Search } from 'lucide-react';
+import useSWR from 'swr';
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
@@ -118,11 +91,8 @@ interface MachinesResponse {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const ManageActiveMachines: NextPageWithLayout = () => {
-  const { t } = useTranslation('common');
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { data, error, isLoading, mutate } = useSWR<MachinesResponse>(
     '/api/admin/machines/active',
@@ -130,10 +100,10 @@ const ManageActiveMachines: NextPageWithLayout = () => {
   );
 
   const machines = data?.data?.machines || [];
+  const needle = searchQuery.toLowerCase();
   const filteredMachines = machines.filter(
     (machine) =>
-      machine.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      machine.category.toLowerCase().includes(searchQuery.toLowerCase())
+      matches(machine.title, needle) || matches(machine.category, needle)
   );
 
   const handleDelete = async () => {
@@ -142,16 +112,14 @@ const ManageActiveMachines: NextPageWithLayout = () => {
     try {
       const response = await fetch(
         `/api/admin/machines/active/${selectedMachine.id}`,
-        {
-          method: 'DELETE',
-        }
+        { method: 'DELETE' }
       );
 
       if (!response.ok) {
         throw new Error('머신 삭제에 실패했습니다');
       }
 
-      toast.success('Machine deleted successfully');
+      toast.success('삭제했습니다');
       setIsDeleteOpen(false);
       setSelectedMachine(null);
       mutate();
@@ -178,9 +146,7 @@ const ManageActiveMachines: NextPageWithLayout = () => {
         throw new Error('머신 상태 변경에 실패했습니다');
       }
 
-      toast.success(
-        `Machine ${!currentStatus ? 'activated' : 'deactivated'} successfully`
-      );
+      toast.success(!currentStatus ? '활성화했습니다' : '비활성화했습니다');
       mutate();
     } catch (error: any) {
       toast.error(error?.message || '머신 상태 변경에 실패했습니다');
@@ -190,263 +156,169 @@ const ManageActiveMachines: NextPageWithLayout = () => {
   return (
     <>
       <Head>
-        <title>Manage Active Machines - Admin - HUB ACADEMY</title>
+        <title>Active machines - Admin - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
+      <AdminLayout title="Active machines" description="실습 머신 목록">
+        <StatBar
+          stats={[
+            { label: 'Machines', value: machines.length },
+            {
+              label: 'Active',
+              value: machines.filter((m) => m.isActive).length,
+            },
+            { label: 'Showing', value: filteredMachines.length },
+          ]}
+        />
 
-        <div className="relative z-10">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="/admin/dashboard"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          Admin
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Active Machines
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
-
-              <div className="flex-1 overflow-y-auto">
-                <div className="px-6 md:px-12 py-6">
-                  <div className="max-w-7xl mx-auto space-y-6">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <Server className="h-6 w-6 text-accent" />
-                          <h1
-                            className="font-[var(--font-bebas)] text-3xl md:text-4xl tracking-tight text-foreground"
-                            style={{ fontStyle: 'italic' }}
-                          >
-                            MANAGE ACTIVE MACHINES
-                          </h1>
-                        </div>
-                        <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
-                          Manage and configure Active Machines
-                        </p>
-                      </div>
-                      <Button
-                        onClick={() =>
-                          router.push('/admin/machines/active/create')
-                        }
-                        className="font-mono text-xs uppercase tracking-wider bg-accent hover:bg-accent/90 text-foreground"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create New
-                      </Button>
-                    </div>
-
-                    {/* Search */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="text"
-                        placeholder="Search by title or category..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="font-mono pl-10"
-                      />
-                    </div>
-
-                    {/* Machines List */}
-                    {isLoading ? (
-                      <div className="text-center py-12">
-                        <p className="font-mono text-sm text-muted-foreground">
-                          Loading machines...
-                        </p>
-                      </div>
-                    ) : error ? (
-                      <div className="text-center py-12">
-                        <p className="font-mono text-sm text-destructive">
-                          머신 목록을 불러오지 못했습니다
-                        </p>
-                      </div>
-                    ) : filteredMachines.length === 0 ? (
-                      <div className="text-center py-12 border border-border/30 rounded-lg backdrop-blur-sm bg-background/40">
-                        <p className="font-mono text-sm text-muted-foreground">
-                          {searchQuery
-                            ? 'No machines found matching your search'
-                            : 'No active machines yet'}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredMachines.map((machine) => (
-                          <div
-                            key={machine.id}
-                            onClick={() =>
-                              router.push(
-                                `/admin/machines/active/${machine.id}`
-                              )
-                            }
-                            className="group relative p-6 border border-border/30 rounded-xl backdrop-blur-sm bg-background/40 hover:border-accent/50 hover:bg-background/60 transition-all duration-200 cursor-pointer"
-                          >
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-mono text-lg font-semibold text-foreground mb-1 truncate">
-                                  {machine.title}
-                                </h3>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider px-2 py-0.5 border border-border/30 rounded">
-                                    {machine.category}
-                                  </span>
-                                  <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider px-2 py-0.5 border border-border/30 rounded">
-                                    {machine.type}
-                                  </span>
-                                  {!machine.isActive && (
-                                    <span className="font-mono text-[9px] text-destructive uppercase tracking-wider px-2 py-0.5 border border-destructive/30 rounded">
-                                      Inactive
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-2 mb-4">
-                              <div className="flex items-center justify-between">
-                                <span className="font-mono text-xs text-muted-foreground">
-                                  Score
-                                </span>
-                                <span className="font-mono text-sm font-semibold text-accent">
-                                  {machine.score}
-                                </span>
-                              </div>
-                              {machine.containerImage && (
-                                <div className="flex items-center justify-between">
-                                  <span className="font-mono text-xs text-muted-foreground">
-                                    Image
-                                  </span>
-                                  <span
-                                    className="font-mono text-xs text-foreground truncate max-w-[200px]"
-                                    title={machine.containerImage}
-                                  >
-                                    {machine.containerImage}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-between">
-                                <span className="font-mono text-xs text-muted-foreground">
-                                  Max Attempts
-                                </span>
-                                <span className="font-mono text-xs text-foreground">
-                                  {machine.maxAttempts === null
-                                    ? 'Unlimited'
-                                    : machine.maxAttempts}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 pt-4 border-t border-border/20">
-                              <Button
-                                onClick={() => {
-                                  setSelectedMachine(machine);
-                                  setIsEditOpen(true);
-                                }}
-                                variant="outline"
-                                size="sm"
-                                className="flex-1 font-mono text-xs"
-                              >
-                                <Edit className="h-3 w-3 mr-1" />
-                                Edit
-                              </Button>
-                              <Button
-                                onClick={() =>
-                                  handleToggleActive(
-                                    machine.id,
-                                    machine.isActive
-                                  )
-                                }
-                                variant="outline"
-                                size="sm"
-                                className={`font-mono text-xs ${
-                                  machine.isActive
-                                    ? 'text-muted-foreground hover:text-foreground'
-                                    : 'text-accent hover:text-accent'
-                                }`}
-                                title={
-                                  machine.isActive ? 'Deactivate' : 'Activate'
-                                }
-                              >
-                                {machine.isActive ? (
-                                  <PowerOff className="h-3 w-3" />
-                                ) : (
-                                  <Power className="h-3 w-3" />
-                                )}
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  setSelectedMachine(machine);
-                                  setIsDeleteOpen(true);
-                                }}
-                                variant="outline"
-                                size="sm"
-                                className="font-mono text-xs text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+        <div className="mt-6 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="제목 또는 카테고리로 검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`${adminInputClass} pl-9`}
+            />
+          </div>
+          <Link
+            href="/admin/machines/active/create"
+            className={adminButtonPrimaryClass}
+          >
+            <Plus className="h-3 w-3" />
+            Machine
+          </Link>
         </div>
-      </div>
 
-      {/* Delete Confirmation Dialog */}
+        {isLoading ? (
+          <p className="py-10 text-sm text-muted-foreground">불러오는 중...</p>
+        ) : error ? (
+          <p className="py-10 text-sm text-destructive">
+            머신 목록을 불러오지 못했습니다.
+          </p>
+        ) : filteredMachines.length === 0 ? (
+          <p className="py-10 text-sm text-muted-foreground">
+            {searchQuery ? '검색 결과가 없습니다.' : '머신이 없습니다.'}
+          </p>
+        ) : (
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full min-w-[48rem] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-[var(--warp-rule)] text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <th className="py-2 pr-4 text-left font-normal">Title</th>
+                  <th className="py-2 pr-4 text-left font-normal">Category</th>
+                  <th className="py-2 pr-4 text-left font-normal">Image</th>
+                  <th className="py-2 pr-4 text-right font-normal">Score</th>
+                  <th className="py-2 pr-4 text-right font-normal">Attempts</th>
+                  <th className="py-2 pr-4 text-left font-normal">State</th>
+                  <th className="py-2 text-right font-normal">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMachines.map((machine) => (
+                  <tr
+                    key={machine.id}
+                    className="border-b border-[var(--warp-rule)]"
+                  >
+                    {/* The card this replaces put the row navigation on the
+                        whole tile, with Edit, Toggle and Delete sitting inside
+                        it and no stopPropagation — so pressing Edit navigated
+                        away instead. Only the title navigates now. */}
+                    <td className="py-2.5 pr-4">
+                      <Link
+                        href={`/admin/machines/active/${machine.id}`}
+                        className="text-foreground transition-colors hover:underline"
+                      >
+                        {machine.title}
+                      </Link>
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {machine.category}
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      <span className="block max-w-[14rem] truncate">
+                        {machine.containerImage ?? '—'}
+                      </span>
+                    </td>
+                    <td className="warp-num py-2.5 pr-4 text-right text-foreground">
+                      {machine.score}
+                    </td>
+                    <td className="warp-num py-2.5 pr-4 text-right text-muted-foreground">
+                      {machine.maxAttempts === null ? '∞' : machine.maxAttempts}
+                    </td>
+                    <td className="py-2.5 pr-4 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {machine.isActive ? 'Active' : 'Inactive'}
+                    </td>
+                    <td className="py-2 text-right">
+                      <div className="flex justify-end gap-2">
+                        {/* Edit set an isEditOpen flag that no dialog ever
+                            read. It goes to the edit page that already exists. */}
+                        <Link
+                          href={`/admin/machines/active/${machine.id}/edit`}
+                          className={adminButtonClass}
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleToggleActive(machine.id, machine.isActive)
+                          }
+                          className={adminButtonClass}
+                        >
+                          {machine.isActive ? 'Disable' : 'Enable'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedMachine(machine);
+                            setIsDeleteOpen(true);
+                          }}
+                          className={`${adminButtonClass} hover:text-destructive`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </AdminLayout>
+
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent className="sm:max-w-md rounded-xl border-border/30 bg-background/50 backdrop-blur-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-mono text-sm font-semibold">
-              Delete Machine
+            <DialogTitle className="text-base font-normal">
+              Delete machine
             </DialogTitle>
-            <DialogDescription className="font-mono text-xs text-muted-foreground">
-              Are you sure you want to delete &quot;{selectedMachine?.title}
-              &quot;? This action cannot be undone.
+            <DialogDescription className="text-xs text-muted-foreground">
+              &quot;{selectedMachine?.title}&quot; 을(를) 삭제합니다. 되돌릴 수
+              없습니다.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center gap-3 pt-4">
-            <Button
-              onClick={handleDelete}
-              variant="destructive"
-              className="flex-1 font-mono text-xs"
-            >
-              Delete
-            </Button>
-            <Button
+          <DialogFooter className="gap-2">
+            <button
+              type="button"
               onClick={() => {
                 setIsDeleteOpen(false);
                 setSelectedMachine(null);
               }}
-              variant="outline"
-              className="flex-1 font-mono text-xs"
+              className={adminButtonClass}
             >
               Cancel
-            </Button>
-          </div>
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className={`${adminButtonClass} border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive`}
+            >
+              Delete
+            </button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

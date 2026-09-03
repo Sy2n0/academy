@@ -1,34 +1,13 @@
-import { type ReactElement, useEffect, useState } from 'react';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { StatBar } from '@/components/layouts/StatBar';
 import { Button } from '@/components/ui/button';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import {
-  ChevronDown,
-  ChevronRight,
-  GraduationCap,
-  Book,
-  X,
-  BarChart3,
-  Clock,
-  Heart,
-  CheckCircle2,
-} from 'lucide-react';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { ChevronDown, Heart } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -135,42 +114,31 @@ const ModulesPage: NextPageWithLayout = () => {
     }
   }, [currentPage, totalPages]);
 
+  // Section the page's modules by category, keeping the order they first
+  // appear so the list does not reshuffle between pages.
+  const groupedModules = useMemo(() => {
+    const groups = new Map<string, typeof paginatedModules>();
+    for (const module of paginatedModules) {
+      const key = module.category || 'OTHER';
+      const bucket = groups.get(key);
+      if (bucket) bucket.push(module);
+      else groups.set(key, [module]);
+    }
+    return Array.from(groups.entries());
+  }, [paginatedModules]);
+
+  // Difficulty is ordinal, so brightness ranks it.
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Fundamental':
-        return 'text-green-500';
+        return 'text-[var(--warp-stone)]';
       case 'Easy':
-        return 'text-blue-500';
+        return 'text-[var(--warp-ash)]';
       case 'Medium':
-        return 'text-yellow-500';
       case 'Hard':
-        return 'text-red-500';
-      default:
         return 'text-foreground';
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'GENERAL':
-        return <Book className="h-3 w-3" />;
-      case 'OFFENSIVE':
-        return <X className="h-3 w-3 text-red-500" />;
-      case 'DEFENSIVE':
-        return <Book className="h-3 w-3 text-blue-500" />;
       default:
-        return <Book className="h-3 w-3" />;
-    }
-  };
-
-  const getCategoryBadge = (category: string) => {
-    switch (category) {
-      case 'OFFENSIVE':
-        return 'border-red-500/30 bg-red-500/10 text-red-400';
-      case 'DEFENSIVE':
-        return 'border-sky-500/30 bg-sky-500/10 text-sky-300';
-      default:
-        return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
+        return 'text-muted-foreground';
     }
   };
 
@@ -187,474 +155,409 @@ const ModulesPage: NextPageWithLayout = () => {
   const favouriteCount = modules.filter((module) => module.isFavourite).length;
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-          <div className="flex items-center gap-2 px-6 md:px-12">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                    Modules
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto w-full space-y-6">
-            <section className="relative overflow-hidden rounded-md border border-border/40 bg-card/80 p-5 md:p-7">
-              <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
-              <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl" />
-              <div className="relative flex flex-col gap-5">
-                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                      Learning Hub
-                    </p>
-                    <h1 className="font-mono text-2xl md:text-3xl uppercase text-foreground">
-                      {activeTab === 'all' ? 'Modules Deck' : 'Favourite Deck'}
-                    </h1>
-                    <p className="font-mono text-xs text-muted-foreground mt-2">
-                      Explore structured modules, track progress, and keep your
-                      momentum high.
-                    </p>
+    <div className="h-svh overflow-hidden bg-background">
+      <SidebarProvider className="h-full">
+        <AppSidebar />
+        <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+          <AppTopBar
+            crumbs={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Learn' },
+              { label: 'Modules' },
+            ]}
+          />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1240px] p-5 md:px-10 md:py-8">
+              <section>
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div>
+                      <h1 className="text-3xl tracking-tight text-foreground md:text-4xl">
+                        {activeTab === 'all' ? 'Modules' : 'Favourites'}
+                      </h1>
+                      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                        학습 모듈 목록입니다. 진행 상태와 난이도로 걸러 볼 수
+                        있습니다.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setActiveTab('all')}
+                        className={`h-9 rounded-full border px-4 text-[11px] uppercase tracking-[0.1em] transition-colors ${
+                          activeTab === 'all'
+                            ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10 text-foreground'
+                            : 'border-[var(--warp-rule)] text-muted-foreground hover:border-[var(--warp-ash)]/40 hover:text-foreground'
+                        }`}
+                      >
+                        All Modules
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('favourite')}
+                        className={`h-9 rounded-full border px-4 text-[11px] uppercase tracking-[0.1em] transition-colors ${
+                          activeTab === 'favourite'
+                            ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10 text-foreground'
+                            : 'border-[var(--warp-rule)] text-muted-foreground hover:border-[var(--warp-ash)]/40 hover:text-foreground'
+                        }`}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          <Heart className="h-3.5 w-3.5" />
+                          Favourite
+                        </span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setActiveTab('all')}
-                      className={`h-9 px-4 rounded-md border font-mono text-xs uppercase tracking-wide transition-colors ${
-                        activeTab === 'all'
-                          ? 'border-accent/50 bg-accent/20 text-foreground'
-                          : 'border-border/70 text-muted-foreground hover:text-foreground hover:bg-accent/10'
-                      }`}
-                    >
-                      All Modules
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('favourite')}
-                      className={`h-9 px-4 rounded-md border font-mono text-xs uppercase tracking-wide transition-colors ${
-                        activeTab === 'favourite'
-                          ? 'border-rose-500/40 bg-rose-500/15 text-rose-200'
-                          : 'border-border/70 text-muted-foreground hover:text-foreground hover:bg-accent/10'
-                      }`}
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        <Heart className="h-3.5 w-3.5" />
-                        Favourite
-                      </span>
-                    </button>
-                  </div>
+                  <StatBar
+                    stats={[
+                      { label: 'Total', value: modules.length },
+                      { label: 'Completed', value: completedCount },
+                      { label: 'In progress', value: inProgressCount },
+                      { label: 'Favourites', value: favouriteCount },
+                    ]}
+                  />
                 </div>
+              </section>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Total
-                    </p>
-                    <p className="font-mono text-xl text-foreground">
-                      {modules.length}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Completed
-                    </p>
-                    <p className="font-mono text-xl text-foreground">
-                      {completedCount}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      In Progress
-                    </p>
-                    <p className="font-mono text-xl text-foreground">
-                      {inProgressCount}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Favourites
-                    </p>
-                    <p className="font-mono text-xl text-foreground">
-                      {favouriteCount}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="rounded-md border border-border/40 bg-card/70 p-4 md:p-5 space-y-3">
-              <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                Filter Control
-              </p>
-              <div className="flex items-center gap-3 flex-wrap">
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-[150px] h-9 px-3 py-2 bg-background/70 border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent/20 transition-colors">
-                    <span>
-                      {selectedCategory === 'all'
-                        ? 'Category'
-                        : formatLabel(selectedCategory)}
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedCategory('all')}
-                    >
-                      All
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedCategory('GENERAL')}
-                    >
-                      General
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedCategory('OFFENSIVE')}
-                    >
-                      Offensive
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedCategory('DEFENSIVE')}
-                    >
-                      Defensive
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-[150px] h-9 px-3 py-2 bg-background/70 border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent/20 transition-colors">
-                    <span>
-                      {selectedDifficulty === 'all'
-                        ? 'Difficulty'
-                        : selectedDifficulty}
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedDifficulty('all')}
-                    >
-                      All
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedDifficulty('Fundamental')}
-                    >
-                      Fundamental
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedDifficulty('Easy')}
-                    >
-                      Easy
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedDifficulty('Medium')}
-                    >
-                      Medium
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedDifficulty('Hard')}
-                    >
-                      Hard
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-[140px] h-9 px-3 py-2 bg-background/70 border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent/20 transition-colors">
-                    <span>
-                      {selectedTier === 'all' ? 'Tier' : selectedTier}
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setSelectedTier('all')}>
-                      All
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSelectedTier('Tier 0')}>
-                      Tier 0
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSelectedTier('Tier I')}>
-                      Tier I
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedTier('Tier II')}
-                    >
-                      Tier II
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-[140px] h-9 px-3 py-2 bg-background/70 border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent/20 transition-colors">
-                    <span>
-                      {selectedType === 'all'
-                        ? 'Type'
-                        : formatLabel(selectedType)}
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setSelectedType('all')}>
-                      All
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedType('REGULAR')}
-                    >
-                      Regular
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedType('PREMIUM')}
-                    >
-                      Premium
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-[140px] h-9 px-3 py-2 bg-background/70 border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent/20 transition-colors">
-                    <span>
-                      {selectedState === 'all'
-                        ? 'State'
-                        : formatLabel(selectedState)}
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setSelectedState('all')}>
-                      All
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedState('in-progress')}
-                    >
-                      In Progress
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedState('completed')}
-                    >
-                      Completed
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedState('not-started')}
-                    >
-                      Not Started
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-[140px] h-9 px-3 py-2 bg-background/70 border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent/20 transition-colors">
-                    <span>
-                      {selectedStatus === 'all' ? 'Status' : selectedStatus}
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setSelectedStatus('all')}>
-                      All
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedStatus('In Progress')}
-                    >
-                      In Progress
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedStatus('Completed')}
-                    >
-                      Completed
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedStatus('Not Started')}
-                    >
-                      Not Started
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <div className="ml-auto">
+              <section className="border-b border-[var(--warp-rule)] py-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="w-[170px] h-9 px-3 py-2 bg-background/70 border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent/20 transition-colors">
-                      <span>View: {formatLabel(viewBy)}</span>
+                    <DropdownMenuTrigger className="w-[150px] h-9 px-3 py-2 flex items-center justify-between rounded-md border border-[var(--warp-rule)] bg-[var(--warp-surface)] text-xs transition-colors hover:border-[var(--warp-ash)]/40">
+                      <span>
+                        {selectedCategory === 'all'
+                          ? 'Category'
+                          : formatLabel(selectedCategory)}
+                      </span>
                       <ChevronDown className="h-4 w-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setViewBy('default')}>
-                        Default
+                      <DropdownMenuItem
+                        onClick={() => setSelectedCategory('all')}
+                      >
+                        All
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setViewBy('grid')}>
-                        Grid
+                      <DropdownMenuItem
+                        onClick={() => setSelectedCategory('GENERAL')}
+                      >
+                        General
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedCategory('OFFENSIVE')}
+                      >
+                        Offensive
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedCategory('DEFENSIVE')}
+                      >
+                        Defensive
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </div>
-              </div>
-            </section>
 
-            {isLoading && (
-              <div className="rounded-md border border-border/40 bg-card/60 py-14 text-center">
-                <p className="font-mono text-sm text-muted-foreground">
-                  Loading modules...
-                </p>
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-md border border-destructive/40 bg-destructive/10 py-14 text-center">
-                <p className="font-mono text-sm text-destructive">
-                  모듈 목록을 불러오지 못했습니다
-                </p>
-              </div>
-            )}
-
-            {!isLoading && !error && filteredModules.length === 0 && (
-              <div className="rounded-md border border-border/40 bg-card/60 py-14 text-center">
-                <p className="font-mono text-sm text-muted-foreground">
-                  No modules found
-                </p>
-              </div>
-            )}
-
-            {!isLoading && !error && filteredModules.length > 0 && (
-              <>
-                <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-                  {paginatedModules.map((module) => {
-                    const progress = module.progress ?? 0;
-
-                    return (
-                      <article
-                        key={module.id}
-                        onClick={() =>
-                          router.push(`/learn/modules/${module.id}`)
-                        }
-                        className="group cursor-pointer overflow-hidden rounded-md border border-border/40 bg-card/85 transition-all duration-300 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_18px_50px_-24px_rgba(0,0,0,0.45)]"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-[150px] h-9 px-3 py-2 flex items-center justify-between rounded-md border border-[var(--warp-rule)] bg-[var(--warp-surface)] text-xs transition-colors hover:border-[var(--warp-ash)]/40">
+                      <span>
+                        {selectedDifficulty === 'all'
+                          ? 'Difficulty'
+                          : selectedDifficulty}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedDifficulty('all')}
                       >
-                        <div className="relative h-28 w-full overflow-hidden bg-gradient-to-br from-cyan-500/15 via-transparent to-emerald-500/15">
-                          <div className="absolute inset-0 grid-bg opacity-30" />
-                          <div className="absolute left-3 top-3 flex items-center gap-2">
-                            {module.isCompleted ? (
-                              <span className="inline-flex items-center gap-1 rounded-md border border-green-500/35 bg-green-500/15 px-2 py-1 font-mono text-[10px] uppercase text-green-300">
-                                <CheckCircle2 className="h-3 w-3" />
-                                Completed
-                              </span>
-                            ) : module.status === 'In Progress' ? (
-                              <span className="inline-flex items-center gap-1 rounded-md border border-cyan-500/35 bg-cyan-500/15 px-2 py-1 font-mono text-[10px] uppercase text-cyan-200">
-                                In Progress
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
+                        All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedDifficulty('Fundamental')}
+                      >
+                        Fundamental
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedDifficulty('Easy')}
+                      >
+                        Easy
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedDifficulty('Medium')}
+                      >
+                        Medium
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedDifficulty('Hard')}
+                      >
+                        Hard
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                        <div className="p-3 space-y-2.5">
-                          <div className="flex items-start justify-between gap-3">
-                            <h3 className="font-mono text-sm md:text-base text-foreground leading-snug line-clamp-2">
-                              {module.title}
-                            </h3>
-                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-                          </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-[140px] h-9 px-3 py-2 flex items-center justify-between rounded-md border border-[var(--warp-rule)] bg-[var(--warp-surface)] text-xs transition-colors hover:border-[var(--warp-ash)]/40">
+                      <span>
+                        {selectedTier === 'all' ? 'Tier' : selectedTier}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => setSelectedTier('all')}>
+                        All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedTier('Tier 0')}
+                      >
+                        Tier 0
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedTier('Tier I')}
+                      >
+                        Tier I
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedTier('Tier II')}
+                      >
+                        Tier II
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background/60 px-2 py-1 font-mono text-[10px] uppercase text-foreground">
-                              <GraduationCap className="h-3 w-3" />
-                              {formatLabel(module.type)}
-                            </span>
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-[10px] uppercase ${getCategoryBadge(module.category)}`}
-                            >
-                              {getCategoryIcon(module.category)}
-                              {formatLabel(module.category)}
-                            </span>
-                          </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-[140px] h-9 px-3 py-2 flex items-center justify-between rounded-md border border-[var(--warp-rule)] bg-[var(--warp-surface)] text-xs transition-colors hover:border-[var(--warp-ash)]/40">
+                      <span>
+                        {selectedType === 'all'
+                          ? 'Type'
+                          : formatLabel(selectedType)}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => setSelectedType('all')}>
+                        All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedType('REGULAR')}
+                      >
+                        Regular
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedType('PREMIUM')}
+                      >
+                        Premium
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                          <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-muted-foreground">
-                            <span
-                              className={`inline-flex items-center gap-1 ${getDifficultyColor(module.difficulty)}`}
-                            >
-                              <BarChart3 className="h-3 w-3" />
-                              {module.difficulty}
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {module.duration || 'N/A'}
-                            </span>
-                            <span>{module.tier}</span>
-                          </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-[140px] h-9 px-3 py-2 flex items-center justify-between rounded-md border border-[var(--warp-rule)] bg-[var(--warp-surface)] text-xs transition-colors hover:border-[var(--warp-ash)]/40">
+                      <span>
+                        {selectedState === 'all'
+                          ? 'State'
+                          : formatLabel(selectedState)}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => setSelectedState('all')}>
+                        All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedState('in-progress')}
+                      >
+                        In Progress
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedState('completed')}
+                      >
+                        Completed
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedState('not-started')}
+                      >
+                        Not Started
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wide">
-                              <span className="text-muted-foreground">
-                                Progress
-                              </span>
-                              <span
-                                className={
-                                  module.isCompleted
-                                    ? 'text-green-300'
-                                    : 'text-cyan-300'
-                                }
-                              >
-                                {module.isCompleted ? '100%' : `${progress}%`}
-                              </span>
-                            </div>
-                            <div className="h-1.5 rounded-full bg-background/70 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all duration-500 ${
-                                  module.isCompleted
-                                    ? 'bg-green-500'
-                                    : 'bg-cyan-500'
-                                }`}
-                                style={{
-                                  width: `${module.isCompleted ? 100 : progress}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </section>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-[140px] h-9 px-3 py-2 flex items-center justify-between rounded-md border border-[var(--warp-rule)] bg-[var(--warp-surface)] text-xs transition-colors hover:border-[var(--warp-ash)]/40">
+                      <span>
+                        {selectedStatus === 'all' ? 'Status' : selectedStatus}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedStatus('all')}
+                      >
+                        All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedStatus('In Progress')}
+                      >
+                        In Progress
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedStatus('Completed')}
+                      >
+                        Completed
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setSelectedStatus('Not Started')}
+                      >
+                        Not Started
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 pt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(1, prev - 1))
-                      }
-                      disabled={currentPage === 1}
-                      className="font-mono text-xs"
-                    >
-                      Prev
-                    </Button>
-                    <span className="font-mono text-xs text-muted-foreground px-2">
-                      {currentPage} / {totalPages}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                      }
-                      disabled={currentPage === totalPages}
-                      className="font-mono text-xs"
-                    >
-                      Next
-                    </Button>
+                  <div className="ml-auto">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="w-[170px] h-9 px-3 py-2 flex items-center justify-between rounded-md border border-[var(--warp-rule)] bg-[var(--warp-surface)] text-xs transition-colors hover:border-[var(--warp-ash)]/40">
+                        <span>View: {formatLabel(viewBy)}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => setViewBy('default')}>
+                          Default
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setViewBy('grid')}>
+                          Grid
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                )}
-              </>
-            )}
+                </div>
+              </section>
+
+              {isLoading && (
+                <div className="rounded-md border border-[var(--warp-rule)]  py-14 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Loading modules...
+                  </p>
+                </div>
+              )}
+
+              {error && (
+                <div className="rounded-md border border-[var(--warp-rule)] py-14 text-center">
+                  <p className="text-sm text-destructive">
+                    모듈 목록을 불러오지 못했습니다
+                  </p>
+                </div>
+              )}
+
+              {!isLoading && !error && filteredModules.length === 0 && (
+                <div className="rounded-md border border-[var(--warp-rule)]  py-14 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No modules found
+                  </p>
+                </div>
+              )}
+
+              {!isLoading && !error && filteredModules.length > 0 && (
+                <>
+                  {/* Grouped by category. The category was a badge on every
+                      card; as a section heading it becomes structure instead,
+                      and each row stops repeating it. */}
+                  {groupedModules.map(([category, group]) => (
+                    <section key={category} className="mt-8 first:mt-6">
+                      <div className="flex items-baseline gap-3">
+                        <h2 className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                          {formatLabel(category)}
+                        </h2>
+                        <span className="warp-num text-[11px] text-muted-foreground">
+                          {group.length}
+                        </span>
+                        <span className="h-px flex-1 bg-[var(--warp-rule)]" />
+                      </div>
+
+                      <ul className="mt-2">
+                        {group.map((module) => {
+                          const progress = module.isCompleted
+                            ? 100
+                            : (module.progress ?? 0);
+                          return (
+                            <li key={module.id}>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  router.push(`/learn/modules/${module.id}`)
+                                }
+                                className="flex w-full items-baseline gap-4 border-b border-[var(--warp-rule)] py-3 text-left transition-colors hover:bg-white/[0.03]"
+                              >
+                                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                                  {module.title}
+                                </span>
+                                <span
+                                  className={`hidden w-24 shrink-0 text-xs sm:inline ${getDifficultyColor(module.difficulty)}`}
+                                >
+                                  {module.difficulty}
+                                </span>
+                                <span className="warp-num hidden w-16 shrink-0 text-right text-xs text-muted-foreground md:inline">
+                                  {module.duration || '—'}
+                                </span>
+                                {/* The meter doubles as the progress figure's
+                                    label, so the row needs no "Progress" word. */}
+                                <span className="hidden w-28 shrink-0 items-center gap-2 lg:flex">
+                                  <span className="h-px flex-1 bg-[var(--warp-rule)]">
+                                    <span
+                                      className={`block h-px ${module.isCompleted ? 'bg-[var(--warp-parchment)]' : 'bg-[var(--warp-ash)]'}`}
+                                      style={{ width: `${progress}%` }}
+                                    />
+                                  </span>
+                                </span>
+                                <span className="warp-num w-12 shrink-0 text-right text-xs text-foreground">
+                                  {progress}%
+                                </span>
+                                <span className="w-4 shrink-0 text-center text-xs text-foreground">
+                                  {module.isCompleted ? '✓' : ''}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </section>
+                  ))}
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(1, prev - 1))
+                        }
+                        disabled={currentPage === 1}
+                        className="text-xs"
+                      >
+                        Prev
+                      </Button>
+                      <span className="warp-num text-xs text-muted-foreground px-2">
+                        {currentPage} / {totalPages}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className="text-xs"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 };
 

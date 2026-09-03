@@ -113,6 +113,19 @@ export function calculateEarnedPoints(
     return basePoints;
   }
 
+  // SANDBOX carries its own decay: the problem's value already falls as more
+  // people solve it (calculateDynamicValue). Applying the per-user total-points
+  // decay on top would compound two unrelated penalties, so the caller's value
+  // is taken as final.
+  if (type === 'SANDBOX') {
+    return Math.max(
+      1,
+      Math.round(
+        basePoints > 0 ? basePoints : SCORING_CONFIG.BASE_POINTS.SANDBOX
+      )
+    );
+  }
+
   const adjustmentFactor = SCORING_CONFIG.ADJUSTMENT_FACTOR;
 
   // basePoints가 0이면 타입별 기본 점수 사용
@@ -151,4 +164,35 @@ export function getRankProgress(
   }
 
   return Math.min(100, Math.max(0, (currentProgress / currentRange) * 100));
+}
+
+/**
+ * Dynamic challenge value — the CTFd curve.
+ *
+ *   value = ((minimum - initial) / decay²) · solves² + initial,  clamped to
+ *   [minimum, initial]
+ *
+ * `solves` is the number of people who cleared the problem *before* this one,
+ * so the first solver always receives `initial`. The curve is flat at the start
+ * and steepens, which keeps early solves worth nearly full marks while a
+ * widely-solved problem settles at `minimum`.
+ *
+ * @param initial - value for the first solver
+ * @param minimum - floor the value never drops below
+ * @param decay   - solve count at which the value reaches `minimum`
+ * @param solves  - solves recorded before this one
+ */
+export function calculateDynamicValue(
+  initial: number,
+  minimum: number,
+  decay: number,
+  solves: number
+): number {
+  // A non-positive decay would divide by zero; treat it as "no decay".
+  if (decay <= 0 || initial <= minimum) return Math.round(initial);
+
+  const value =
+    ((minimum - initial) / (decay * decay)) * (solves * solves) + initial;
+
+  return Math.round(Math.min(initial, Math.max(minimum, value)));
 }

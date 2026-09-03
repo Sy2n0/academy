@@ -11,19 +11,8 @@ import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import Head from 'next/head';
 import useSWR from 'swr';
 import {
@@ -49,6 +38,11 @@ interface SandboxProblem {
   positionY: number;
   orderIndex: number;
   dockerImage: string | null;
+  /** What the next solver would earn — falls as more people clear it. */
+  currentValue: number;
+  solveCount: number;
+  initialValue: number;
+  minimumValue: number;
 }
 
 interface SandboxSolver {
@@ -80,16 +74,24 @@ function hexPoints(cx: number, cy: number, size: number): string {
   return pts.join(' ');
 }
 
-// Colors aligned with the Academy brand palette (accent: #2dcc96)
-// Uniform fill to keep hexagons visually consistent; stroke/bright for category distinction
+// Warp palette. Categories separate by stroke brightness rather than hue —
+// every cluster carries its name in a label above it, so the ramp only has to
+// group hexes, not identify them. Values are the palette's warm greys.
 const CAT_STYLES = [
-  { fill: '#111111', stroke: '#1e5c42', bright: '#2dcc96' }, // teal
-  { fill: '#111111', stroke: '#1e3e5c', bright: '#2d8ecc' }, // blue
-  { fill: '#111111', stroke: '#4a1e5c', bright: '#9e2dcc' }, // purple
-  { fill: '#111111', stroke: '#5c3a1e', bright: '#cc7e2d' }, // amber
-  { fill: '#111111', stroke: '#1e5c58', bright: '#2dccc4' }, // cyan
-  { fill: '#111111', stroke: '#2e5c1e', bright: '#6acc2d' }, // green
+  { fill: '#1a1a18', stroke: '#6f6e6c', bright: '#faf9f6' }, // nearest parchment
+  { fill: '#1a1a18', stroke: '#5a5957', bright: '#afaeac' }, // ash
+  { fill: '#1a1a18', stroke: '#4a4948', bright: '#868584' }, // stone
+  { fill: '#1a1a18', stroke: '#3d3c3b', bright: '#6f6e6c' },
+  { fill: '#1a1a18', stroke: '#353534', bright: '#5a5957' },
+  { fill: '#1a1a18', stroke: '#2c2c2b', bright: '#4a4948' },
 ];
+
+/**
+ * Solved hexagons sit a step above the unsolved fill. Opaque on purpose: a
+ * translucent wash lets the hub connector show through the hexagon it runs
+ * behind.
+ */
+const SOLVED_FILL = '#2e2e2c';
 
 function getCatStyle(idx: number) {
   return CAT_STYLES[idx % CAT_STYLES.length];
@@ -323,519 +325,541 @@ const SandboxPage: NextPageWithLayout = () => {
       <Head>
         <title>{t('sandbox-page-title')}</title>
       </Head>
-      <div className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
-        <div className="relative z-10">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30 bg-background/60 backdrop-blur-sm">
-                <div className="flex items-center gap-2 px-6 h-full">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          {t('sandbox')}
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
+      <div className="h-svh overflow-hidden bg-background">
+        <SidebarProvider className="h-full">
+          <AppSidebar />
+          <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+            <AppTopBar
+              crumbs={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: t('sandbox') },
+              ]}
+            />
+
+            {/* Map area */}
+            <div
+              ref={containerRef}
+              className="flex-1 relative overflow-hidden select-none"
+              style={{
+                background: 'var(--warp-void)',
+                cursor: isDragging ? 'grabbing' : 'grab',
+              }}
+              onMouseDown={modalProblem ? undefined : onMouseDown}
+              onMouseMove={modalProblem ? undefined : onMouseMove}
+              onMouseUp={modalProblem ? undefined : onMouseUp}
+              onMouseLeave={modalProblem ? undefined : onMouseUp}
+            >
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">Loading...</p>
                 </div>
-              </header>
+              )}
+              {!isLoading && problems.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">
+                    {t('no-challenges-available')}
+                  </p>
+                </div>
+              )}
 
-              {/* Map area */}
-              <div
-                ref={containerRef}
-                className="flex-1 relative overflow-hidden select-none"
-                style={{
-                  background: '#0a0a0a',
-                  cursor: isDragging ? 'grabbing' : 'grab',
-                }}
-                onMouseDown={modalProblem ? undefined : onMouseDown}
-                onMouseMove={modalProblem ? undefined : onMouseMove}
-                onMouseUp={modalProblem ? undefined : onMouseUp}
-                onMouseLeave={modalProblem ? undefined : onMouseUp}
-              >
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="font-mono text-sm text-success">Loading...</p>
-                  </div>
-                )}
-                {!isLoading && problems.length === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="font-mono text-sm text-white/30">
-                      {t('no-challenges-available')}
-                    </p>
-                  </div>
-                )}
-
-                <svg ref={svgRef} className="w-full h-full">
-                  <defs>
-                    <pattern
-                      id="dots"
-                      x="0"
-                      y="0"
-                      width="24"
-                      height="24"
-                      patternUnits="userSpaceOnUse"
-                    >
-                      <circle
-                        cx="1"
-                        cy="1"
-                        r="1"
-                        fill="#ffffff"
-                        opacity="0.07"
-                      />
-                    </pattern>
-                  </defs>
-
-                  {/* Dot background — fixed, not affected by pan/zoom */}
-                  <rect width="100%" height="100%" fill="url(#dots)" />
-
-                  <g
-                    transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}
+              <svg ref={svgRef} className="w-full h-full">
+                <defs>
+                  <pattern
+                    id="dots"
+                    x="0"
+                    y="0"
+                    width="24"
+                    height="24"
+                    patternUnits="userSpaceOnUse"
                   >
-                    {/* Curved dashed connection lines hub → cluster centers */}
-                    {Array.from(categoryMap.entries()).map(
-                      ([cat, { index: catIdx }]) => {
-                        const center = clusterCenters.get(cat);
-                        if (!center) return null;
-                        const style = getCatStyle(catIdx);
-                        const mx = (hub.x + center.x) / 2;
-                        const my = (hub.y + center.y) / 2;
-                        const dx = center.x - hub.x;
-                        const dy = center.y - hub.y;
-                        const len = Math.sqrt(dx * dx + dy * dy) || 1;
-                        const curve = 28;
-                        const cpx = mx - (dy / len) * curve;
-                        const cpy = my + (dx / len) * curve;
-                        return (
-                          <path
-                            key={`line-${cat}`}
-                            d={`M ${hub.x},${hub.y} Q ${cpx},${cpy} ${center.x},${center.y}`}
-                            fill="none"
-                            stroke={style.stroke}
-                            strokeWidth="1.5"
-                            strokeDasharray="7,5"
-                            opacity="0.65"
-                          />
-                        );
-                      }
-                    )}
+                    <circle cx="1" cy="1" r="1" fill="#ffffff" opacity="0.07" />
+                  </pattern>
+                </defs>
 
-                    {/* Per-category hexagons + label */}
-                    {Array.from(categoryMap.entries()).map(
-                      ([cat, { problems: probs, index: catIdx }]) => {
-                        const style = getCatStyle(catIdx);
-                        const center = clusterCenters.get(cat)!;
-                        const minY =
-                          Math.min(...probs.map((p) => p.positionY)) * CANVAS_H;
+                {/* Dot background — fixed, not affected by pan/zoom */}
+                <rect width="100%" height="100%" fill="url(#dots)" />
 
-                        return (
-                          <g key={`cat-${cat}`}>
-                            {/* Category label */}
-                            <text
-                              x={center.x}
-                              y={minY - HEX_SIZE - 22}
-                              textAnchor="middle"
-                              fill="white"
-                              fontFamily="ui-monospace, 'Courier New', monospace"
-                              fontSize="13"
-                              fontWeight="700"
-                              letterSpacing="2.5"
-                            >
-                              {cat.toUpperCase()}
-                            </text>
-                            <line
-                              x1={center.x - Math.round(cat.length * 5.15)}
-                              y1={minY - HEX_SIZE - 14}
-                              x2={center.x + Math.round(cat.length * 5.15)}
-                              y2={minY - HEX_SIZE - 14}
-                              stroke={style.bright}
-                              strokeWidth="1.5"
-                            />
-
-                            {/* Hexagons */}
-                            {probs.map((problem) => {
-                              const cx = problem.positionX * CANVAS_W;
-                              const cy = problem.positionY * CANVAS_H;
-                              const isSelected = selectedId === problem.id;
-                              const isHovered = hoveredId === problem.id;
-                              const isSolved = solvedIds.includes(problem.id);
-                              return (
-                                <g
-                                  key={problem.id}
-                                  style={{ cursor: 'pointer' }}
-                                  onMouseEnter={() => setHoveredId(problem.id)}
-                                  onMouseLeave={() => setHoveredId(null)}
-                                  onClick={() => zoomToHex(problem, cx, cy)}
-                                >
-                                  <polygon
-                                    points={hexPoints(cx, cy, HEX_VISUAL)}
-                                    fill={
-                                      isSolved
-                                        ? 'rgba(45,204,150,0.12)'
-                                        : style.fill
-                                    }
-                                    stroke={
-                                      isHovered || isSelected
-                                        ? '#ffffff'
-                                        : isSolved
-                                          ? '#2dcc96'
-                                          : style.stroke
-                                    }
-                                    strokeWidth={
-                                      isHovered || isSelected
-                                        ? 2
-                                        : isSolved
-                                          ? 2
-                                          : 1.5
-                                    }
-                                  />
-                                  {selectedId === null ? (
-                                    <FlagIcon
-                                      cx={cx}
-                                      cy={cy}
-                                      color={style.stroke}
-                                    />
-                                  ) : (
-                                    (() => {
-                                      // Split title into lines of max ~11 chars each to fit inside hexagon
-                                      const words = problem.title.split(' ');
-                                      const lines: string[] = [];
-                                      let current = '';
-                                      for (const word of words) {
-                                        const candidate = current
-                                          ? `${current} ${word}`
-                                          : word;
-                                        if (
-                                          candidate.length > 11 &&
-                                          current.length > 0
-                                        ) {
-                                          lines.push(current);
-                                          current = word;
-                                        } else {
-                                          current = candidate;
-                                        }
-                                      }
-                                      if (current) lines.push(current);
-                                      const lineHeight = 8;
-                                      const totalHeight =
-                                        (lines.length - 1) * lineHeight;
-                                      return (
-                                        <text
-                                          x={cx}
-                                          y={cy - totalHeight / 2}
-                                          textAnchor="middle"
-                                          dominantBaseline="central"
-                                          fill={
-                                            isSelected
-                                              ? '#ffffff'
-                                              : style.bright
-                                          }
-                                          fontFamily="ui-monospace, 'Courier New', monospace"
-                                          fontSize="6.5"
-                                          fontWeight={
-                                            isSelected ? '700' : '400'
-                                          }
-                                          opacity={isSelected ? 1 : 0.7}
-                                        >
-                                          {lines.map((line, i) => (
-                                            <tspan
-                                              key={i}
-                                              x={cx}
-                                              dy={i === 0 ? 0 : lineHeight}
-                                            >
-                                              {line}
-                                            </tspan>
-                                          ))}
-                                        </text>
-                                      );
-                                    })()
-                                  )}
-                                </g>
-                              );
-                            })}
-                          </g>
-                        );
-                      }
-                    )}
-
-                    {/* Center hub hexagon — always visible */}
-                    <g>
-                      <polygon
-                        points={hexPoints(hub.x, hub.y, HEX_SIZE + 8)}
-                        fill="#0c2219"
-                        stroke="#2dcc96"
-                        strokeWidth="1.5"
-                      />
-                      <image
-                        href="/sandbox/sandbox.png"
-                        x={hub.x - 54}
-                        y={hub.y - 36}
-                        width="108"
-                        height="72"
-                        preserveAspectRatio="xMidYMid meet"
-                      />
-                    </g>
-                  </g>
-                </svg>
-
-                {/* Challenge Modal */}
-                <Dialog
-                  open={!!modalProblem}
-                  onOpenChange={(open) => {
-                    if (!open) {
-                      setModalProblem(null);
-                      setSubmitResult(null);
-                    }
-                  }}
+                <g
+                  transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}
                 >
-                  <DialogContent className="max-w-2xl bg-background border-border/30">
-                    {modalProblem && (
-                      <div className="space-y-4">
-                        {/* Header */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold text-foreground">
-                              {modalProblem.title}
-                            </h1>
-                            {solvedIds.includes(modalProblem.id) && (
-                              <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-success/15 text-success border border-success/30">
-                                SOLVED
-                              </span>
+                  {/* Curved dashed connection lines hub → cluster centers */}
+                  {Array.from(categoryMap.entries()).map(
+                    ([cat, { problems: probs, index: catIdx }]) => {
+                      const center = clusterCenters.get(cat);
+                      if (!center) return null;
+                      const style = getCatStyle(catIdx);
+
+                      // Terminate at the hexagon nearest the hub, pulled back by
+                      // its radius, so the line meets the cluster's edge instead
+                      // of threading between its tiles.
+                      let endX = center.x;
+                      let endY = center.y;
+                      let nearest = Infinity;
+                      for (const prob of probs) {
+                        const px = prob.positionX * CANVAS_W;
+                        const py = prob.positionY * CANVAS_H;
+                        const d = Math.hypot(px - hub.x, py - hub.y);
+                        if (d < nearest) {
+                          nearest = d;
+                          const back = Math.min(HEX_SIZE + 4, d);
+                          endX = px - ((px - hub.x) / (d || 1)) * back;
+                          endY = py - ((py - hub.y) / (d || 1)) * back;
+                        }
+                      }
+
+                      const mx = (hub.x + endX) / 2;
+                      const my = (hub.y + endY) / 2;
+                      const dx = endX - hub.x;
+                      const dy = endY - hub.y;
+                      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                      const curve = 28;
+                      const cpx = mx - (dy / len) * curve;
+                      const cpy = my + (dx / len) * curve;
+                      return (
+                        <path
+                          key={`line-${cat}`}
+                          d={`M ${hub.x},${hub.y} Q ${cpx},${cpy} ${endX},${endY}`}
+                          fill="none"
+                          stroke={style.stroke}
+                          strokeWidth="1.5"
+                          strokeDasharray="7,5"
+                          opacity="0.65"
+                        />
+                      );
+                    }
+                  )}
+
+                  {/* Per-category hexagons + label */}
+                  {Array.from(categoryMap.entries()).map(
+                    ([cat, { problems: probs, index: catIdx }]) => {
+                      const style = getCatStyle(catIdx);
+                      const center = clusterCenters.get(cat)!;
+                      const minY =
+                        Math.min(...probs.map((p) => p.positionY)) * CANVAS_H;
+
+                      return (
+                        <g key={`cat-${cat}`}>
+                          {/* Category label */}
+                          <text
+                            x={center.x}
+                            y={minY - HEX_SIZE - 22}
+                            textAnchor="middle"
+                            fill="white"
+                            fontFamily="ui-monospace, 'Courier New', monospace"
+                            fontSize="13"
+                            fontWeight="700"
+                            letterSpacing="2.5"
+                          >
+                            {cat.toUpperCase()}
+                          </text>
+                          <line
+                            x1={center.x - Math.round(cat.length * 5.15)}
+                            y1={minY - HEX_SIZE - 14}
+                            x2={center.x + Math.round(cat.length * 5.15)}
+                            y2={minY - HEX_SIZE - 14}
+                            stroke={style.bright}
+                            strokeWidth="1.5"
+                          />
+
+                          {/* Hexagons */}
+                          {probs.map((problem) => {
+                            const cx = problem.positionX * CANVAS_W;
+                            const cy = problem.positionY * CANVAS_H;
+                            const isSelected = selectedId === problem.id;
+                            const isHovered = hoveredId === problem.id;
+                            const isSolved = solvedIds.includes(problem.id);
+                            return (
+                              <g
+                                key={problem.id}
+                                style={{ cursor: 'pointer' }}
+                                onMouseEnter={() => setHoveredId(problem.id)}
+                                onMouseLeave={() => setHoveredId(null)}
+                                onClick={() => zoomToHex(problem, cx, cy)}
+                              >
+                                <polygon
+                                  points={hexPoints(cx, cy, HEX_VISUAL)}
+                                  fill={isSolved ? SOLVED_FILL : style.fill}
+                                  stroke={
+                                    isHovered || isSelected
+                                      ? '#ffffff'
+                                      : isSolved
+                                        ? '#faf9f6'
+                                        : style.stroke
+                                  }
+                                  strokeWidth={
+                                    isHovered || isSelected
+                                      ? 2
+                                      : isSolved
+                                        ? 2
+                                        : 1.5
+                                  }
+                                />
+                                {selectedId === null ? (
+                                  <FlagIcon
+                                    cx={cx}
+                                    cy={cy}
+                                    color={style.stroke}
+                                  />
+                                ) : (
+                                  (() => {
+                                    // Split title into lines of max ~11 chars each to fit inside hexagon
+                                    const words = problem.title.split(' ');
+                                    const lines: string[] = [];
+                                    let current = '';
+                                    for (const word of words) {
+                                      const candidate = current
+                                        ? `${current} ${word}`
+                                        : word;
+                                      if (
+                                        candidate.length > 11 &&
+                                        current.length > 0
+                                      ) {
+                                        lines.push(current);
+                                        current = word;
+                                      } else {
+                                        current = candidate;
+                                      }
+                                    }
+                                    if (current) lines.push(current);
+                                    const lineHeight = 8;
+                                    const totalHeight =
+                                      (lines.length - 1) * lineHeight;
+                                    return (
+                                      <text
+                                        x={cx}
+                                        y={cy - totalHeight / 2}
+                                        textAnchor="middle"
+                                        dominantBaseline="central"
+                                        fill={
+                                          isSelected ? '#ffffff' : style.bright
+                                        }
+                                        fontFamily="ui-monospace, 'Courier New', monospace"
+                                        fontSize="6.5"
+                                        fontWeight={isSelected ? '700' : '400'}
+                                        opacity={isSelected ? 1 : 0.7}
+                                      >
+                                        {lines.map((line, i) => (
+                                          <tspan
+                                            key={i}
+                                            x={cx}
+                                            dy={i === 0 ? 0 : lineHeight}
+                                          >
+                                            {line}
+                                          </tspan>
+                                        ))}
+                                      </text>
+                                    );
+                                  })()
+                                )}
+                              </g>
+                            );
+                          })}
+                        </g>
+                      );
+                    }
+                  )}
+
+                  {/* Center hub hexagon — always visible */}
+                  <g>
+                    <polygon
+                      points={hexPoints(hub.x, hub.y, HEX_SIZE + 8)}
+                      fill="#1a1a18"
+                      stroke="#afaeac"
+                      strokeWidth="1.5"
+                    />
+                    <image
+                      href="/sandbox/sandbox.png"
+                      x={hub.x - 54}
+                      y={hub.y - 36}
+                      width="108"
+                      height="72"
+                      preserveAspectRatio="xMidYMid meet"
+                    />
+                  </g>
+                </g>
+              </svg>
+
+              {/* Challenge Modal */}
+              <Dialog
+                open={!!modalProblem}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setModalProblem(null);
+                    setSubmitResult(null);
+                  }
+                }}
+              >
+                <DialogContent className="max-w-2xl bg-background border-[var(--warp-rule)]">
+                  {modalProblem && (
+                    <div className="space-y-4">
+                      {/* Header */}
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <h1 className="min-w-0 text-xl font-medium tracking-tight text-foreground">
+                            {modalProblem.title}
+                          </h1>
+                          {solvedIds.includes(modalProblem.id) && (
+                            <span className="shrink-0 rounded border border-[var(--warp-ash)]/50 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-foreground">
+                              Solved
+                            </span>
+                          )}
+                        </div>
+                        {/* Dynamic value. A solved problem shows what it is
+                            worth now, not what the viewer got — their own award
+                            is fixed in their history. */}
+                        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                          <span>{modalProblem.category}</span>
+                          <span>
+                            <span className="warp-num text-foreground">
+                              {modalProblem.currentValue}
+                            </span>{' '}
+                            pts
+                            {!solvedIds.includes(modalProblem.id) && ' now'}
+                          </span>
+                          <span>
+                            <span className="warp-num text-foreground">
+                              {modalProblem.solveCount}
+                            </span>{' '}
+                            solved
+                          </span>
+                          <span className="ml-auto normal-case tracking-normal">
+                            {modalProblem.currentValue >
+                            modalProblem.minimumValue
+                              ? `→ ${modalProblem.minimumValue} floor`
+                              : 'at floor'}
+                          </span>
+                        </div>
+                        <div className="h-px w-full bg-[var(--warp-rule)]" />
+                      </div>
+
+                      {/* Tabs */}
+                      <div className="flex border-b border-[var(--warp-rule)]">
+                        {(['challenge', 'solvers'] as const).map((tab) => (
+                          <button
+                            key={tab}
+                            onClick={() => setModalTab(tab)}
+                            className={`-mb-px px-4 py-2 text-[11px] uppercase tracking-[0.12em] border-b transition-colors ${
+                              modalTab === tab
+                                ? 'text-foreground border-[var(--warp-ash)]/60'
+                                : 'text-muted-foreground border-transparent'
+                            }`}
+                          >
+                            {tab === 'solvers'
+                              ? `Solvers ${solvers.length}`
+                              : 'Challenge'}
+                          </button>
+                        ))}
+                      </div>
+
+                      {modalTab === 'challenge' ? (
+                        <>
+                          {/* Description */}
+                          <div className="prose prose-invert prose-sm max-w-none text-muted-foreground">
+                            {modalProblem.description ? (
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {modalProblem.description}
+                              </ReactMarkdown>
+                            ) : (
+                              <p className="text-sm leading-relaxed">
+                                {t('no-description-provided')}
+                              </p>
                             )}
                           </div>
-                          <div className="h-0.5 w-full bg-accent" />
-                        </div>
+                          <div className="h-px w-full bg-[var(--warp-rule)]" />
 
-                        {/* Tabs */}
-                        <div className="flex border-b border-border/30">
-                          {(['challenge', 'solvers'] as const).map((tab) => (
-                            <button
-                              key={tab}
-                              onClick={() => setModalTab(tab)}
-                              className={`-mb-px px-4 py-2 font-mono text-xs uppercase tracking-wider border-b-2 transition-colors ${
-                                modalTab === tab
-                                  ? 'text-success border-success'
-                                  : 'text-muted-foreground border-transparent'
-                              }`}
-                            >
-                              {tab === 'solvers'
-                                ? `Solvers (${solvers.length})`
-                                : tab}
-                            </button>
-                          ))}
-                        </div>
-
-                        {modalTab === 'challenge' ? (
-                          <>
-                            {/* Description */}
-                            <div className="prose prose-invert prose-sm max-w-none text-muted-foreground">
-                              {modalProblem.description ? (
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {modalProblem.description}
-                                </ReactMarkdown>
-                              ) : (
-                                <p className="text-sm leading-relaxed">
-                                  {t('no-description-provided')}
+                          {/* Machine */}
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                                  {t('requires-instance')}
                                 </p>
-                              )}
-                            </div>
-                            <div className="h-px w-full bg-border/30" />
-
-                            {/* Machine */}
-                            <div className="space-y-3">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <p className="text-base font-bold text-foreground mb-1">
-                                    {t('requires-instance')}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {t('instance-duration')}
-                                  </p>
-                                </div>
-                                {instance ? (
-                                  <Button
-                                    onClick={async () => {
-                                      await fetch(
-                                        `/api/sandbox/instance?problemId=${modalProblem!.id}`,
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                  {t('instance-duration')}
+                                </p>
+                              </div>
+                              {instance ? (
+                                <Button
+                                  onClick={async () => {
+                                    await fetch(
+                                      `/api/sandbox/instance?problemId=${modalProblem!.id}`,
+                                      {
+                                        method: 'DELETE',
+                                        credentials: 'include',
+                                      }
+                                    );
+                                    setInstance(null);
+                                  }}
+                                  className="bg-[var(--warp-parchment)] px-4 py-2 text-[var(--warp-void)] hover:bg-[var(--warp-ash)]"
+                                >
+                                  <Square className="h-4 w-4 mr-2" />{' '}
+                                  {t('stop')}
+                                </Button>
+                              ) : (
+                                <Button
+                                  disabled={instanceLoading}
+                                  onClick={async () => {
+                                    setInstanceLoading(true);
+                                    try {
+                                      const res = await fetch(
+                                        '/api/sandbox/instance',
                                         {
-                                          method: 'DELETE',
+                                          method: 'POST',
                                           credentials: 'include',
+                                          headers: {
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: JSON.stringify({
+                                            problemId: modalProblem!.id,
+                                          }),
                                         }
                                       );
-                                      setInstance(null);
-                                    }}
-                                    className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2"
-                                  >
-                                    <Square className="h-4 w-4 mr-2" />{' '}
-                                    {t('stop')}
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    disabled={instanceLoading}
-                                    onClick={async () => {
-                                      setInstanceLoading(true);
-                                      try {
-                                        const res = await fetch(
-                                          '/api/sandbox/instance',
-                                          {
-                                            method: 'POST',
-                                            credentials: 'include',
-                                            headers: {
-                                              'Content-Type':
-                                                'application/json',
-                                            },
-                                            body: JSON.stringify({
-                                              problemId: modalProblem!.id,
-                                            }),
-                                          }
-                                        );
-                                        const json = await res.json();
-                                        if (json.data)
-                                          setInstance({
-                                            host: json.data.host,
-                                            port: json.data.port,
-                                          });
-                                      } finally {
-                                        setInstanceLoading(false);
-                                      }
-                                    }}
-                                    className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2"
-                                  >
-                                    <Play className="h-4 w-4 mr-2" />{' '}
-                                    {instanceLoading
-                                      ? t('starting')
-                                      : t('create')}
-                                  </Button>
-                                )}
+                                      const json = await res.json();
+                                      if (json.data)
+                                        setInstance({
+                                          host: json.data.host,
+                                          port: json.data.port,
+                                        });
+                                    } finally {
+                                      setInstanceLoading(false);
+                                    }
+                                  }}
+                                  className="bg-[var(--warp-parchment)] px-4 py-2 text-[var(--warp-void)] hover:bg-[var(--warp-ash)]"
+                                >
+                                  <Play className="h-4 w-4 mr-2" />{' '}
+                                  {instanceLoading
+                                    ? t('starting')
+                                    : t('create')}
+                                </Button>
+                              )}
+                            </div>
+
+                            {instance && (
+                              <div className="flex items-center justify-between gap-3 border-y border-[var(--warp-rule)] py-3">
+                                <div className="min-w-0">
+                                  <p className="mb-0.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                                    {t('connection')}
+                                  </p>
+                                  <p className="warp-num break-all text-sm text-foreground">
+                                    {`http://${instance.host}:${instance.port}`}
+                                  </p>
+                                </div>
+                                <a
+                                  href={`http://${instance.host}:${instance.port}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex shrink-0 items-center gap-1.5 rounded border border-[var(--warp-ash)]/50 px-2.5 py-1.5 text-[10px] uppercase tracking-[0.12em] text-foreground transition-colors hover:bg-[var(--warp-veil)]"
+                                >
+                                  <ExternalLink size={11} /> OPEN
+                                </a>
                               </div>
+                            )}
+                            <div className="h-px w-full bg-[var(--warp-rule)]" />
+                          </div>
 
-                              {instance && (
-                                <div className="rounded-md p-3 flex items-center justify-between gap-3 bg-success/5 border border-success/20">
-                                  <div className="min-w-0">
-                                    <p className="font-mono text-[10px] text-muted-foreground mb-0.5 uppercase tracking-wider">
-                                      {t('connection')}
-                                    </p>
-                                    <p className="font-mono text-sm font-bold text-white break-all">
-                                      {`http://${instance.host}:${instance.port}`}
-                                    </p>
-                                  </div>
-                                  <a
-                                    href={`http://${instance.host}:${instance.port}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[10px] bg-success/10 border border-success/30 text-success transition-colors hover:bg-success/20"
-                                  >
-                                    <ExternalLink size={11} /> OPEN
-                                  </a>
-                                </div>
-                              )}
-                              <div className="h-px w-full bg-border/30" />
-                            </div>
-
-                            {/* Flag Submission */}
-                            <div className="space-y-2">
-                              {submitResult === 'correct' ||
-                              submitResult === 'already_solved' ? (
-                                <div className="rounded-md p-3 text-center font-mono text-sm font-bold bg-success/10 border border-success/30 text-success">
-                                  {submitResult === 'correct'
-                                    ? '🎉 Correct! Challenge solved.'
-                                    : '✓ Already solved.'}
-                                </div>
-                              ) : (
-                                <>
-                                  <form
-                                    onSubmit={async (e) => {
-                                      e.preventDefault();
-                                      if (!flag.trim()) return;
-                                      setSubmitLoading(true);
-                                      try {
-                                        const res = await fetch(
-                                          '/api/sandbox/submit',
-                                          {
-                                            method: 'POST',
-                                            credentials: 'include',
-                                            headers: {
-                                              'Content-Type':
-                                                'application/json',
-                                            },
-                                            body: JSON.stringify({
-                                              problemId: modalProblem!.id,
-                                              flag,
-                                            }),
-                                          }
-                                        );
-                                        const json = await res.json();
-                                        setSubmitResult(
-                                          json.data?.result ?? 'wrong'
-                                        );
-                                        if (json.data?.result === 'correct') {
-                                          mutate(); // solvedIds 갱신 → 헥사곤 색상 즉시 반영
-                                          fetch(
-                                            `/api/sandbox/submit?problemId=${modalProblem!.id}`,
-                                            { credentials: 'include' }
-                                          )
-                                            .then((r) => r.json())
-                                            .then((d) =>
-                                              setSolvers(d.data?.solves ?? [])
-                                            );
-                                        }
-                                      } finally {
-                                        setSubmitLoading(false);
-                                      }
-                                    }}
-                                    className="flex gap-2"
-                                  >
-                                    <Input
-                                      type="text"
-                                      placeholder="HUB{...}"
-                                      value={flag}
-                                      onChange={(e) => {
-                                        setFlag(e.target.value);
-                                        setSubmitResult(null);
-                                      }}
-                                      className="flex-1 h-11 bg-background/60 border-border/50 text-foreground placeholder:text-muted-foreground"
-                                    />
-                                    <Button
-                                      type="submit"
-                                      disabled={!flag.trim() || submitLoading}
-                                      className="bg-accent hover:bg-accent/90 text-foreground border border-accent/50 px-4 py-2 h-11"
-                                    >
-                                      {submitLoading
-                                        ? t('checking')
-                                        : t('submit-flag')}
-                                    </Button>
-                                  </form>
-                                  {submitResult === 'wrong' && (
-                                    <p className="font-mono text-xs text-center text-destructive">
-                                      {t('incorrect-flag')}
-                                    </p>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </>
-                        ) : (
-                          /* Solvers Tab */
-                          <div className="space-y-2 min-h-[120px]">
-                            {solvers.length === 0 ? (
-                              <p className="font-mono text-xs text-muted-foreground text-center py-8">
-                                {t('no-solvers-yet')}
-                              </p>
+                          {/* Flag Submission */}
+                          <div className="space-y-2">
+                            {submitResult === 'correct' ||
+                            submitResult === 'already_solved' ? (
+                              <div className="rounded border border-[var(--warp-ash)]/50 bg-[var(--warp-veil)] p-3 text-center text-sm text-foreground">
+                                {submitResult === 'correct'
+                                  ? 'Correct — challenge solved.'
+                                  : 'Already solved.'}
+                              </div>
                             ) : (
-                              solvers.map((s, i) => (
+                              <>
+                                <form
+                                  onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    if (!flag.trim()) return;
+                                    setSubmitLoading(true);
+                                    try {
+                                      const res = await fetch(
+                                        '/api/sandbox/submit',
+                                        {
+                                          method: 'POST',
+                                          credentials: 'include',
+                                          headers: {
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: JSON.stringify({
+                                            problemId: modalProblem!.id,
+                                            flag,
+                                          }),
+                                        }
+                                      );
+                                      const json = await res.json();
+                                      setSubmitResult(
+                                        json.data?.result ?? 'wrong'
+                                      );
+                                      if (json.data?.result === 'correct') {
+                                        mutate(); // solvedIds 갱신 → 헥사곤 색상 즉시 반영
+                                        fetch(
+                                          `/api/sandbox/submit?problemId=${modalProblem!.id}`,
+                                          { credentials: 'include' }
+                                        )
+                                          .then((r) => r.json())
+                                          .then((d) =>
+                                            setSolvers(d.data?.solves ?? [])
+                                          );
+                                      }
+                                    } finally {
+                                      setSubmitLoading(false);
+                                    }
+                                  }}
+                                  className="flex gap-2"
+                                >
+                                  <Input
+                                    type="text"
+                                    placeholder="HUB{...}"
+                                    value={flag}
+                                    onChange={(e) => {
+                                      setFlag(e.target.value);
+                                      setSubmitResult(null);
+                                    }}
+                                    className="h-11 flex-1 border-[var(--warp-rule)] bg-[var(--warp-surface)] text-foreground placeholder:text-muted-foreground"
+                                  />
+                                  <Button
+                                    type="submit"
+                                    disabled={!flag.trim() || submitLoading}
+                                    className="h-11 bg-[var(--warp-parchment)] px-4 py-2 text-[var(--warp-void)] hover:bg-[var(--warp-ash)]"
+                                  >
+                                    {submitLoading
+                                      ? t('checking')
+                                      : t('submit-flag')}
+                                  </Button>
+                                </form>
+                                {submitResult === 'wrong' && (
+                                  <p className="text-xs text-center text-destructive">
+                                    {t('incorrect-flag')}
+                                  </p>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        /* Solvers Tab */
+                        <div className="min-h-[120px]">
+                          {solvers.length === 0 ? (
+                            <p className="py-8 text-center text-xs text-muted-foreground">
+                              {t('no-solvers-yet')}
+                            </p>
+                          ) : (
+                            /* Ten rows, then scroll. A row is 45px: py-2.5 on
+                               both sides (20) + the 24px avatar + the 1px rule.
+                               DialogContent sets no max-height, so without a cap
+                               a long solver list pushes the modal off-screen. */
+                            <div className="max-h-[450px] overflow-y-auto">
+                              {solvers.map((s, i) => (
                                 <div
                                   key={s.user.id}
-                                  className="flex items-center gap-3 px-3 py-2 rounded-md bg-muted/30 border border-border/40"
+                                  className="flex items-center gap-3 border-b border-[var(--warp-rule)] py-2.5"
                                 >
-                                  <span className="font-mono text-xs text-muted-foreground w-5 text-right">
+                                  <span className="warp-num w-5 text-right text-xs text-muted-foreground">
                                     {i + 1}
                                   </span>
-                                  <div className="h-6 w-6 rounded-full bg-accent/20 flex items-center justify-center text-[10px] font-bold text-accent overflow-hidden shrink-0">
+                                  <div className="h-6 w-6 rounded-full bg-[var(--warp-earth)] flex items-center justify-center text-[10px] font-medium text-[var(--warp-ash)] overflow-hidden shrink-0">
                                     {s.user.image ? (
                                       <img
                                         src={s.user.image}
@@ -849,65 +873,65 @@ const SandboxPage: NextPageWithLayout = () => {
                                   <span className="flex-1 text-sm text-foreground">
                                     {s.user.name}
                                   </span>
-                                  <span className="font-mono text-[10px] text-muted-foreground">
+                                  <span className="warp-num text-[10px] text-muted-foreground">
                                     {new Date(s.solvedAt).toLocaleDateString()}
                                   </span>
                                   {i === 0 && (
-                                    <span className="font-mono text-[10px] text-amber-500">
+                                    <span className="text-[10px] uppercase tracking-[0.12em] text-foreground">
                                       {t('first-blood')}
                                     </span>
                                   )}
                                 </div>
-                              ))
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
 
-                {/* Zoom + action controls */}
-                <div className="absolute bottom-6 right-6 flex flex-col items-end gap-3 z-10">
-                  <div className="flex flex-col rounded-md overflow-hidden border border-white/10 bg-black/70">
-                    <button
-                      onClick={zoomIn}
-                      className="px-3 py-2 font-mono text-base text-white/60 hover:text-white transition-colors"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={fitView}
-                      className="px-3 py-2 flex items-center justify-center border-y border-white/10 text-white/60 hover:text-white transition-colors"
-                    >
-                      <Maximize2 size={13} />
-                    </button>
-                    <button
-                      onClick={zoomOut}
-                      className="px-3 py-2 font-mono text-base text-white/60 hover:text-white transition-colors"
-                    >
-                      −
-                    </button>
-                  </div>
+              {/* Zoom + action controls */}
+              <div className="absolute bottom-6 right-6 flex flex-col items-end gap-3 z-10">
+                <div className="flex flex-col rounded-md overflow-hidden border border-white/10 bg-black/70">
+                  <button
+                    onClick={zoomIn}
+                    className="px-3 py-2 text-base text-white/60 hover:text-white transition-colors"
+                  >
+                    +
+                  </button>
+                  <button
+                    onClick={fitView}
+                    className="px-3 py-2 flex items-center justify-center border-y border-white/10 text-white/60 hover:text-white transition-colors"
+                  >
+                    <Maximize2 size={13} />
+                  </button>
+                  <button
+                    onClick={zoomOut}
+                    className="px-3 py-2 text-base text-white/60 hover:text-white transition-colors"
+                  >
+                    −
+                  </button>
+                </div>
 
-                  <div className="flex gap-2">
-                    {[
-                      { icon: <Search size={11} />, label: 'FIND' },
-                      { icon: <Info size={11} />, label: 'INFO' },
-                    ].map(({ icon, label }) => (
-                      <button
-                        key={label}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-md font-mono text-xs bg-black/70 border border-white/10 text-white/60 hover:text-white transition-colors"
-                      >
-                        {icon} {label}
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex gap-2">
+                  {[
+                    { icon: <Search size={11} />, label: 'FIND' },
+                    { icon: <Info size={11} />, label: 'INFO' },
+                  ].map(({ icon, label }) => (
+                    <button
+                      key={label}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-md text-xs bg-black/70 border border-white/10 text-white/60 hover:text-white transition-colors"
+                    >
+                      {icon} {label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </div>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
       </div>
     </>
   );

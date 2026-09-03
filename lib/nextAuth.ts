@@ -277,6 +277,41 @@ async function createDatabaseSession(
   });
 }
 
+/**
+ * Record one row per successful sign-in.
+ *
+ * The app runs the jwt session strategy, so NextAuth writes nothing to the
+ * Session table and there is no server-side record of where an account was
+ * used from. This runs in the signIn *event* rather than the callback because
+ * the callback has several success paths and would need instrumenting at each.
+ *
+ * Best effort: a failure here must never block a sign-in.
+ */
+async function recordLoginActivity(
+  userId: string,
+  req: NextApiRequest | GetServerSidePropsContext['req']
+) {
+  try {
+    // Behind a proxy the socket address is the proxy, so the forwarded chain is
+    // read first; its leftmost entry is the original client.
+    const forwarded = req.headers['x-forwarded-for'];
+    const chain = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+    const ip =
+      chain?.split(',')[0]?.trim() ||
+      (req.socket as { remoteAddress?: string } | undefined)?.remoteAddress ||
+      null;
+
+    const ua = req.headers['user-agent'];
+    const userAgent = (Array.isArray(ua) ? ua[0] : ua) ?? null;
+
+    await prisma.loginActivity.create({
+      data: { userId, ip, userAgent: userAgent?.slice(0, 512) ?? null },
+    });
+  } catch (error) {
+    console.error('[auth] failed to record login activity', error);
+  }
+}
+
 export const getAuthOptions = (
   req: NextApiRequest | GetServerSidePropsContext['req'],
   res: NextApiResponse | GetServerSidePropsContext['res']
@@ -301,6 +336,13 @@ export const getAuthOptions = (
       maxAge: sessionMaxAge,
     },
     secret: env.nextAuth.secret,
+    events: {
+      async signIn({ user }) {
+        if (user?.id) {
+          await recordLoginActivity(user.id, req);
+        }
+      },
+    },
     callbacks: {
       async signIn({ user, account, profile }) {
         if (!user || !user.email || !account) {
@@ -313,6 +355,14 @@ export const getAuthOptions = (
 
         const existingUser = await getUser({ email: user.email });
         const isIdpLogin = account.provider === 'boxyhq-idp';
+
+        // A blocked account was only ever turned away by the machine flag
+        // endpoint — every other route, and sign-in itself, let it straight
+        // through. The check belongs here, before any provider branch, so it
+        // covers credentials, magic link, IdP and OAuth alike.
+        if (existingUser?.isBlocked) {
+          return '/auth/login?error=account-blocked';
+        }
 
         // Handle credentials provider
         if (isCredentialsProviderCallbackWithDbSession && !isIdpLogin) {
@@ -384,6 +434,19 @@ export const getAuthOptions = (
         // For JWT strategy, fetch latest user data from DB to get updated image
         if (token?.sub && !user) {
           const dbUser = await getUser({ id: token.sub as string });
+
+          // Sessions are JWTs, so a token issued before the block stays valid
+          // until it expires — blocking at sign-in alone would leave an already
+          // signed-in account working for the rest of its session. This lookup
+          // happens on every session read anyway, so re-checking here costs
+          // nothing and drops the identity out of the session immediately.
+          if (dbUser?.isBlocked) {
+            session.user.id = '';
+            session.user.email = '';
+            session.user.name = '';
+            return session;
+          }
+
           if (dbUser?.image) {
             session.user.image = dbUser.image;
           }

@@ -69,7 +69,7 @@ const VerifyAccount: NextPageWithLayout<
       {message.text && message.status && (
         <Alert status={message.status}>{t(message.text)}</Alert>
       )}
-      <div className="rounded p-6 border">
+      <div className="warp-card">
         <form onSubmit={formik.handleSubmit}>
           <div className="space-y-2">
             <InputWithLabel

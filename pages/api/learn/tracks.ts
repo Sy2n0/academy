@@ -86,10 +86,14 @@ export default async function handler(
       const moduleCount = skillPath.modules.length;
       const isEnrolled = enrollmentSet.has(skillPath.id);
 
-      // Track이 완료되었는지 확인 (모든 모듈이 완료되었는지)
+      // How far this user is through the track. The count was already being
+      // derived here to answer "is it finished"; the number itself is what the
+      // track list actually needs, so it is returned rather than thrown away.
+      const completedModuleCount = skillPath.modules.filter((spm) =>
+        completedModuleIds.has(spm.moduleId)
+      ).length;
       const allModulesCompleted =
-        moduleCount > 0 &&
-        skillPath.modules.every((spm) => completedModuleIds.has(spm.moduleId));
+        moduleCount > 0 && completedModuleCount === moduleCount;
 
       return {
         id: skillPath.id,
@@ -100,6 +104,7 @@ export default async function handler(
         duration: skillPath.duration,
         imageUrl: skillPath.imageUrl,
         moduleCount,
+        completedModuleCount,
         isEnrolled,
         isCompleted: allModulesCompleted,
       };

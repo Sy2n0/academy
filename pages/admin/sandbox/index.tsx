@@ -1,37 +1,36 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  type ReactElement,
+} from 'react';
+import type { NextPageWithLayout } from 'types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { StatBar } from '@/components/layouts/StatBar';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  adminButtonClass,
+  adminButtonPrimaryClass,
+  adminInputClass,
+  adminLabelClass,
+} from '@/components/admin/styles';
+import { calculateDynamicValue } from '@/lib/ranks';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
 import Head from 'next/head';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Maximize2 } from 'lucide-react';
+import { Plus, Maximize2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const getServerSideProps = async (
@@ -59,10 +58,14 @@ interface SandboxProblem {
   dockerImage: string | null;
   containerPort: number;
   flag: string | null;
+  initialValue: number;
+  minimumValue: number;
+  decay: number;
   positionX: number;
   positionY: number;
   orderIndex: number;
   isActive: boolean;
+  solveCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -191,7 +194,7 @@ function catStyle(idx: number) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function AdminSandboxPage() {
+const AdminSandboxPage: NextPageWithLayout = () => {
   const [problems, setProblems] = useState<SandboxProblem[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -203,6 +206,10 @@ export default function AdminSandboxPage() {
   const [dockerImage, setDockerImage] = useState('');
   const [containerPort, setContainerPort] = useState('7681');
   const [flag, setFlag] = useState('');
+  const [initialValue, setInitialValue] = useState('300');
+  const [minimumValue, setMinimumValue] = useState('100');
+  const [decay, setDecay] = useState('15');
+  const [isActive, setIsActive] = useState(true);
   const [descTab, setDescTab] = useState<'write' | 'preview'>('write');
   const [positionX, setPositionX] = useState(0.5);
   const [positionY, setPositionY] = useState(0.5);
@@ -405,6 +412,10 @@ export default function AdminSandboxPage() {
     setDockerImage('');
     setContainerPort('7681');
     setFlag('');
+    setInitialValue('300');
+    setMinimumValue('100');
+    setDecay('15');
+    setIsActive(true);
     setDescTab('write');
     setPositionX(0.5);
     setPositionY(0.5);
@@ -419,6 +430,10 @@ export default function AdminSandboxPage() {
     setDockerImage(p.dockerImage ?? '');
     setContainerPort(String(p.containerPort ?? 7681));
     setFlag(p.flag ?? '');
+    setInitialValue(String(p.initialValue ?? 300));
+    setMinimumValue(String(p.minimumValue ?? 100));
+    setDecay(String(p.decay ?? 15));
+    setIsActive(p.isActive);
     setPositionX(p.positionX);
     setPositionY(p.positionY);
     setModalOpen(true);
@@ -439,6 +454,15 @@ export default function AdminSandboxPage() {
       toast.error('제목과 카테고리를 입력하세요.');
       return;
     }
+    const init = parseInt(initialValue, 10) || 300;
+    const min = parseInt(minimumValue, 10) || 100;
+    const dec = parseInt(decay, 10) || 15;
+    // Caught here as well as in the API so the admin sees it before the round
+    // trip; a minimum above the initial would make the curve climb.
+    if (min > init) {
+      toast.error('최소 배점은 초기 배점보다 클 수 없습니다.');
+      return;
+    }
     // Always save the grid-snapped position
     const { x, y } = g2p(placedGrid.q, placedGrid.r);
     const px = Math.max(0, Math.min(1, x / MAP_W));
@@ -452,6 +476,10 @@ export default function AdminSandboxPage() {
         dockerImage: dockerImage.trim() || undefined,
         containerPort: parseInt(containerPort, 10) || 7681,
         flag: flag.trim() || undefined,
+        initialValue: init,
+        minimumValue: min,
+        decay: dec,
+        isActive,
         positionX: px,
         positionY: py,
       };
@@ -509,101 +537,107 @@ export default function AdminSandboxPage() {
       <Head>
         <title>SANDBOX 관리 - Admin - HUB ACADEMY</title>
       </Head>
-      <div className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
-        <div className="relative z-10">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="min-h-screen flex flex-col">
-              <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <Link
-                          href="/admin/dashboard"
-                          className="font-mono text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Admin
-                        </Link>
-                      </BreadcrumbItem>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          SANDBOX
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
+      <AdminLayout
+        title="Sandbox"
+        description="문제를 등록하고 맵의 육각형 위치를 지정합니다"
+      >
+        <StatBar
+          stats={[
+            { label: 'Challenges', value: problems.length },
+            {
+              label: 'Visible',
+              value: problems.filter((p) => p.isActive).length,
+            },
+            {
+              label: 'Solves',
+              value: problems.reduce((sum, p) => sum + (p.solveCount ?? 0), 0),
+            },
+          ]}
+        />
 
-              <div className="flex-1 overflow-y-auto">
-                <div className="px-6 md:px-12 py-4 md:py-6">
-                  <div className="max-w-4xl mx-auto space-y-6">
-                    <div className="flex items-center justify-between">
-                      <p className="font-mono text-xs text-muted-foreground">
-                        SANDBOX 문제를 등록하고, 맵에서 그리드 위치를
-                        지정합니다.
-                      </p>
-                      <Button onClick={openCreate} className="gap-2">
-                        <Plus className="h-4 w-4" /> 문제 올리기
-                      </Button>
-                    </div>
-                    {loading ? (
-                      <p className="font-mono text-xs text-muted-foreground">
-                        불러오는 중...
-                      </p>
-                    ) : problems.length === 0 ? (
-                      <div className="rounded-lg border border-dashed border-border/50 p-8 text-center font-mono text-xs text-muted-foreground">
-                        등록된 문제가 없습니다. &quot;문제 올리기&quot;로
-                        추가하세요.
-                      </div>
-                    ) : (
-                      <ul className="space-y-2">
-                        {problems.map((p) => (
-                          <li
-                            key={p.id}
-                            className="flex items-center justify-between rounded-lg border border-border/30 bg-card/50 px-4 py-3"
-                          >
-                            <div>
-                              <span className="font-mono text-xs font-medium text-foreground">
-                                {p.title}
-                              </span>
-                              <span className="ml-2 font-mono text-[10px] text-muted-foreground">
-                                ({p.category})
-                              </span>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openEdit(p)}
-                                className="gap-1"
-                              >
-                                <Pencil className="h-3 w-3" /> 위치/수정
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDelete(p.id)}
-                                className="gap-1 text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-3 w-3" /> 삭제
-                              </Button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={openCreate}
+            className={adminButtonPrimaryClass}
+          >
+            <Plus className="h-3 w-3" />
+            Challenge
+          </button>
         </div>
-      </div>
+
+        {loading ? (
+          <p className="py-10 text-sm text-muted-foreground">불러오는 중...</p>
+        ) : problems.length === 0 ? (
+          <p className="py-10 text-sm text-muted-foreground">
+            등록된 문제가 없습니다.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto">
+            {/* CTFd's challenge table: name, category, current value, state.
+                Value is the dynamic one — what the next solver would earn —
+                rather than the configured maximum, which stops being true the
+                moment anyone clears the problem. */}
+            <table className="w-full min-w-[44rem] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-[var(--warp-rule)] text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <th className="py-2 pr-4 text-left font-normal">Name</th>
+                  <th className="py-2 pr-4 text-left font-normal">Category</th>
+                  <th className="py-2 pr-4 text-right font-normal">Value</th>
+                  <th className="py-2 pr-4 text-right font-normal">Solves</th>
+                  <th className="py-2 pr-4 text-left font-normal">State</th>
+                  <th className="py-2 text-right font-normal">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {problems.map((p) => (
+                  <tr key={p.id} className="border-b border-[var(--warp-rule)]">
+                    <td className="py-2.5 pr-4 text-foreground">{p.title}</td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {p.category}
+                    </td>
+                    <td className="warp-num py-2.5 pr-4 text-right text-foreground">
+                      {calculateDynamicValue(
+                        p.initialValue,
+                        p.minimumValue,
+                        p.decay,
+                        p.solveCount ?? 0
+                      )}
+                      <span className="ml-1 text-[11px] text-muted-foreground">
+                        /{p.initialValue}
+                      </span>
+                    </td>
+                    <td className="warp-num py-2.5 pr-4 text-right text-muted-foreground">
+                      {p.solveCount ?? 0}
+                    </td>
+                    <td className="py-2.5 pr-4 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {p.isActive ? 'Visible' : 'Hidden'}
+                    </td>
+                    <td className="py-2 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(p)}
+                          className={adminButtonClass}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(p.id)}
+                          className={`${adminButtonClass} hover:text-destructive`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </AdminLayout>
 
       <Dialog
         open={modalOpen}
@@ -619,114 +653,64 @@ export default function AdminSandboxPage() {
         >
           <DialogHeader
             className={
-              step === 2 ? 'px-6 pt-5 pb-3 border-b border-white/10' : ''
+              step === 2
+                ? 'border-b border-[var(--warp-rule)] bg-[var(--warp-surface)] px-6 pb-3 pt-5'
+                : ''
             }
-            style={step === 2 ? { background: '#0a0a0a' } : {}}
           >
-            <DialogTitle
-              className="font-mono text-sm uppercase tracking-wider"
-              style={step === 2 ? { color: 'rgba(255,255,255,0.7)' } : {}}
-            >
-              {editingId ? '문제 수정' : '문제 올리기'} —{' '}
-              {step === 1 ? '1단계: 문제 정보' : '2단계: 배치 위치'}
+            <DialogTitle className="text-base font-normal">
+              {editingId ? '문제 수정' : '문제 올리기'}
+              <span className="ml-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                {step === 1 ? 'Step 1 · 문제 정보' : 'Step 2 · 배치 위치'}
+              </span>
             </DialogTitle>
           </DialogHeader>
 
           {step === 1 ? (
-            <div className="space-y-4 px-6 pb-6 pt-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-2">
-                  <Label className="font-mono text-xs">도커 이미지</Label>
-                  <Input
-                    value={dockerImage}
-                    onChange={(e) => setDockerImage(e.target.value)}
-                    placeholder="예: ubuntu:22.04, ctf-challenge:latest"
-                    className="font-mono text-xs"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-mono text-xs">컨테이너 포트</Label>
-                  <Input
-                    value={containerPort}
-                    onChange={(e) =>
-                      setContainerPort(e.target.value.replace(/\D/g, ''))
-                    }
-                    placeholder="7681"
-                    type="text"
-                    inputMode="numeric"
-                    className="font-mono text-xs"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="font-mono text-xs">문제 이름</Label>
-                  <Input
+            /* Field order follows CTFd's create-challenge form: what the
+               challenge is, then what it says, then what it is worth, then how
+               it is checked — infrastructure last, since it is the one part
+               CTFd has no equivalent for. */
+            <div className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={adminLabelClass}>Name</label>
+                  <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="문제 제목"
-                    className="font-mono text-xs"
+                    className={adminInputClass}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="font-mono text-xs">카테고리 타이틀</Label>
-                  <Input
+                <div>
+                  <label className={adminLabelClass}>Category</label>
+                  <input
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    placeholder="예: REVERSE ENGINEERING, WEB SECURITY"
-                    className="font-mono text-xs"
+                    placeholder="예: WEB, PWN, REVERSING"
+                    className={adminInputClass}
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label className="font-mono text-xs">Flag</Label>
-                <Input
-                  value={flag}
-                  onChange={(e) => setFlag(e.target.value)}
-                  placeholder="정답 플래그"
-                  className="font-mono text-xs"
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="font-mono text-xs">
-                    문제 설명 (마크다운)
-                  </Label>
-                  <div className="flex rounded overflow-hidden border border-border/40 text-[10px] font-mono">
-                    <button
-                      type="button"
-                      onClick={() => setDescTab('write')}
-                      className="px-2.5 py-1 transition-colors"
-                      style={{
-                        background:
-                          descTab === 'write'
-                            ? 'rgba(255,255,255,0.08)'
-                            : 'transparent',
-                        color:
-                          descTab === 'write'
-                            ? '#fff'
-                            : 'rgba(255,255,255,0.4)',
-                      }}
-                    >
-                      WRITE
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDescTab('preview')}
-                      className="px-2.5 py-1 transition-colors"
-                      style={{
-                        background:
-                          descTab === 'preview'
-                            ? 'rgba(255,255,255,0.08)'
-                            : 'transparent',
-                        color:
-                          descTab === 'preview'
-                            ? '#fff'
-                            : 'rgba(255,255,255,0.4)',
-                      }}
-                    >
-                      PREVIEW
-                    </button>
+
+              <div>
+                <div className="flex items-baseline justify-between">
+                  <label className={adminLabelClass}>Message</label>
+                  <div className="mb-1.5 flex gap-3">
+                    {(['write', 'preview'] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setDescTab(tab)}
+                        className={`text-[10px] uppercase tracking-[0.14em] transition-colors ${
+                          descTab === tab
+                            ? 'text-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 {descTab === 'write' ? (
@@ -735,42 +719,147 @@ export default function AdminSandboxPage() {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="마크다운으로 문제 설명을 작성하세요..."
                     rows={6}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground resize-y focus:outline-none focus:ring-1 focus:ring-ring"
+                    className={`${adminInputClass} resize-y`}
                   />
                 ) : (
-                  <div
-                    className="min-h-[144px] rounded-md border border-border/40 bg-background/50 px-3 py-2 prose prose-invert prose-sm max-w-none"
-                    style={{ fontSize: '12px' }}
-                  >
+                  <div className="prose prose-invert prose-sm min-h-[9rem] max-w-none rounded border border-[var(--warp-rule)] px-3 py-2 text-sm">
                     {description.trim() ? (
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {description}
                       </ReactMarkdown>
                     ) : (
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-muted-foreground">
                         미리볼 내용이 없습니다.
                       </p>
                     )}
                   </div>
                 )}
               </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setModalOpen(false)}>
-                  취소
-                </Button>
-                <Button onClick={goNextStep}>다음 (위치 지정)</Button>
+
+              <div>
+                <p className="mb-2 border-b border-[var(--warp-rule)] pb-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Dynamic scoring
+                </p>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className={adminLabelClass}>Initial value</label>
+                    <input
+                      value={initialValue}
+                      onChange={(e) =>
+                        setInitialValue(e.target.value.replace(/\D/g, ''))
+                      }
+                      placeholder="300"
+                      inputMode="numeric"
+                      className={`${adminInputClass} warp-num`}
+                    />
+                  </div>
+                  <div>
+                    <label className={adminLabelClass}>Decay limit</label>
+                    <input
+                      value={decay}
+                      onChange={(e) =>
+                        setDecay(e.target.value.replace(/\D/g, ''))
+                      }
+                      placeholder="15"
+                      inputMode="numeric"
+                      className={`${adminInputClass} warp-num`}
+                    />
+                  </div>
+                  <div>
+                    <label className={adminLabelClass}>Minimum value</label>
+                    <input
+                      value={minimumValue}
+                      onChange={(e) =>
+                        setMinimumValue(e.target.value.replace(/\D/g, ''))
+                      }
+                      placeholder="100"
+                      inputMode="numeric"
+                      className={`${adminInputClass} warp-num`}
+                    />
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  첫 정답자가 초기 배점을 받고, 푼 사람이 늘수록 최소 배점까지
+                  내려갑니다. Decay limit은 최소 배점에 도달하는 풀이 수입니다.
+                </p>
+              </div>
+
+              <div>
+                <label className={adminLabelClass}>Flag</label>
+                <input
+                  value={flag}
+                  onChange={(e) => setFlag(e.target.value)}
+                  placeholder="정답 플래그"
+                  className={`${adminInputClass} warp-num`}
+                />
+              </div>
+
+              <div>
+                <p className="mb-2 border-b border-[var(--warp-rule)] pb-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Container
+                </p>
+                <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                  <div>
+                    <label className={adminLabelClass}>Docker image</label>
+                    <input
+                      value={dockerImage}
+                      onChange={(e) => setDockerImage(e.target.value)}
+                      placeholder="예: ubuntu:22.04, ctf-challenge:latest"
+                      className={adminInputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={adminLabelClass}>Port</label>
+                    <input
+                      value={containerPort}
+                      onChange={(e) =>
+                        setContainerPort(e.target.value.replace(/\D/g, ''))
+                      }
+                      placeholder="7681"
+                      inputMode="numeric"
+                      className={`${adminInputClass} warp-num`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2.5 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="h-3.5 w-3.5 accent-white"
+                />
+                Visible
+                <span className="text-xs text-muted-foreground">
+                  끄면 맵에 나오지 않습니다
+                </span>
+              </label>
+
+              <div className="flex justify-end gap-2 border-t border-[var(--warp-rule)] pt-4">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className={adminButtonClass}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={goNextStep}
+                  className={adminButtonPrimaryClass}
+                >
+                  다음 — 위치 지정
+                </button>
               </div>
             </div>
           ) : (
             <div
-              className="flex flex-col"
-              style={{ height: 560, background: '#0a0a0a' }}
+              className="flex flex-col bg-[var(--warp-surface)]"
+              style={{ height: 560 }}
             >
               {/* Toolbar */}
-              <div
-                className="flex items-center justify-between px-5 py-2.5 border-b"
-                style={{ borderColor: 'rgba(255,255,255,0.08)' }}
-              >
+              <div className="flex items-center justify-between border-b border-[var(--warp-rule)] px-5 py-2.5">
                 <div className="flex items-center gap-4">
                   <p
                     className="font-mono text-[11px]"
@@ -798,46 +887,28 @@ export default function AdminSandboxPage() {
                   >
                     <Maximize2 size={11} /> Fit
                   </button>
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <button
+                    type="button"
                     onClick={() => setStep(1)}
-                    className="font-mono text-xs h-7"
-                    style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      borderColor: 'rgba(255,255,255,0.12)',
-                      color: 'rgba(255,255,255,0.6)',
-                    }}
+                    className={`${adminButtonClass} py-1`}
                   >
                     이전
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setModalOpen(false)}
-                    className="font-mono text-xs h-7"
-                    style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      borderColor: 'rgba(255,255,255,0.12)',
-                      color: 'rgba(255,255,255,0.6)',
-                    }}
+                    className={`${adminButtonClass} py-1`}
                   >
                     취소
-                  </Button>
-                  <Button
-                    size="sm"
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleSubmit}
                     disabled={saving}
-                    className="font-mono text-xs h-7"
-                    style={{
-                      background: newStyle.bright + '22',
-                      borderColor: newStyle.bright,
-                      color: newStyle.bright,
-                      border: '1px solid',
-                    }}
+                    className={`${adminButtonPrimaryClass} py-1`}
                   >
                     {saving ? '저장 중…' : editingId ? '수정' : '등록'}
-                  </Button>
+                  </button>
                 </div>
               </div>
 
@@ -1093,4 +1164,10 @@ export default function AdminSandboxPage() {
       </Dialog>
     </>
   );
-}
+};
+
+AdminSandboxPage.getLayout = function getLayout(page: ReactElement) {
+  return <>{page}</>;
+};
+
+export default AdminSandboxPage;

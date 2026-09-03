@@ -1,0 +1,40 @@
+# Local restore of HUB-ACADEMY databases.
+# Usage:
+#   docker compose -f docker-compose.local.yml up -d
+# The *.pgdumpall.sql files are auto-loaded on first start (empty volume),
+# recreating all roles + databases exactly as on the source.
+#
+# Connect locally:
+#   academy   : postgres://admin:admin@localhost:5434/saas-starter-kit
+#   education : postgres://hubedu:hubedu123@localhost:5433/hubeducation
+
+services:
+  academy-db:
+    image: postgres:16.4
+    container_name: local-hub-academy-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: saas-starter-kit
+    ports:
+      - '5434:5432'
+    volumes:
+      - academy_data:/var/lib/postgresql/data
+      - ./hub-academy-db-1.pgdumpall.sql:/docker-entrypoint-initdb.d/restore.sql:ro
+
+  education-db:
+    image: postgres:16-alpine
+    container_name: local-hub-education-db
+    environment:
+      POSTGRES_USER: hubedu
+      POSTGRES_PASSWORD: hubedu123
+      POSTGRES_DB: hubeducation
+    ports:
+      - '5433:5432'
+    volumes:
+      - education_data:/var/lib/postgresql/data
+      - ./hub-education-db.pgdumpall.sql:/docker-entrypoint-initdb.d/restore.sql:ro
+
+volumes:
+  academy_data:
+  education_data:

@@ -4,20 +4,9 @@ import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Link from 'next/link';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { StatBar } from '@/components/layouts/StatBar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,15 +21,7 @@ import {
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import Head from 'next/head';
-import {
-  Download,
-  Trash2,
-  Send,
-  Eye,
-  CheckCircle2,
-  Paperclip,
-  X,
-} from 'lucide-react';
+import { Download, Trash2, Paperclip, X } from 'lucide-react';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
 
@@ -204,245 +185,270 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
         <title>Attachments - HUB ACADEMY</title>
       </Head>
 
-      <SidebarProvider defaultOpen={false}>
-        <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-            <div className="flex items-center gap-2 px-6 md:px-12">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
+      <div className="h-svh overflow-hidden bg-background">
+        <SidebarProvider className="h-full">
+          <AppSidebar />
+          <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+            <AppTopBar
+              crumbs={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Learn' },
+                { label: 'Attachments' },
+              ]}
+            />
+
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="mx-auto w-full max-w-[1040px] p-5 md:px-10 md:py-8">
+                <header>
+                  <h1 className="text-3xl tracking-tight text-foreground md:text-4xl">
+                    Attachments
+                  </h1>
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                    과제를 확인하고 제출하세요.
+                  </p>
+
+                  <StatBar
+                    stats={[
+                      { label: 'Total', value: assignments.length },
+                      {
+                        label: 'Submitted',
+                        value: assignments.filter((a) => a.submitted).length,
+                      },
+                      {
+                        label: 'Open',
+                        value: assignments.filter((a) => !a.submitted).length,
+                      },
+                      {
+                        label: 'Overdue',
+                        value: assignments.filter(
+                          (a) =>
+                            !a.submitted &&
+                            a.dueAt &&
+                            new Date(a.dueAt) < new Date()
+                        ).length,
+                      },
+                    ]}
+                  />
+                </header>
+
+                {error && (
+                  <p className="text-xs text-destructive">
+                    과제 목록을 불러오지 못했습니다.
+                  </p>
+                )}
+
+                {isLoading && (
+                  <p className="text-xs text-muted-foreground">Loading…</p>
+                )}
+
+                {!error && !isLoading && assignments.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    표시할 과제가 없습니다.{' '}
+                    <Link
                       href="/learn/modules"
-                      className="font-mono text-xs uppercase tracking-wider"
+                      className="underline underline-offset-2"
                     >
-                      Learn
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                      Attachments
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-          </header>
+                      Modules
+                    </Link>{' '}
+                    또는{' '}
+                    <Link
+                      href="/learn/tracks"
+                      className="underline underline-offset-2"
+                    >
+                      Tracks
+                    </Link>
+                    을 확인하세요.
+                  </p>
+                )}
 
-          <div className="flex flex-1 flex-col p-6 md:p-12 pt-8 gap-8">
-            <div>
-              <h1 className="font-[var(--font-bebas)] text-5xl tracking-tight">
-                ATTACHMENTS
-              </h1>
-              <p className="font-mono text-xs text-muted-foreground mt-1">
-                과제를 확인하고 제출하세요.
-              </p>
-            </div>
-
-            {error && (
-              <p className="font-mono text-xs text-destructive">
-                과제 목록을 불러오지 못했습니다.
-              </p>
-            )}
-
-            {isLoading && (
-              <p className="font-mono text-xs text-muted-foreground">
-                Loading…
-              </p>
-            )}
-
-            {!error && !isLoading && assignments.length === 0 && (
-              <p className="font-mono text-xs text-muted-foreground">
-                표시할 과제가 없습니다.{' '}
-                <Link
-                  href="/learn/modules"
-                  className="underline underline-offset-2"
-                >
-                  Modules
-                </Link>{' '}
-                또는{' '}
-                <Link
-                  href="/learn/tracks"
-                  className="underline underline-offset-2"
-                >
-                  Tracks
-                </Link>
-                을 확인하세요.
-              </p>
-            )}
-
-            {!error &&
-              !isLoading &&
-              assignments.length > 0 &&
-              (() => {
-                const totalPages = Math.max(
-                  1,
-                  Math.ceil(assignments.length / PAGE_SIZE)
-                );
-                const paged = assignments.slice(
-                  page * PAGE_SIZE,
-                  page * PAGE_SIZE + PAGE_SIZE
-                );
-                return (
-                  <>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {paged.map((a) => (
-                        <div
-                          key={a.id}
-                          className="group relative flex flex-col gap-3 rounded-md border border-border/40 bg-card/40 p-5 transition-colors hover:border-border/70"
-                        >
-                          {/* Status indicator */}
-                          {a.submitted && (
-                            <div className="absolute top-4 right-4">
-                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                            </div>
-                          )}
-
-                          {/* Content */}
-                          <div className="flex-1 space-y-1 pr-6">
-                            <p className="font-mono text-sm font-medium leading-snug">
-                              {a.title}
-                            </p>
-                            {a.description && (
-                              <p className="font-mono text-xs text-muted-foreground line-clamp-2">
-                                {a.description}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Meta */}
-                          <div className="flex flex-col gap-0.5">
-                            {a.dueAt && (
-                              <p className="font-mono text-[10px] text-muted-foreground">
-                                마감 · {formatDate(a.dueAt)}
-                              </p>
-                            )}
-                            {a.submitted && a.submittedAt && (
-                              <p className="font-mono text-[10px] text-emerald-600">
-                                제출 · {formatDate(a.submittedAt)}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center gap-1.5 pt-1 border-t border-border/30">
-                            {!a.submitted ? (
-                              <Button
-                                size="sm"
-                                className="h-7 px-3 font-mono text-xs"
-                                onClick={() => openSubmit(a)}
+                {!error &&
+                  !isLoading &&
+                  assignments.length > 0 &&
+                  (() => {
+                    const totalPages = Math.max(
+                      1,
+                      Math.ceil(assignments.length / PAGE_SIZE)
+                    );
+                    const paged = assignments.slice(
+                      page * PAGE_SIZE,
+                      page * PAGE_SIZE + PAGE_SIZE
+                    );
+                    return (
+                      <>
+                        {/* Rows, not cards. An assignment list is read for two
+                            things — is it in, and when is it due — and a grid of
+                            boxes buried both in a corner check mark and 10px
+                            grey text. */}
+                        <ul className="mt-6 border-t border-[var(--warp-rule)]">
+                          {paged.map((a) => {
+                            const overdue =
+                              !a.submitted &&
+                              !!a.dueAt &&
+                              new Date(a.dueAt) < new Date();
+                            return (
+                              <li
+                                key={a.id}
+                                className="flex flex-wrap items-baseline gap-x-4 gap-y-2 border-b border-[var(--warp-rule)] py-3.5"
                               >
-                                <Send className="h-3 w-3 mr-1.5" />
-                                제출
-                              </Button>
-                            ) : (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-3 font-mono text-xs text-muted-foreground hover:text-foreground"
-                                  onClick={() => setViewModalAssignment(a)}
-                                >
-                                  <Eye className="h-3 w-3 mr-1.5" />
-                                  보기
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-2 font-mono text-xs text-muted-foreground hover:text-destructive"
-                                  disabled={deletingId === a.id}
-                                  onClick={() => handleDelete(a.id)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block truncate text-sm text-foreground">
+                                    {a.title}
+                                  </span>
+                                  {a.description && (
+                                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                                      {a.description}
+                                    </span>
+                                  )}
+                                </span>
 
-                    {totalPages > 1 && (
-                      <div className="flex items-center justify-between pt-2">
-                        <span className="font-mono text-[10px] text-muted-foreground">
-                          {page * PAGE_SIZE + 1}–
-                          {Math.min((page + 1) * PAGE_SIZE, assignments.length)}{' '}
-                          / {assignments.length}개
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="font-mono text-xs h-7 px-3"
-                            disabled={page === 0}
-                            onClick={() => setPage((p) => p - 1)}
-                          >
-                            이전
-                          </Button>
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {page + 1} / {totalPages}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="font-mono text-xs h-7 px-3"
-                            disabled={page >= totalPages - 1}
-                            onClick={() => setPage((p) => p + 1)}
-                          >
-                            다음
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+                                <span className="warp-num hidden w-28 shrink-0 text-right text-xs text-muted-foreground md:inline">
+                                  {a.dueAt ? formatDate(a.dueAt) : '—'}
+                                </span>
+
+                                {/* One word carries the state: submitted,
+                                    overdue, or still open. */}
+                                <span
+                                  className={`w-20 shrink-0 text-right text-[11px] uppercase tracking-[0.12em] ${
+                                    a.submitted
+                                      ? 'text-foreground'
+                                      : overdue
+                                        ? 'text-destructive'
+                                        : 'text-muted-foreground'
+                                  }`}
+                                >
+                                  {a.submitted
+                                    ? 'Submitted'
+                                    : overdue
+                                      ? 'Overdue'
+                                      : 'Open'}
+                                </span>
+
+                                <span className="flex shrink-0 items-center gap-1">
+                                  {!a.submitted ? (
+                                    <Button
+                                      size="sm"
+                                      className="h-7 bg-[var(--warp-parchment)] px-3 text-xs text-[var(--warp-void)] hover:bg-[var(--warp-ash)]"
+                                      onClick={() => openSubmit(a)}
+                                    >
+                                      제출
+                                    </Button>
+                                  ) : (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 px-3 text-xs text-muted-foreground hover:text-foreground"
+                                        onClick={() =>
+                                          setViewModalAssignment(a)
+                                        }
+                                      >
+                                        보기
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                                        disabled={deletingId === a.id}
+                                        onClick={() => handleDelete(a.id)}
+                                        title="제출 취소"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+
+                        {totalPages > 1 && (
+                          <div className="flex items-center justify-between pt-2">
+                            <span className="warp-num text-[10px] text-muted-foreground">
+                              {page * PAGE_SIZE + 1}–
+                              {Math.min(
+                                (page + 1) * PAGE_SIZE,
+                                assignments.length
+                              )}{' '}
+                              / {assignments.length}개
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs h-7 px-3"
+                                disabled={page === 0}
+                                onClick={() => setPage((p) => p - 1)}
+                              >
+                                이전
+                              </Button>
+                              <span className="warp-num text-xs text-muted-foreground">
+                                {page + 1} / {totalPages}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="warp-num text-xs h-7 px-3"
+                                disabled={page >= totalPages - 1}
+                                onClick={() => setPage((p) => p + 1)}
+                              >
+                                다음
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+              </div>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
 
       {/* View Modal */}
       <Dialog
         open={!!viewModalAssignment}
         onOpenChange={(open) => !open && setViewModalAssignment(null)}
       >
-        <DialogContent className="font-mono max-w-md">
+        <DialogContent className="max-w-md">
           {viewModalAssignment && (
             <>
-              <DialogHeader>
-                <DialogTitle className="font-mono text-sm">
+              <DialogHeader className="space-y-3">
+                <DialogTitle className="text-lg font-medium tracking-tight">
                   {viewModalAssignment.title}
                 </DialogTitle>
-                {viewModalAssignment.submittedAt && (
-                  <DialogDescription className="font-mono text-xs">
-                    제출일 · {formatDate(viewModalAssignment.submittedAt)}
-                  </DialogDescription>
-                )}
+                <DialogDescription className="flex flex-wrap items-baseline gap-x-4 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <span className="text-foreground">Submitted</span>
+                  {viewModalAssignment.submittedAt && (
+                    <span className="warp-num">
+                      {formatDate(viewModalAssignment.submittedAt)}
+                    </span>
+                  )}
+                </DialogDescription>
+                <span className="block h-px w-full bg-[var(--warp-rule)]" />
               </DialogHeader>
               <div className="space-y-4 py-2">
                 {viewModalAssignment.submissionContent && (
                   <div className="space-y-1.5">
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                       내용
                     </p>
-                    <p className="font-mono text-xs whitespace-pre-wrap bg-muted/30 rounded p-3 border border-border/30">
+                    <p className="whitespace-pre-wrap rounded border border-[var(--warp-rule)] bg-[var(--warp-surface)] p-3 text-sm leading-relaxed text-foreground/90">
                       {viewModalAssignment.submissionContent}
                     </p>
                   </div>
                 )}
                 {viewModalAssignment.attachmentUrl && (
                   <div className="space-y-1.5">
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                       첨부파일
                     </p>
                     <Button
                       asChild
                       size="sm"
                       variant="outline"
-                      className="font-mono text-xs h-7"
+                      className="h-8 border-[var(--warp-ash)]/50 text-xs"
                     >
                       <a
                         href={
@@ -463,7 +469,7 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
                 )}
                 {!viewModalAssignment.submissionContent &&
                   !viewModalAssignment.attachmentUrl && (
-                    <p className="font-mono text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       제출 내용이 없습니다.
                     </p>
                   )}
@@ -475,21 +481,21 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
 
       {/* Submit Modal */}
       <Dialog open={submitOpen} onOpenChange={(open) => !open && closeSubmit()}>
-        <DialogContent className="font-mono max-w-lg p-0 overflow-hidden gap-0">
+        <DialogContent className="max-w-lg p-0 overflow-hidden gap-0">
           {/* Header */}
           {(() => {
             const currentAssignment = assignments.find(
               (a) => a.id === submittingId
             );
             return (
-              <div className="px-6 pt-6 pb-4 border-b border-border/30 space-y-3">
+              <div className="px-6 pt-6 pb-4 border-b border-[var(--warp-rule)] space-y-3">
                 {/* Assignment info */}
                 <div>
-                  <DialogTitle className="font-mono text-base font-semibold leading-snug">
+                  <DialogTitle className="text-lg font-medium leading-snug tracking-tight">
                     {currentAssignment?.title ?? '과제 제출'}
                   </DialogTitle>
                   {currentAssignment?.description && (
-                    <DialogDescription className="font-mono text-xs text-muted-foreground mt-1 leading-relaxed">
+                    <DialogDescription className="text-xs text-muted-foreground mt-1 leading-relaxed">
                       {currentAssignment.description}
                     </DialogDescription>
                   )}
@@ -502,8 +508,11 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
                 {/* Submitters */}
                 {submitters.length > 0 && (
                   <div className="pt-1 space-y-1.5">
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                      제출 완료 · {submitters.length}명
+                    <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                      제출 완료{' '}
+                      <span className="warp-num text-foreground">
+                        {submitters.length}
+                      </span>
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {submitters.map((s) => (
@@ -511,7 +520,7 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
                           key={s.userId}
                           className="flex items-center gap-1.5"
                         >
-                          <div className="h-6 w-6 rounded-full overflow-hidden bg-muted border border-border/40 shrink-0">
+                          <div className="h-6 w-6 rounded-full overflow-hidden bg-muted border border-[var(--warp-rule)] shrink-0">
                             {s.image ? (
                               <img
                                 src={s.image}
@@ -520,13 +529,13 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
                               />
                             ) : (
                               <div className="h-full w-full flex items-center justify-center">
-                                <span className="font-mono text-[9px] text-muted-foreground uppercase">
+                                <span className="text-[9px] text-muted-foreground uppercase">
                                   {s.name.charAt(0)}
                                 </span>
                               </div>
                             )}
                           </div>
-                          <span className="font-mono text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             {s.name}
                           </span>
                         </div>
@@ -544,7 +553,7 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
             <div className="space-y-2">
               <Label
                 htmlFor="submit-content"
-                className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground"
+                className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground"
               >
                 내용 <span className="normal-case tracking-normal">(선택)</span>
               </Label>
@@ -554,13 +563,13 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
                 value={submitContent}
                 onChange={(e) => setSubmitContent(e.target.value)}
                 rows={5}
-                className="font-mono text-sm resize-none bg-muted/20 border-border/40 focus-visible:border-border placeholder:text-muted-foreground/40"
+                className="text-sm resize-none bg-[var(--warp-surface)] border-[var(--warp-rule)] focus-visible:border-border placeholder:text-muted-foreground/40"
               />
             </div>
 
             {/* File drop zone */}
             <div className="space-y-2">
-              <Label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+              <Label className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                 파일 첨부{' '}
                 <span className="normal-case tracking-normal">
                   (선택 · 최대 500MB)
@@ -568,15 +577,15 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
               </Label>
               <label
                 htmlFor="submit-file"
-                className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border/50 bg-muted/10 px-6 py-8 cursor-pointer hover:bg-muted/20 hover:border-border/70 transition-colors"
+                className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-[var(--warp-rule)] px-6 py-8 transition-colors hover:border-[var(--warp-ash)]/50 hover:bg-[var(--warp-veil)]"
               >
                 {submitFile ? (
                   <div className="flex items-center gap-2 w-full">
                     <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="font-mono text-xs text-foreground flex-1 truncate">
+                    <span className="text-xs text-foreground flex-1 truncate">
                       {submitFile.name}
                     </span>
-                    <span className="font-mono text-[10px] text-muted-foreground shrink-0">
+                    <span className="text-[10px] text-muted-foreground shrink-0">
                       {(submitFile.size / 1024 / 1024).toFixed(1)} MB
                     </span>
                     <button
@@ -593,7 +602,7 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
                 ) : (
                   <>
                     <Paperclip className="h-5 w-5 text-muted-foreground/50" />
-                    <span className="font-mono text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       클릭하여 파일 선택
                     </span>
                   </>
@@ -619,11 +628,11 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border/30 bg-muted/10">
+          <div className="flex items-center justify-end gap-2 border-t border-[var(--warp-rule)] px-6 py-4">
             <Button
               variant="ghost"
               size="sm"
-              className="font-mono text-xs"
+              className="text-xs"
               onClick={closeSubmit}
               disabled={submitting}
             >
@@ -631,7 +640,7 @@ const AttachmentsPage: NextPageWithLayout<PageProps> = ({ user }) => {
             </Button>
             <Button
               size="sm"
-              className="font-mono text-xs px-5"
+              className="bg-[var(--warp-parchment)] px-5 text-xs text-[var(--warp-void)] hover:bg-[var(--warp-ash)]"
               onClick={handleSubmit}
               disabled={submitting}
             >

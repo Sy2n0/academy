@@ -1,32 +1,14 @@
-import { type ReactElement, useMemo, useState } from 'react';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { AppSidebar } from '@/components/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
+import { StatBar } from '@/components/layouts/StatBar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  ArrowRight,
-  BarChart3,
-  Clock,
-  Search,
-  Shield,
-  SquareStack,
-  Target,
-  Trophy,
-} from 'lucide-react';
+import { Search, SquareStack } from 'lucide-react';
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
 
@@ -39,6 +21,7 @@ interface Track {
   duration: string | null;
   imageUrl: string | null;
   moduleCount: number;
+  completedModuleCount: number;
   isEnrolled: boolean;
   isCompleted: boolean;
 }
@@ -59,6 +42,7 @@ const TracksPage: NextPageWithLayout = () => {
     'all'
   );
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<'latest' | 'difficulty' | 'modules'>(
     'latest'
   );
@@ -116,76 +100,141 @@ const TracksPage: NextPageWithLayout = () => {
     return sorted;
   }, [tracks, searchTerm, sortBy]);
 
+  // The page rendered every track it was given — fine at one, not at a hundred.
+  // Matches the modules list, which already paginates client-side.
+  const TRACKS_PER_PAGE = 9;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(processedTracks.length / TRACKS_PER_PAGE)
+  );
+  const pagedTracks = processedTracks.slice(
+    (currentPage - 1) * TRACKS_PER_PAGE,
+    currentPage * TRACKS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchTerm, sortBy]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   const enrolledCount = tracks.filter((track) => track.isEnrolled).length;
   const completedCount = tracks.filter((track) => track.isCompleted).length;
-  const offensiveCount = tracks.filter(
-    (track) => track.type === 'OFFENSIVE'
-  ).length;
-  const defensiveCount = tracks.filter(
-    (track) => track.type === 'DEFENSIVE'
-  ).length;
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Fundamental':
-        return 'text-cyan-300';
+        return 'text-[var(--warp-stone)]';
       case 'Easy':
-        return 'text-emerald-300';
+        return 'text-[var(--warp-ash)]';
       case 'Medium':
-        return 'text-amber-300';
       case 'Hard':
-        return 'text-rose-300';
-      default:
         return 'text-foreground';
+      default:
+        return 'text-muted-foreground';
     }
-  };
-
-  const getTypeBadge = (type: Track['type']) => {
-    if (type === 'OFFENSIVE') {
-      return 'border-rose-400/60 bg-black/50 text-rose-300 backdrop-blur-sm';
-    }
-    return 'border-sky-400/60 bg-black/50 text-sky-300 backdrop-blur-sm';
   };
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-          <div className="flex items-center gap-2 px-6 md:px-12">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                    Track Paths
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
+    <div className="h-svh overflow-hidden bg-background">
+      <SidebarProvider className="h-full">
+        <AppSidebar />
+        <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+          <AppTopBar
+            crumbs={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Learn' },
+              { label: 'Tracks' },
+            ]}
+          />
 
-        <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto w-full space-y-6">
-            <section className="relative overflow-hidden rounded-md border border-border/40 bg-card/80 p-5 md:p-7">
-              <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-rose-500/10 blur-3xl" />
-              <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-sky-500/10 blur-2xl" />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1240px] p-5 md:px-10 md:py-8">
+              <section>
+                <div className="relative space-y-5">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div className="min-w-0">
+                      <h1 className="text-3xl tracking-tight text-foreground md:text-4xl">
+                        Tracks
+                      </h1>
+                      <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                        모듈을 순서대로 묶은 학습 경로입니다. 등록하면 진행률이
+                        여기에 쌓입니다.
+                      </p>
+                    </div>
 
-              <div className="relative space-y-5">
-                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                      Learn Tracks
-                    </p>
-                    <h1 className="font-mono text-2xl md:text-3xl uppercase text-foreground">
-                      Track Paths
-                    </h1>
-                    <p className="font-mono text-xs text-muted-foreground mt-2 max-w-2xl">
-                      Curated offensive and defensive journeys. Pick a path,
-                      stay enrolled, and complete every module in sequence.
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs uppercase ${
+                          activeTab === 'all'
+                            ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10 text-foreground'
+                            : ''
+                        }`}
+                        onClick={() => setActiveTab('all')}
+                      >
+                        All
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs uppercase ${
+                          activeTab === 'offensive'
+                            ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10 text-foreground'
+                            : ''
+                        }`}
+                        onClick={() => setActiveTab('offensive')}
+                      >
+                        Offensive
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs uppercase ${
+                          activeTab === 'defensive'
+                            ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10 text-foreground'
+                            : ''
+                        }`}
+                        onClick={() => setActiveTab('defensive')}
+                      >
+                        Defensive
+                      </Button>
+                    </div>
+                  </div>
+
+                  <StatBar
+                    stats={[
+                      { label: 'Tracks', value: tracks.length },
+                      { label: 'Enrolled', value: enrolledCount },
+                      { label: 'Completed', value: completedCount },
+                      {
+                        label: 'Modules done',
+                        value: `${tracks.reduce(
+                          (n, t) => n + (t.completedModuleCount ?? 0),
+                          0
+                        )}/${tracks.reduce((n, t) => n + (t.moduleCount ?? 0), 0)}`,
+                      },
+                    ]}
+                  />
+                </div>
+              </section>
+
+              <section className="mt-8 border-b border-[var(--warp-rule)] pb-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="relative w-full md:max-w-md">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search path title or description"
+                      className="pl-9 text-xs"
+                    />
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -193,268 +242,200 @@ const TracksPage: NextPageWithLayout = () => {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className={`font-mono text-xs uppercase ${
-                        activeTab === 'all'
-                          ? 'border-accent/60 bg-accent/20 text-foreground'
+                      className={`text-xs uppercase ${
+                        sortBy === 'latest'
+                          ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10'
                           : ''
                       }`}
-                      onClick={() => setActiveTab('all')}
+                      onClick={() => setSortBy('latest')}
                     >
-                      All
+                      Latest
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      className={`font-mono text-xs uppercase ${
-                        activeTab === 'offensive'
-                          ? 'border-rose-500/45 bg-rose-500/15 text-rose-200'
+                      className={`text-xs uppercase ${
+                        sortBy === 'difficulty'
+                          ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10'
                           : ''
                       }`}
-                      onClick={() => setActiveTab('offensive')}
+                      onClick={() => setSortBy('difficulty')}
                     >
-                      Offensive
+                      Difficulty
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      className={`font-mono text-xs uppercase ${
-                        activeTab === 'defensive'
-                          ? 'border-sky-500/45 bg-sky-500/15 text-sky-200'
+                      className={`text-xs uppercase ${
+                        sortBy === 'modules'
+                          ? 'border-[var(--warp-parchment)]/60 bg-[var(--warp-parchment)]/10'
                           : ''
                       }`}
-                      onClick={() => setActiveTab('defensive')}
+                      onClick={() => setSortBy('modules')}
                     >
-                      Defensive
+                      Modules
                     </Button>
                   </div>
                 </div>
+              </section>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Total
-                    </p>
-                    <p className="font-mono text-xl text-foreground">
-                      {tracks.length}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Enrolled
-                    </p>
-                    <p className="font-mono text-xl text-foreground">
-                      {enrolledCount}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Completed
-                    </p>
-                    <p className="font-mono text-xl text-foreground">
-                      {completedCount}
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-border/50 bg-background/60 p-3">
-                    <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Off/Def
-                    </p>
-                    <p className="font-mono text-xl text-foreground">
-                      {offensiveCount}/{defensiveCount}
-                    </p>
-                  </div>
+              {isLoading && (
+                <div className="rounded-md border border-[var(--warp-rule)]  text-center py-12">
+                  <p className="text-sm text-muted-foreground">
+                    Loading tracks...
+                  </p>
                 </div>
-              </div>
-            </section>
+              )}
 
-            <section className="rounded-md border border-border/40 bg-card/70 p-4 md:p-5 space-y-3">
-              <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                Filter Control
-              </p>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="relative w-full md:max-w-md">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search path title or description"
-                    className="pl-9 font-mono text-xs"
-                  />
+              {error && (
+                <div className="rounded-md border border-[var(--warp-rule)]  text-center py-12">
+                  <p className="text-sm text-destructive">
+                    트랙 목록을 불러오지 못했습니다
+                  </p>
                 </div>
+              )}
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={`font-mono text-xs uppercase ${
-                      sortBy === 'latest' ? 'bg-accent/20 border-accent/50' : ''
-                    }`}
-                    onClick={() => setSortBy('latest')}
-                  >
-                    Latest
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={`font-mono text-xs uppercase ${
-                      sortBy === 'difficulty'
-                        ? 'bg-accent/20 border-accent/50'
-                        : ''
-                    }`}
-                    onClick={() => setSortBy('difficulty')}
-                  >
-                    Difficulty
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className={`font-mono text-xs uppercase ${
-                      sortBy === 'modules'
-                        ? 'bg-accent/20 border-accent/50'
-                        : ''
-                    }`}
-                    onClick={() => setSortBy('modules')}
-                  >
-                    Modules
-                  </Button>
+              {!isLoading && !error && processedTracks.length === 0 && (
+                <div className="rounded-md border border-[var(--warp-rule)]  text-center py-12">
+                  <p className="text-sm text-muted-foreground">
+                    No tracks found
+                  </p>
                 </div>
-              </div>
-            </section>
+              )}
 
-            {isLoading && (
-              <div className="rounded-md border border-border/30 bg-card/60 text-center py-12">
-                <p className="font-mono text-sm text-muted-foreground">
-                  Loading tracks...
-                </p>
-              </div>
-            )}
+              {/* A grid rather than full-width bands: at one track the card
+                  keeps its natural width instead of stretching across the page,
+                  and at thirty it stays scannable instead of becoming a
+                  four-thousand-pixel scroll. */}
+              {!isLoading && !error && (
+                <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {pagedTracks.map((track) => {
+                    const done = track.completedModuleCount ?? 0;
+                    const total = track.moduleCount ?? 0;
+                    const pct =
+                      total > 0 ? Math.round((done / total) * 100) : 0;
 
-            {error && (
-              <div className="rounded-md border border-border/30 bg-card/60 text-center py-12">
-                <p className="font-mono text-sm text-destructive">
-                  트랙 목록을 불러오지 못했습니다
-                </p>
-              </div>
-            )}
-
-            {!isLoading && !error && processedTracks.length === 0 && (
-              <div className="rounded-md border border-border/30 bg-card/60 text-center py-12">
-                <p className="font-mono text-sm text-muted-foreground">
-                  No tracks found
-                </p>
-              </div>
-            )}
-
-            {!isLoading && !error && (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {processedTracks.map((track) => (
-                  <div
-                    key={track.id}
-                    onClick={() => router.push(`/learn/tracks/${track.id}`)}
-                    className="group relative overflow-hidden rounded-md border border-border/35 bg-card/80 hover:border-accent/50 transition-colors cursor-pointer"
-                    style={{
-                      backgroundImage:
-                        'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)',
-                      backgroundSize: '16px 16px',
-                    }}
-                  >
-                    <div className="h-44 w-full relative bg-gradient-to-br from-background/80 to-accent/5 overflow-hidden border-b border-border/30">
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
-                      <div className="absolute left-3 top-3 flex items-center gap-2">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-wide backdrop-blur-sm ${getTypeBadge(track.type)}`}
+                    return (
+                      <li key={track.id} className="flex">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            router.push(`/learn/tracks/${track.id}`)
+                          }
+                          className="group flex w-full flex-col overflow-hidden rounded-md border border-[var(--warp-rule)] text-left transition-colors hover:border-[var(--warp-ash)]/40"
                         >
-                          {track.type === 'OFFENSIVE' ? (
-                            <Target className="h-3 w-3" />
-                          ) : (
-                            <Shield className="h-3 w-3" />
-                          )}
-                          {track.type}
-                        </span>
-                        <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-black/50 backdrop-blur-sm px-2 py-1 font-mono text-[10px] uppercase text-white/90">
-                          <BarChart3 className="h-3 w-3" />
-                          {track.difficulty}
-                        </span>
-                      </div>
-
-                      <div className="absolute right-3 top-3 flex items-center gap-2">
-                        {track.isCompleted && (
-                          <span className="rounded-md border border-emerald-400/60 bg-black/50 backdrop-blur-sm px-2 py-1 font-mono text-[10px] uppercase text-emerald-300">
-                            Completed
+                          {/* Cover art is real content on a track — unlike the
+                              modules cards, which banded a gradient. No overlay
+                              on it. */}
+                          <span className="block aspect-[16/9] w-full overflow-hidden border-b border-[var(--warp-rule)] bg-[var(--warp-surface)]">
+                            {track.imageUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={track.imageUrl}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span className="flex h-full w-full items-center justify-center">
+                                <SquareStack className="h-7 w-7 text-muted-foreground" />
+                              </span>
+                            )}
                           </span>
-                        )}
-                        {track.isEnrolled && !track.isCompleted && (
-                          <span className="rounded-md border border-cyan-400/60 bg-black/50 backdrop-blur-sm px-2 py-1 font-mono text-[10px] uppercase text-cyan-300">
-                            Enrolled
+
+                          <span className="flex flex-1 flex-col p-4">
+                            <span className="flex items-start justify-between gap-2">
+                              <span className="min-w-0 truncate text-sm font-medium text-foreground">
+                                {track.title}
+                              </span>
+                              {track.isCompleted && (
+                                <span className="shrink-0 text-[10px] uppercase tracking-[0.12em] text-foreground">
+                                  Done
+                                </span>
+                              )}
+                            </span>
+
+                            {track.description && (
+                              <span className="mt-1.5 line-clamp-2 block text-xs leading-relaxed text-muted-foreground">
+                                {track.description}
+                              </span>
+                            )}
+
+                            {/* A track is a container of modules, so how far
+                                through it you are is the number that matters. */}
+                            <span className="mt-auto block pt-4">
+                              <span className="flex items-baseline justify-between text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                                <span className="warp-num text-foreground">
+                                  {done}/{total}
+                                </span>
+                                <span className="warp-num">{pct}%</span>
+                              </span>
+                              <span className="mt-2 block h-px w-full bg-[var(--warp-rule)]">
+                                <span
+                                  className={`block h-px ${track.isCompleted ? 'bg-[var(--warp-parchment)]' : 'bg-[var(--warp-ash)]'}`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </span>
+                              <span className="mt-2 flex flex-wrap gap-x-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                                <span
+                                  className={getDifficultyColor(
+                                    track.difficulty
+                                  )}
+                                >
+                                  {track.difficulty}
+                                </span>
+                                {track.duration && track.duration !== '0' && (
+                                  <span className="warp-num">
+                                    {track.duration}
+                                  </span>
+                                )}
+                              </span>
+                            </span>
                           </span>
-                        )}
-                      </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
 
-                      {track.imageUrl ? (
-                        <img
-                          src={track.imageUrl}
-                          alt={track.title}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center text-5xl">
-                          <SquareStack className="h-14 w-14 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="font-mono text-base md:text-lg text-foreground leading-snug">
-                          {track.title}
-                        </h3>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors mt-1 shrink-0" />
-                      </div>
-
-                      {track.description && (
-                        <p className="font-mono text-xs text-muted-foreground line-clamp-3 leading-relaxed">
-                          {track.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center flex-wrap gap-3 font-mono text-[11px] text-muted-foreground pt-1">
-                        <span
-                          className={`inline-flex items-center gap-1 ${getDifficultyColor(track.difficulty)}`}
-                        >
-                          <Trophy className="h-3.5 w-3.5" />
-                          {track.difficulty}
-                        </span>
-                        {track.duration && (
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5" />
-                            {track.duration}
-                          </span>
-                        )}
-                        <span className="inline-flex items-center gap-1 text-foreground">
-                          <SquareStack className="h-3.5 w-3.5" />
-                          {track.moduleCount} Modules
-                        </span>
-                      </div>
-
-                      <div className="pt-1">
-                        <div className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground group-hover:text-foreground transition-colors">
-                          Enter Path
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+              {!isLoading && !error && totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    Prev
+                  </Button>
+                  <span className="warp-num px-2 text-xs text-muted-foreground">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 };
 

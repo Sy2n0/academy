@@ -16,7 +16,16 @@ export async function createContainer(
   ports: Array<{ host: number; container: number }>,
   env: Record<string, string> = {},
   cpuLimit?: number,
-  memoryLimit?: number
+  memoryLimit?: number,
+  /**
+   * Attach to a user-defined network instead of publishing to the host.
+   *
+   * Machines take this so their only route in is the VPN; the sandbox and the
+   * learn terminal do not, because those are web terminals the browser has to
+   * reach directly. When set, the returned address is the container's address
+   * on that network rather than the host's.
+   */
+  network?: string
 ): Promise<{
   containerId: string;
   ipAddress: string;
@@ -42,8 +51,14 @@ export async function createContainer(
     const createOptions: Docker.ContainerCreateOptions = {
       Image: image,
       ExposedPorts: exposedPorts,
+      ...(network
+        ? { NetworkingConfig: { EndpointsConfig: { [network]: {} } } }
+        : {}),
       HostConfig: {
-        PortBindings: portBindings,
+        // Publishing is skipped entirely on a networked container — a bound
+        // host port would be a way around the tunnel.
+        PortBindings: network ? {} : portBindings,
+        ...(network ? { NetworkMode: network } : {}),
         Memory: memoryLimit ? memoryLimit * 1024 * 1024 : undefined, // MB to bytes
         CpuShares: cpuLimit ? cpuLimit * 1024 : undefined, // 0.1 CPU units to shares
         AutoRemove: false,
@@ -59,13 +74,18 @@ export async function createContainer(
     await container.start();
 
     // 컨테이너 정보 가져오기
-    await container.inspect();
-    const ipAddress = process.env.ATTACKBOX_HOST || '';
+    const info = await container.inspect();
+    const ipAddress = network
+      ? (info.NetworkSettings?.Networks?.[network]?.IPAddress ?? '')
+      : process.env.ATTACKBOX_HOST || '';
 
     // 포트 매핑 정보
+    // On the machine network the service keeps its own port; there is no host
+    // port to map it to, and reporting one would send students to the wrong
+    // address.
     const portMappings: Record<number, number> = {};
     ports.forEach(({ host, container }) => {
-      portMappings[container] = host;
+      portMappings[container] = network ? container : host;
     });
 
     return {
@@ -163,4 +183,74 @@ export async function findAvailablePort(
   }
 
   throw new Error('No available port found in range');
+}
+
+/**
+ * Runs a command inside a container and returns what it said.
+ *
+ * This is how an exercise is checked: the student's own terminal container is
+ * asked whether the thing they were told to do is actually there. It inspects
+ * state rather than comparing typed commands, so a student who reaches the same
+ * result a different way still passes.
+ *
+ * The command is run through `sh -c`, so it must never be assembled from user
+ * input — checks are authored content, not something a learner supplies.
+ */
+export async function execInContainer(
+  containerId: string,
+  command: string,
+  timeoutMs = 5000
+): Promise<{ exitCode: number; output: string }> {
+  const container = docker.getContainer(containerId);
+
+  const exec = await container.exec({
+    Cmd: ['sh', '-c', command],
+    AttachStdout: true,
+    AttachStderr: true,
+  });
+
+  const stream = await exec.start({ hijack: true, Detach: false });
+
+  const output = await new Promise<string>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const timer = setTimeout(() => {
+      stream.destroy();
+      reject(new Error('Check timed out'));
+    }, timeoutMs);
+
+    stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+    stream.on('end', () => {
+      clearTimeout(timer);
+      // Docker multiplexes stdout and stderr into 8-byte-framed chunks when the
+      // container has no TTY; strip the headers so the caller sees plain text.
+      resolve(demultiplex(Buffer.concat(chunks)));
+    });
+    stream.on('error', (err: Error) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+  });
+
+  const info = await exec.inspect();
+
+  return { exitCode: info.ExitCode ?? 1, output: output.trim() };
+}
+
+function demultiplex(buffer: Buffer): string {
+  let out = '';
+  let offset = 0;
+
+  while (offset + 8 <= buffer.length) {
+    const type = buffer[offset];
+    const size = buffer.readUInt32BE(offset + 4);
+
+    // A frame header always starts with a stream type of 0-2; anything else
+    // means this output was never framed and should be read as-is.
+    if (type > 2) return buffer.toString('utf8');
+
+    out += buffer.toString('utf8', offset + 8, offset + 8 + size);
+    offset += 8 + size;
+  }
+
+  return out || buffer.toString('utf8');
 }

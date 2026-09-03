@@ -19,13 +19,13 @@ export default function IdPSelection({ connections }: IdPSelectionProps) {
 
   return (
     <>
-      <div className="rounded p-6 border">
+      <div className="warp-card">
         <div className="flex flex-col gap-4">
           {connections.map((connection) => {
             return (
               <button
                 type="button"
-                className="w-full btn btn-outline justify-start"
+                className="warp-pill-outline w-full justify-start"
                 onClick={() => {
                   connectionSelected(connection.clientID);
                 }}

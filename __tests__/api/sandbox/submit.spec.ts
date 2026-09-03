@@ -19,6 +19,9 @@ jest.mock('@/lib/prisma', () => ({
       findUnique: jest.fn(),
       create: jest.fn(),
       findMany: jest.fn(),
+      // Dynamic scoring counts prior solves to price the problem; without this
+      // the handler threw before it could answer.
+      count: jest.fn(),
     },
   },
 }));
@@ -104,12 +107,22 @@ describe('POST /api/sandbox/submit - 문제 조회', () => {
 });
 
 describe('POST /api/sandbox/submit - 플래그 판정', () => {
-  const problem = { id: 'p1', flag: 'flag{correct}' };
+  // The fixture carries the scoring fields the handler prices against; without
+  // them calculateDynamicValue was fed undefined and produced NaN.
+  const problem = {
+    id: 'p1',
+    title: 'Test problem',
+    flag: 'flag{correct}',
+    initialValue: 500,
+    minimumValue: 250,
+    decay: 15,
+  };
 
   beforeEach(() => {
     (mockPrisma.sandboxProblem.findUnique as jest.Mock).mockResolvedValue(
       problem
     );
+    mockAward.mockResolvedValue({ pointsEarned: 500 } as any);
   });
 
   it('이미 풀었으면 already_solved를 반환한다', async () => {
@@ -128,6 +141,7 @@ describe('POST /api/sandbox/submit - 플래그 판정', () => {
   it('정답 플래그는 correct를 반환하고 solve를 기록한다', async () => {
     (mockPrisma.sandboxSolve.findUnique as jest.Mock).mockResolvedValue(null);
     (mockPrisma.sandboxSolve.create as jest.Mock).mockResolvedValue({});
+    (mockPrisma.sandboxSolve.count as jest.Mock).mockResolvedValue(0);
     const { res, json } = makeRes();
     await handler(
       makeReq({ body: { problemId: 'p1', flag: 'flag{correct}' } }),
@@ -136,25 +150,50 @@ describe('POST /api/sandbox/submit - 플래그 판정', () => {
     expect(mockPrisma.sandboxSolve.create).toHaveBeenCalledWith({
       data: { userId: 'user-1', problemId: 'p1' },
     });
+    // First solver takes the full initialValue.
     expect(mockAward).toHaveBeenCalledWith(
       'user-1',
       'SANDBOX',
-      0,
+      500,
       expect.any(String),
-      expect.any(Object)
+      expect.objectContaining({ priorSolves: 0, firstBlood: true })
     );
-    expect(json).toHaveBeenCalledWith({ data: { result: 'correct' } });
+    expect(json).toHaveBeenCalledWith({
+      data: { result: 'correct', earnedPoints: 500 },
+    });
+  });
+
+  it('풀이 수가 decay에 도달하면 최소 배점을 준다', async () => {
+    (mockPrisma.sandboxSolve.findUnique as jest.Mock).mockResolvedValue(null);
+    (mockPrisma.sandboxSolve.create as jest.Mock).mockResolvedValue({});
+    (mockPrisma.sandboxSolve.count as jest.Mock).mockResolvedValue(15);
+    mockAward.mockResolvedValue({ pointsEarned: 250 } as any);
+    const { res } = makeRes();
+    await handler(
+      makeReq({ body: { problemId: 'p1', flag: 'flag{correct}' } }),
+      res
+    );
+    expect(mockAward).toHaveBeenCalledWith(
+      'user-1',
+      'SANDBOX',
+      250,
+      expect.any(String),
+      expect.objectContaining({ priorSolves: 15, firstBlood: false })
+    );
   });
 
   it('앞뒤 공백이 있어도 정답으로 처리한다', async () => {
     (mockPrisma.sandboxSolve.findUnique as jest.Mock).mockResolvedValue(null);
     (mockPrisma.sandboxSolve.create as jest.Mock).mockResolvedValue({});
+    (mockPrisma.sandboxSolve.count as jest.Mock).mockResolvedValue(0);
     const { res, json } = makeRes();
     await handler(
       makeReq({ body: { problemId: 'p1', flag: '  flag{correct}  ' } }),
       res
     );
-    expect(json).toHaveBeenCalledWith({ data: { result: 'correct' } });
+    expect(json).toHaveBeenCalledWith({
+      data: { result: 'correct', earnedPoints: 500 },
+    });
   });
 
   it('오답 플래그는 wrong을 반환하고 기록하지 않는다', async () => {

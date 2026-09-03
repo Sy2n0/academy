@@ -1,34 +1,24 @@
-import { type ReactElement, useState, useEffect } from 'react';
+import { ExerciseChecklist } from '@/components/learn/ExerciseChecklist';
+import {
+  type ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
 import { AppSidebar } from '@/components/app-sidebar';
+import { AppTopBar } from '@/components/layouts/AppTopBar';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+  ToolPanelContext,
+  type ToolPanel,
+} from '@/components/learn/ToolPanelContext';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import {
-  ArrowLeft,
-  Book,
-  Clock,
-  BarChart3,
-  GraduationCap,
-  CheckCircle2,
-  Cloud,
-  Swords,
-  X,
-} from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Cloud, Swords, X } from 'lucide-react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
@@ -105,6 +95,29 @@ const ModuleDetailPage: NextPageWithLayout = () => {
   >(null);
   const [attackBoxStopping, setAttackBoxStopping] = useState(false);
 
+  // Panel opened from inside the lecture content (the terminal block).
+  const [toolPanel, setToolPanel] = useState<ToolPanel | null>(null);
+  const closeToolPanel = useCallback(async () => {
+    const panel = toolPanel;
+    setToolPanel(null);
+    await panel?.onClose?.();
+  }, [toolPanel]);
+  const toolPanelApi = useMemo(
+    () => ({
+      open: (panel: ToolPanel) => {
+        // One split at a time, as Cloud IDE and Attack Box already behave.
+        setCloudIdeSplit(false);
+        setAttackBoxSplit(false);
+        setToolPanel(panel);
+      },
+      close: () => {
+        void closeToolPanel();
+      },
+      current: toolPanel,
+    }),
+    [toolPanel, closeToolPanel]
+  );
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -121,7 +134,7 @@ const ModuleDetailPage: NextPageWithLayout = () => {
   const module = data?.data;
   const isCompleted = statusData?.data?.completed || false;
   const completedAt = statusData?.data?.completedAt;
-  const isToolSplit = cloudIdeSplit || attackBoxSplit;
+  const isToolSplit = cloudIdeSplit || attackBoxSplit || !!toolPanel;
 
   const resolveToolHost = (apiHost?: string) => {
     if (typeof apiHost === 'string' && apiHost.trim()) {
@@ -742,343 +755,346 @@ const ModuleDetailPage: NextPageWithLayout = () => {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Fundamental':
-        return 'text-green-500';
+        return 'text-[var(--warp-stone)]';
       case 'Easy':
-        return 'text-blue-500';
+        return 'text-[var(--warp-ash)]';
       case 'Medium':
-        return 'text-yellow-500';
+        return 'text-foreground';
       case 'Hard':
-        return 'text-red-500';
+        return 'text-foreground';
       default:
         return 'text-foreground';
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'GENERAL':
-        return <Book className="h-4 w-4" />;
-      case 'OFFENSIVE':
-        return <Book className="h-4 w-4 text-red-500" />;
-      case 'DEFENSIVE':
-        return <Book className="h-4 w-4 text-blue-500" />;
-      default:
-        return <Book className="h-4 w-4" />;
-    }
-  };
-
   if (isLoading) {
     return (
-      <SidebarProvider defaultOpen={false}>
-        <AppSidebar />
-        <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
-            <p className="font-mono text-sm text-muted-foreground">
-              Loading module...
-            </p>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+      <div className="h-svh overflow-hidden bg-background">
+        <SidebarProvider className="h-full">
+          <AppSidebar />
+          <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+            <AppTopBar
+              crumbs={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Modules', href: '/learn/modules' },
+                { label: 'Loading' },
+              ]}
+            />
+            <div className="flex min-h-0 flex-1 items-center justify-center">
+              <p className="text-sm text-muted-foreground">Loading module...</p>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
     );
   }
 
   if (error || !module) {
     return (
-      <SidebarProvider defaultOpen={false}>
-        <AppSidebar />
-        <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
-            <div className="text-center">
-              <p className="font-mono text-sm text-destructive mb-4">
-                모듈을 불러오지 못했습니다
-              </p>
-              <Button
-                onClick={() => router.push('/learn/modules')}
-                variant="outline"
-                className="font-mono text-xs"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Modules
-              </Button>
+      <div className="h-svh overflow-hidden bg-background">
+        <SidebarProvider className="h-full">
+          <AppSidebar />
+          <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+            <AppTopBar
+              crumbs={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Modules', href: '/learn/modules' },
+                { label: 'Error' },
+              ]}
+            />
+            <div className="flex min-h-0 flex-1 items-center justify-center">
+              <div className="text-center">
+                <p className="mb-4 text-sm text-destructive">
+                  모듈을 불러오지 못했습니다
+                </p>
+                <Button
+                  onClick={() => router.push('/learn/modules')}
+                  variant="outline"
+                  className="text-xs"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Modules
+                </Button>
+              </div>
             </div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <AppSidebar />
-      <SidebarInset className="h-screen overflow-hidden">
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-          <div className="flex items-center gap-2 px-6 md:px-12">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    href="/learn/modules"
-                    className="font-mono text-xs uppercase tracking-wider"
-                  >
-                    Modules
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                    {module.title}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-          <div className="flex items-center gap-2 px-6 md:px-12">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`h-8 font-mono flex items-center gap-1.5 ${cloudIdeSplit ? 'bg-blue-500/20 text-blue-600' : 'text-blue-500 hover:text-blue-600 hover:bg-blue-500/10'}`}
-              disabled={cloudIdeLaunching}
-              onClick={handleCloudIdeClick}
-            >
-              <Cloud className="h-4 w-4 shrink-0" />
-              <span>Cloud IDE</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`h-8 font-mono flex items-center gap-1.5 ${attackBoxSplit ? 'bg-red-500/20 text-red-600' : 'text-red-500 hover:text-red-600 hover:bg-red-500/10'}`}
-              disabled={attackBoxLaunching}
-              onClick={handleAttackBoxClick}
-            >
-              <Swords className="h-4 w-4 shrink-0" />
-              <span>Attack Box</span>
-            </Button>
-          </div>
-        </header>
-        <div
-          className={`flex flex-1 min-h-0 ${isToolSplit ? 'h-[calc(100vh-4rem)] overflow-hidden' : 'flex-col gap-6 p-6 md:p-12 pt-6 overflow-y-auto'}`}
-        >
-          <div
-            className={`min-w-0 ${isToolSplit ? 'h-full min-h-0 flex-[0_0_50%] max-w-[50%] overflow-y-auto overscroll-contain p-6 md:p-12 pt-6 border-r border-border/30' : ''}`}
-          >
-            <div className="max-w-7xl mx-auto w-full space-y-6">
-              <Button
-                onClick={() => router.push('/learn/modules')}
-                variant="ghost"
-                size="sm"
-                className="font-mono text-xs"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Modules
-              </Button>
-
-              <section className="rounded-md border border-border/30 bg-card p-6 md:p-7 space-y-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background/50 px-2.5 py-1 font-mono text-[10px] uppercase text-foreground">
-                    <GraduationCap className="h-3 w-3" />
-                    {module.type}
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 font-mono text-[10px] uppercase ${
-                      module.category === 'OFFENSIVE'
-                        ? 'border-red-500/35 bg-red-500/10 text-red-400'
-                        : module.category === 'DEFENSIVE'
-                          ? 'border-blue-500/35 bg-blue-500/10 text-blue-300'
-                          : 'border-border/60 bg-background/50 text-foreground'
-                    }`}
-                  >
-                    {getCategoryIcon(module.category)}
-                    {module.category}
-                  </span>
-                  {isCompleted && (
-                    <span className="inline-flex items-center gap-1 rounded-md border border-green-500/35 bg-green-500/15 px-2.5 py-1 font-mono text-[10px] uppercase text-green-300">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Completed
-                    </span>
-                  )}
-                </div>
-
-                <h1 className="font-mono text-2xl md:text-3xl text-foreground leading-tight">
-                  {module.title}
-                </h1>
-
-                {module.description && (
-                  <p className="font-mono text-sm leading-6 text-muted-foreground max-w-3xl">
-                    {module.description}
-                  </p>
-                )}
-              </section>
-
-              <section className="rounded-md border border-border/30 bg-card">
-                <div className="border-b border-border/30 px-6 py-4">
-                  <h2 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">
-                    Learning Material
-                  </h2>
-                </div>
-                <div className="p-6 md:p-7 space-y-6">
-                  <section className="space-y-3">
-                    <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                      Module Info
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-                      <div className="rounded-md border border-border/40 bg-background/50 px-3 py-2.5">
-                        <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                          Difficulty
-                        </p>
-                        <p
-                          className={`mt-1 font-mono text-sm ${getDifficultyColor(module.difficulty)}`}
-                        >
-                          {module.difficulty}
-                        </p>
-                      </div>
-                      <div className="rounded-md border border-border/40 bg-background/50 px-3 py-2.5">
-                        <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                          Duration
-                        </p>
-                        <p className="mt-1 font-mono text-sm text-foreground">
-                          {module.duration || 'N/A'}
-                        </p>
-                      </div>
-                      <div className="rounded-md border border-border/40 bg-background/50 px-3 py-2.5">
-                        <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                          Tier
-                        </p>
-                        <p className="mt-1 font-mono text-sm text-foreground">
-                          {module.tier}
-                        </p>
-                      </div>
-                      <div className="rounded-md border border-border/40 bg-background/50 px-3 py-2.5">
-                        <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                          Status
-                        </p>
-                        <p className="mt-1 font-mono text-sm text-foreground">
-                          {isCompleted ? 'Completed' : 'In Learning'}
-                        </p>
-                      </div>
-                    </div>
-                  </section>
-
-                  {module.content ? (
-                    <div className="prose dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground max-w-none">
-                      <MarkdownWithComponents content={module.content} />
-                    </div>
-                  ) : (
-                    <div className="text-center py-14">
-                      <p className="font-mono text-sm text-muted-foreground">
-                        No content available for this module.
-                      </p>
-                    </div>
-                  )}
-
-                  <section className="rounded-md border border-border/40 bg-background/30 p-4">
-                    {!isCompleted ? (
-                      <div className="space-y-3">
-                        <p className="font-mono text-xs text-muted-foreground">
-                          학습을 마쳤다면 완료 처리해 기록을 저장하세요.
-                        </p>
-                        <Button
-                          onClick={handleComplete}
-                          className="w-full md:w-auto font-mono text-sm bg-accent hover:bg-accent/90 text-foreground border border-accent/50"
-                          size="lg"
-                        >
-                          <CheckCircle2 className="h-5 w-5 mr-2" />
-                          Complete Module
-                        </Button>
-                      </div>
-                    ) : completedAt ? (
-                      <p className="font-mono text-xs text-muted-foreground">
-                        Completed on{' '}
-                        {mounted
-                          ? new Date(completedAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })
-                          : completedAt}
-                      </p>
-                    ) : (
-                      <p className="font-mono text-xs text-muted-foreground">
-                        This module is completed.
-                      </p>
-                    )}
-                  </section>
-                </div>
-              </section>
-            </div>
-          </div>
-
-          {/* Right panel - Cloud IDE (when split) */}
-          {cloudIdeSplit && cloudIdeUrl && (
-            <div className="h-full min-h-0 flex-[0_0_50%] max-w-[50%] min-w-0 overflow-hidden flex flex-col bg-card">
-              <div className="h-12 border-b border-border/30 flex items-center justify-between px-3 flex-shrink-0">
-                <span className="font-mono text-sm font-medium text-foreground">
-                  Cloud IDE
-                </span>
-                <div className="flex items-center gap-2">
-                  {cloudIdePassword && (
-                    <span className="font-mono text-xs text-muted-foreground">
-                      Password:{' '}
-                      <code className="bg-muted/50 px-1 rounded">
-                        {cloudIdePassword}
-                      </code>
-                    </span>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 font-mono text-xs"
-                    disabled={cloudIdeStopping}
-                    onClick={handleCloudIdeClose}
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    {cloudIdeStopping ? 'Stopping...' : 'Close'}
-                  </Button>
-                </div>
-              </div>
-              <div className="flex-1 min-h-0 w-full">
-                <iframe
-                  src={cloudIdeUrl}
-                  title="Cloud IDE"
-                  className="w-full h-full border-0"
-                  allow="fullscreen"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Right panel - Attack Box (웹 버전, port8080) */}
-          {attackBoxSplit && attackBoxWebUrl && (
-            <div className="h-full min-h-0 flex-[0_0_50%] max-w-[50%] min-w-0 overflow-hidden flex flex-col bg-card">
-              <div className="h-12 border-b border-border/30 flex items-center justify-between px-3 flex-shrink-0">
-                <span className="font-mono text-sm font-medium text-foreground">
-                  Attack Box
-                </span>
+    <div className="h-svh overflow-hidden bg-background">
+      <SidebarProvider className="h-full">
+        <AppSidebar />
+        <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+          <AppTopBar
+            crumbs={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Modules', href: '/learn/modules' },
+              { label: module.title },
+            ]}
+            actions={
+              <>
+                {/* Toggles, so the active one reads as pressed rather than
+                  as a differently-coloured button. */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 font-mono text-xs"
-                  disabled={attackBoxStopping}
-                  onClick={handleAttackBoxClose}
+                  aria-pressed={cloudIdeSplit}
+                  className={`h-8 gap-1.5 text-[11px] uppercase tracking-[0.1em] ${
+                    cloudIdeSplit
+                      ? 'bg-[var(--warp-veil)] text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  disabled={cloudIdeLaunching}
+                  onClick={handleCloudIdeClick}
                 >
-                  <X className="h-4 w-4 mr-1" />
-                  {attackBoxStopping ? 'Stopping...' : 'Close'}
+                  <Cloud className="h-4 w-4 shrink-0" />
+                  <span>Cloud IDE</span>
                 </Button>
-              </div>
-              <div className="flex-1 min-h-0 w-full">
-                <iframe
-                  src={attackBoxWebUrl}
-                  title="Attack Box"
-                  className="w-full h-full border-0"
-                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-pressed={attackBoxSplit}
+                  className={`h-8 gap-1.5 text-[11px] uppercase tracking-[0.1em] ${
+                    attackBoxSplit
+                      ? 'bg-[var(--warp-veil)] text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  disabled={attackBoxLaunching}
+                  onClick={handleAttackBoxClick}
+                >
+                  <Swords className="h-4 w-4 shrink-0" />
+                  <span>Attack Box</span>
+                </Button>
+              </>
+            }
+          />
+          <div
+            className={`flex min-h-0 flex-1 ${isToolSplit ? 'overflow-hidden' : 'flex-col overflow-y-auto'}`}
+          >
+            <div
+              className={`min-w-0 ${isToolSplit ? 'h-full min-h-0 flex-[0_0_50%] max-w-[50%] overflow-y-auto overscroll-contain border-r border-[var(--warp-rule)]' : ''}`}
+            >
+              <div className="mx-auto w-full max-w-[880px] p-5 md:px-10 md:py-8">
+                <Button
+                  onClick={() => router.push('/learn/modules')}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Modules
+                </Button>
+
+                <header className="space-y-3">
+                  <h1 className="text-3xl leading-tight tracking-tight text-foreground md:text-4xl">
+                    {module.title}
+                  </h1>
+
+                  {module.description && (
+                    <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                      {module.description}
+                    </p>
+                  )}
+
+                  {/* Everything the three badges and the four stat boxes
+                      carried, on one line. */}
+                  <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 border-y border-[var(--warp-rule)] py-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                    <span>{module.category}</span>
+                    <span>{module.type}</span>
+                    <span className={getDifficultyColor(module.difficulty)}>
+                      {module.difficulty}
+                    </span>
+                    <span className="warp-num">{module.duration || '—'}</span>
+                    <span>{module.tier}</span>
+                    <span className="ml-auto text-foreground">
+                      {isCompleted ? 'Completed' : 'In progress'}
+                    </span>
+                  </div>
+                </header>
+
+                {/* The lecture is the page, so it is not boxed inside a card
+                    titled "Learning Material" inside another card. */}
+                <section className="mt-8">
+                  <div className="space-y-6">
+                    {module.content ? (
+                      <div
+                        className="prose prose-invert max-w-none
+                          prose-h1:mt-14 prose-h1:border-t prose-h1:border-[var(--warp-rule)]
+                          prose-h1:pt-6 prose-h1:text-base prose-h1:leading-snug
+                          prose-p:text-[15px] prose-p:leading-7 prose-p:text-foreground/90
+                          prose-li:text-[15px] prose-li:leading-7 prose-li:text-foreground/90
+                          prose-headings:font-medium prose-headings:tracking-tight prose-headings:text-foreground
+                          prose-h2:mt-12 prose-h2:text-xl
+                          prose-h3:mt-8 prose-h3:text-[15px] prose-h4:text-[15px]
+                          prose-strong:font-medium prose-strong:text-foreground
+                          prose-a:text-foreground prose-a:underline prose-a:underline-offset-4
+                          prose-code:rounded prose-code:bg-[var(--warp-surface)] prose-code:px-1 prose-code:py-0.5
+                          prose-code:text-[13px] prose-code:font-normal prose-code:text-foreground
+                          prose-code:before:content-none prose-code:after:content-none
+                          prose-pre:border prose-pre:border-[var(--warp-rule)] prose-pre:bg-[var(--warp-surface)]
+                          prose-blockquote:border-l prose-blockquote:border-[var(--warp-ash)]/40
+                          prose-blockquote:pl-4 prose-blockquote:not-italic prose-blockquote:text-muted-foreground
+                          prose-hr:border-[var(--warp-rule)]
+                          prose-img:rounded-md prose-img:border prose-img:border-[var(--warp-rule)]"
+                      >
+                        <ToolPanelContext.Provider value={toolPanelApi}>
+                          <MarkdownWithComponents content={module.content} />
+                        </ToolPanelContext.Provider>
+                      </div>
+                    ) : (
+                      <div className="text-center py-14">
+                        <p className="text-sm text-muted-foreground">
+                          No content available for this module.
+                        </p>
+                      </div>
+                    )}
+
+                    {typeof id === 'string' && (
+                      <ExerciseChecklist moduleId={id} />
+                    )}
+
+                    <section className="rounded-md border border-[var(--warp-rule)] bg-background/30 p-4">
+                      {!isCompleted ? (
+                        <div className="space-y-3">
+                          <p className="text-xs text-muted-foreground">
+                            학습을 마쳤다면 완료 처리해 기록을 저장하세요.
+                          </p>
+                          <Button
+                            onClick={handleComplete}
+                            className="w-full text-sm bg-[var(--warp-parchment)] text-[var(--warp-void)] hover:bg-[var(--warp-ash)] md:w-auto"
+                            size="lg"
+                          >
+                            <CheckCircle2 className="h-5 w-5 mr-2" />
+                            Complete Module
+                          </Button>
+                        </div>
+                      ) : completedAt ? (
+                        <p className="text-xs text-muted-foreground">
+                          Completed on{' '}
+                          {mounted
+                            ? new Date(completedAt).toLocaleDateString(
+                                'en-US',
+                                {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                }
+                              )
+                            : completedAt}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          This module is completed.
+                        </p>
+                      )}
+                    </section>
+                  </div>
+                </section>
               </div>
             </div>
-          )}
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+
+            {/* Right panel - Cloud IDE (when split) */}
+            {cloudIdeSplit && cloudIdeUrl && (
+              <div className="h-full min-h-0 flex-[0_0_50%] max-w-[50%] min-w-0 overflow-hidden flex flex-col bg-card">
+                <div className="h-12 border-b border-[var(--warp-rule)] flex items-center justify-between px-3 flex-shrink-0">
+                  <span className="text-sm font-medium text-foreground">
+                    Cloud IDE
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {cloudIdePassword && (
+                      <span className="warp-num text-xs text-muted-foreground">
+                        Password:{' '}
+                        <code className="bg-[var(--warp-surface)] px-1 rounded">
+                          {cloudIdePassword}
+                        </code>
+                      </span>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={cloudIdeStopping}
+                      onClick={handleCloudIdeClose}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      {cloudIdeStopping ? 'Stopping...' : 'Close'}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0 w-full">
+                  <iframe
+                    src={cloudIdeUrl}
+                    title="Cloud IDE"
+                    className="w-full h-full border-0"
+                    allow="fullscreen"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Right panel - opened from the lecture body */}
+            {toolPanel && (
+              <div className="flex h-full min-h-0 min-w-0 max-w-[50%] flex-[0_0_50%] flex-col overflow-hidden bg-card">
+                <div className="flex h-12 flex-shrink-0 items-center justify-between border-b border-[var(--warp-rule)] px-3">
+                  <span className="text-sm font-medium text-foreground">
+                    {toolPanel.title}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => void closeToolPanel()}
+                  >
+                    <X className="mr-1 h-4 w-4" />
+                    Close
+                  </Button>
+                </div>
+                <div className="min-h-0 w-full flex-1">
+                  <iframe
+                    src={toolPanel.url}
+                    title={toolPanel.title}
+                    className="h-full w-full border-0"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Right panel - Attack Box (웹 버전, port8080) */}
+            {attackBoxSplit && attackBoxWebUrl && (
+              <div className="h-full min-h-0 flex-[0_0_50%] max-w-[50%] min-w-0 overflow-hidden flex flex-col bg-card">
+                <div className="h-12 border-b border-[var(--warp-rule)] flex items-center justify-between px-3 flex-shrink-0">
+                  <span className="text-sm font-medium text-foreground">
+                    Attack Box
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={attackBoxStopping}
+                    onClick={handleAttackBoxClose}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    {attackBoxStopping ? 'Stopping...' : 'Close'}
+                  </Button>
+                </div>
+                <div className="flex-1 min-h-0 w-full">
+                  <iframe
+                    src={attackBoxWebUrl}
+                    title="Attack Box"
+                    className="w-full h-full border-0"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 };
 

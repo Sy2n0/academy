@@ -2,22 +2,12 @@ import { type ReactElement, useState, useEffect } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import {
+  adminButtonClass,
+  adminButtonPrimaryClass,
+} from '@/components/admin/styles';
 import Link from 'next/link';
-import { AppSidebar } from '@/components/app-sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
@@ -303,199 +293,110 @@ const AdminAttachmentsPage: NextPageWithLayout = () => {
         <title>Assignments - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <div className="relative z-10">
-          <SidebarProvider defaultOpen={false}>
-            <AppSidebar />
-            <SidebarInset>
-              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="/admin/learn"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          Learn Management
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Assignments
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
-              <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2">
-                    <h1 className="font-[var(--font-bebas)] text-4xl md:text-6xl tracking-tight text-foreground">
-                      ASSIGNMENTS
-                    </h1>
-                    <p className="font-mono text-sm text-muted-foreground">
-                      Create assignments and set who can submit
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Link href="/admin/learn">
-                      <Button
-                        variant="outline"
-                        className="font-mono text-xs uppercase tracking-wider"
-                      >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back
-                      </Button>
-                    </Link>
-                    <Button
-                      className="font-mono text-xs uppercase tracking-wider"
-                      onClick={() => setCreateOpen(true)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Assignment
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm">
-                  <div className="p-6">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border/30">
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Title
-                            </th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Who can submit
-                            </th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Due date
-                            </th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Submissions
-                            </th>
-                            <th className="text-right py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {isLoading ? (
-                            <tr>
-                              <td
-                                colSpan={5}
-                                className="py-12 text-center font-mono text-sm text-muted-foreground"
-                              >
-                                Loading...
-                              </td>
-                            </tr>
-                          ) : error ? (
-                            <tr>
-                              <td
-                                colSpan={5}
-                                className="py-12 text-center font-mono text-sm text-destructive"
-                              >
-                                목록을 불러오지 못했습니다: {error.message}
-                              </td>
-                            </tr>
-                          ) : assignments.length === 0 ? (
-                            <tr>
-                              <td colSpan={5} className="py-12">
-                                <div className="flex flex-col items-center justify-center gap-4 text-center">
-                                  <div className="w-14 h-14 rounded-lg border border-border/30 bg-background/60 flex items-center justify-center">
-                                    <FileText className="h-7 w-7 text-muted-foreground" />
-                                  </div>
-                                  <p className="font-mono text-sm text-foreground">
-                                    No assignments yet
-                                  </p>
-                                  <p className="font-mono text-xs text-muted-foreground max-w-sm">
-                                    Create an assignment and set who can submit.
-                                  </p>
-                                  <Button
-                                    className="font-mono text-xs uppercase tracking-wider"
-                                    onClick={() => setCreateOpen(true)}
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    New Assignment
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ) : (
-                            assignments.map((a) => (
-                              <tr
-                                key={a.id}
-                                className="border-b border-border/20 hover:bg-background/60 transition-colors"
-                              >
-                                <td className="py-3 px-4">
-                                  <p className="font-mono text-sm text-foreground">
-                                    {a.title}
-                                  </p>
-                                  {a.description && (
-                                    <p className="font-mono text-xs text-muted-foreground truncate max-w-xs">
-                                      {a.description}
-                                    </p>
-                                  )}
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className="font-mono text-xs text-muted-foreground flex items-center gap-1">
-                                    <Users className="h-3 w-3" />
-                                    {getTargetLabel(a)}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className="font-mono text-xs text-muted-foreground flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {a.dueAt
-                                      ? new Date(a.dueAt).toLocaleDateString(
-                                          'en-US',
-                                          {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                          }
-                                        )
-                                      : '-'}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <button
-                                    onClick={() => openSubmissions(a)}
-                                    className="font-mono text-xs text-foreground hover:text-accent flex items-center gap-1 transition-colors"
-                                  >
-                                    {a._count?.submissions ?? 0}명
-                                    <ChevronRight className="h-3 w-3" />
-                                  </button>
-                                </td>
-                                <td className="py-3 px-4 text-right">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="font-mono text-xs text-destructive hover:text-destructive"
-                                    onClick={() => handleDelete(a.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+      <AdminLayout
+        title="Assignments"
+        description="과제를 만들고 제출 대상을 지정합니다"
+      >
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className={adminButtonPrimaryClass}
+          >
+            <Plus className="h-3 w-3" />
+            Assignment
+          </button>
         </div>
-      </div>
+
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full min-w-[46rem] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-[var(--warp-rule)] text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                <th className="py-2 pr-4 text-left font-normal">Title</th>
+                <th className="py-2 pr-4 text-left font-normal">
+                  Who can submit
+                </th>
+                <th className="py-2 pr-4 text-left font-normal">Due</th>
+                <th className="py-2 pr-4 text-right font-normal">
+                  Submissions
+                </th>
+                <th className="py-2 text-right font-normal">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="py-10 text-sm text-muted-foreground"
+                  >
+                    불러오는 중...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={5} className="py-10 text-sm text-destructive">
+                    목록을 불러오지 못했습니다: {error.message}
+                  </td>
+                </tr>
+              ) : assignments.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="py-10 text-sm text-muted-foreground"
+                  >
+                    과제가 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                assignments.map((a) => (
+                  <tr key={a.id} className="border-b border-[var(--warp-rule)]">
+                    <td className="py-2.5 pr-4">
+                      <p className="text-foreground">{a.title}</p>
+                      {a.description && (
+                        <p className="mt-0.5 max-w-[22rem] truncate text-xs text-muted-foreground">
+                          {a.description}
+                        </p>
+                      )}
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {getTargetLabel(a)}
+                    </td>
+                    <td className="warp-num py-2.5 pr-4 text-xs text-muted-foreground">
+                      {a.dueAt
+                        ? new Date(a.dueAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })
+                        : '—'}
+                    </td>
+                    <td className="py-2.5 pr-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => openSubmissions(a)}
+                        className="warp-num inline-flex items-center gap-1 text-sm text-foreground transition-colors hover:underline"
+                      >
+                        {a._count?.submissions ?? 0}
+                        <ChevronRight className="h-3 w-3" />
+                      </button>
+                    </td>
+                    <td className="py-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(a.id)}
+                        className={`${adminButtonClass} hover:text-destructive`}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </AdminLayout>
 
       {/* Submissions Modal */}
       <Dialog open={submissionsOpen} onOpenChange={setSubmissionsOpen}>

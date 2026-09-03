@@ -4,6 +4,7 @@ import { isAdmin } from '@/lib/user-roles';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ApiError } from '@/lib/errors';
 import { prisma } from '@/lib/prisma';
+import { tryRevokeClientCertificate } from '@/lib/vpn-pki';
 import { z } from 'zod';
 
 const blockSchema = z.object({
@@ -45,6 +46,14 @@ export default async function handler(
       where: { id },
       data: { isBlocked },
     });
+
+    // The tunnel authenticates a certificate, not a session, so blocking the
+    // account leaves the VPN untouched — a blocked user stays on the machine
+    // network until the certificate itself is revoked. Re-enabling does not
+    // reissue automatically: the user downloads a fresh profile.
+    if (isBlocked) {
+      await tryRevokeClientCertificate(id);
+    }
 
     // EventLog 기록
     await prisma.eventLog.create({

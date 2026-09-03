@@ -1,39 +1,28 @@
 import { type ReactElement, useState } from 'react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-// (중복 Input import 제거)
-import { useTranslation } from 'next-i18next';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import { StatBar } from '@/components/layouts/StatBar';
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { AnimatedNoise } from '@/components/animated-noise';
+  adminButtonClass,
+  adminButtonPrimaryClass,
+  adminInputClass,
+} from '@/components/admin/styles';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
 import { UserRole } from '@prisma/client';
 import Head from 'next/head';
-// (중복 import 제거)
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -43,7 +32,6 @@ import {
 } from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import type { ApiResponse } from 'types';
-import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 
 type AdminUsersProps = InferGetServerSidePropsType<typeof getServerSideProps>;
@@ -64,7 +52,6 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
   timeZone: 'UTC',
 });
 
-// 비밀번호 변경 다이얼로그 컴포넌트
 function ChangePasswordDialog({
   userId,
   userName,
@@ -103,37 +90,37 @@ function ChangePasswordDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="xs"
-          className="w-full font-mono text-xs"
-          type="button"
-        >
-          비밀번호 변경
-        </Button>
+        <button type="button" className={adminButtonClass}>
+          Password
+        </button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-sm">
+        {/* The dialog had no title at all, so screen readers announced an
+            unlabelled window and Radix logged a missing-Description warning. */}
+        <DialogHeader>
+          <DialogTitle className="text-base font-normal">
+            {userName} 비밀번호 변경
+          </DialogTitle>
+        </DialogHeader>
         <div className="space-y-3">
-          <div className="font-mono text-sm">{userName}의 새 비밀번호 입력</div>
-          <Input
+          <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="새 비밀번호 (6자 이상)"
             minLength={6}
-            className="font-mono text-sm"
+            className={adminInputClass}
             disabled={loading}
           />
-          {error && (
-            <div className="text-red-500 font-mono text-xs">{error}</div>
-          )}
-          <Button
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <button
+            type="button"
             onClick={handleChangePassword}
             disabled={loading || password.length < 6}
-            className="w-full font-mono text-xs"
+            className={`${adminButtonPrimaryClass} w-full`}
           >
-            {loading ? '변경 중...' : '비밀번호 저장'}
-          </Button>
+            {loading ? '변경 중...' : '저장'}
+          </button>
         </div>
       </DialogContent>
     </Dialog>
@@ -144,29 +131,108 @@ const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({
   initialUsers,
   initialPagination,
 }) => {
-  const { t } = useTranslation('common');
   const [users, setUsers] = useState(initialUsers);
   const [pagination, setPagination] = useState(initialPagination);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [pendingRevoke, setPendingRevoke] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [revoking, setRevoking] = useState(false);
 
-  const handleSearch = async () => {
+  // Search and both pagination buttons had a copy of this fetch each — three
+  // call sites, three chances for the query string to drift apart.
+  const load = async (page: number) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/admin/users?search=${encodeURIComponent(search)}&page=1&limit=50`
+        `/api/admin/users?page=${page}&limit=${pagination.limit}${
+          search ? `&search=${encodeURIComponent(search)}` : ''
+        }`
       );
       const data = (await response.json()) as UserListApiResponse;
       if (data.data) {
         setUsers(data.data);
-        if (data.pagination) {
-          setPagination(data.pagination);
-        }
+        if (data.pagination) setPagination(data.pagination);
       }
-    } catch (error) {
-      toast.error('사용자 검색에 실패했습니다');
+    } catch {
+      toast.error('사용자를 불러오지 못했습니다');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleBlock = async (userId: string, isBlocked: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/block`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isBlocked: !isBlocked }),
+      });
+
+      if (!response.ok) {
+        const json = (await response.json()) as ApiResponse;
+        throw new Error(json.error?.message || 'Failed to update user');
+      }
+
+      setUsers((prev: any[]) =>
+        prev.map((u) => (u.id === userId ? { ...u, isBlocked: !isBlocked } : u))
+      );
+      toast.success(!isBlocked ? '비활성화했습니다' : '활성화했습니다');
+    } catch (error: any) {
+      toast.error(error.message || '상태 변경에 실패했습니다');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/admin/users/${pendingDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const json = (await response.json()) as ApiResponse;
+        throw new Error(json.error?.message || 'Failed to delete user');
+      }
+
+      setUsers((prev: any[]) => prev.filter((u) => u.id !== pendingDelete.id));
+      setPagination((prev: any) => ({ ...prev, total: prev.total - 1 }));
+      toast.success('삭제했습니다');
+      setPendingDelete(null);
+    } catch (error: any) {
+      toast.error(error.message || '삭제에 실패했습니다');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleRevokeVpn = async () => {
+    if (!pendingRevoke) return;
+    setRevoking(true);
+    try {
+      const response = await fetch(`/api/admin/users/${pendingRevoke.id}/vpn`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const json = (await response.json()) as ApiResponse;
+        throw new Error(json.error?.message || 'Failed to revoke');
+      }
+
+      toast.success('VPN 인증서를 폐기했습니다');
+      setPendingRevoke(null);
+    } catch (error: any) {
+      toast.error(error.message || 'VPN 폐기에 실패했습니다');
+    } finally {
+      setRevoking(false);
     }
   };
 
@@ -174,253 +240,282 @@ const AdminUsers: NextPageWithLayout<AdminUsersProps> = ({
     try {
       const response = await fetch(`/api/admin/users/${userId}/role`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole }),
       });
 
       if (!response.ok) {
         const json = (await response.json()) as ApiResponse;
-        toast.error(json.error?.message || '사용자 권한 변경에 실패했습니다');
-        return;
+        throw new Error(json.error?.message || 'Failed to update role');
       }
 
-      // Update local state
-      setUsers(
-        users.map((user) =>
-          user.id === userId ? { ...user, role: newRole } : user
-        )
+      setUsers((prev: any[]) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       );
-
-      toast.success('User role updated successfully');
-    } catch (error) {
-      toast.error('사용자 권한 변경에 실패했습니다');
+      toast.success('권한이 변경되었습니다');
+    } catch (error: any) {
+      toast.error(error.message || '권한 변경에 실패했습니다');
     }
   };
 
-  const getRoleBadgeColor = (role: UserRole) => {
-    switch (role) {
-      case UserRole.ADMIN:
-        return 'bg-red-500/10 text-red-500 border-red-500/30';
-      case UserRole.LAB:
-        return 'bg-blue-500/10 text-blue-500 border-blue-500/30';
-      case UserRole.USER:
-        return 'bg-muted text-muted-foreground border-border';
-      default:
-        return 'bg-muted text-muted-foreground border-border';
-    }
-  };
+  const first = (pagination.page - 1) * pagination.limit + 1;
+  const last = Math.min(pagination.page * pagination.limit, pagination.total);
 
   return (
     <>
       <Head>
-        <title>Admin - User Management</title>
+        <title>Users - Admin - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <AnimatedNoise opacity={0.03} />
-        <div className="grid-bg fixed inset-0 opacity-30" aria-hidden="true" />
+      <AdminLayout title="Users" description="계정 권한과 비밀번호">
+        <StatBar
+          stats={[
+            { label: 'Total', value: pagination.total },
+            { label: 'Showing', value: `${first}–${last}` },
+            {
+              label: 'Page',
+              value: `${pagination.page}/${pagination.totalPages}`,
+            },
+          ]}
+        />
 
-        <div className="relative z-10">
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Admin - User Management
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
-              <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6">
-                <div className="space-y-2">
-                  <h1 className="font-[var(--font-bebas)] text-4xl md:text-6xl tracking-tight text-foreground">
-                    USER MANAGEMENT
-                  </h1>
-                  <p className="font-mono text-sm text-muted-foreground">
-                    Manage user roles and permissions
-                  </p>
-                </div>
-
-                {/* Search */}
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-6">
-                  <div className="flex gap-4">
-                    <div className="flex-1 relative">
-                      <Input
-                        type="text"
-                        placeholder="Search by name or email..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleSearch();
-                          }
-                        }}
-                        className="font-mono text-sm pr-10"
-                      />
-                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <Button
-                      onClick={handleSearch}
-                      disabled={loading}
-                      className="font-mono text-xs uppercase tracking-wider"
-                    >
-                      {loading ? 'Loading...' : 'Search'}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Users Table */}
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">
-                          Name
-                        </TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">
-                          Email
-                        </TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">
-                          Role
-                        </TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">
-                          Points
-                        </TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">
-                          Joined
-                        </TableHead>
-                        <TableHead className="font-mono text-xs uppercase tracking-wider">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-mono text-sm">
-                            {user.name}
-                          </TableCell>
-                          <TableCell className="font-mono text-sm">
-                            {user.email}
-                          </TableCell>
-                          <TableCell>
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded border text-xs font-mono uppercase tracking-wider ${getRoleBadgeColor(user.role)}`}
-                            >
-                              {user.role}
-                            </span>
-                          </TableCell>
-                          <TableCell className="font-mono text-sm">
-                            {numberFormatter.format(user.totalPoints)}
-                          </TableCell>
-                          <TableCell className="font-mono text-xs text-muted-foreground">
-                            {dateFormatter.format(new Date(user.createdAt))}
-                          </TableCell>
-                          <TableCell className="space-y-2">
-                            <Select
-                              value={user.role}
-                              onValueChange={(value) =>
-                                handleRoleChange(user.id, value as UserRole)
-                              }
-                            >
-                              <SelectTrigger className="w-32 font-mono text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={UserRole.USER}>
-                                  USER
-                                </SelectItem>
-                                <SelectItem value={UserRole.LAB}>
-                                  LAB
-                                </SelectItem>
-                                <SelectItem value={UserRole.ADMIN}>
-                                  ADMIN
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <ChangePasswordDialog
-                              userId={user.id}
-                              userName={user.name}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
-                  <div className="flex items-center justify-between">
-                    <p className="font-mono text-xs text-muted-foreground">
-                      Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-                      {Math.min(
-                        pagination.page * pagination.limit,
-                        pagination.total
-                      )}{' '}
-                      of {pagination.total} users
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={pagination.page === 1}
-                        onClick={async () => {
-                          const response = await fetch(
-                            `/api/admin/users?page=${pagination.page - 1}&limit=${pagination.limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`
-                          );
-                          const data =
-                            (await response.json()) as UserListApiResponse;
-                          if (data.data) {
-                            setUsers(data.data);
-                            if (data.pagination) {
-                              setPagination(data.pagination);
-                            }
-                          }
-                        }}
-                        className="font-mono text-xs uppercase tracking-wider"
-                      >
-                        Previous
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={pagination.page === pagination.totalPages}
-                        onClick={async () => {
-                          const response = await fetch(
-                            `/api/admin/users?page=${pagination.page + 1}&limit=${pagination.limit}${search ? `&search=${encodeURIComponent(search)}` : ''}`
-                          );
-                          const data =
-                            (await response.json()) as UserListApiResponse;
-                          if (data.data) {
-                            setUsers(data.data);
-                            if (data.pagination) {
-                              setPagination(data.pagination);
-                            }
-                          }
-                        }}
-                        className="font-mono text-xs uppercase tracking-wider"
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+        <div className="mt-6 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="이름 또는 이메일로 검색"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') load(1);
+              }}
+              className={`${adminInputClass} pl-9`}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => load(1)}
+            disabled={loading}
+            className={adminButtonClass}
+          >
+            {loading ? '...' : 'Search'}
+          </button>
         </div>
-      </div>
+
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full min-w-[46rem] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-[var(--warp-rule)] text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                <th className="py-2 pr-4 text-left font-normal">Name</th>
+                <th className="py-2 pr-4 text-left font-normal">Email</th>
+                <th className="py-2 pr-4 text-left font-normal">Role</th>
+                <th className="py-2 pr-4 text-right font-normal">Points</th>
+                <th className="py-2 pr-4 text-left font-normal">Joined</th>
+                <th className="py-2 pr-4 text-left font-normal">State</th>
+                <th className="py-2 text-right font-normal">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user: any) => (
+                <tr
+                  key={user.id}
+                  className="border-b border-[var(--warp-rule)]"
+                >
+                  <td className="py-2.5 pr-4 text-foreground">{user.name}</td>
+                  <td className="py-2.5 pr-4 text-muted-foreground">
+                    {user.email}
+                  </td>
+                  {/* ADMIN was red and LAB was blue — a warning colour and a
+                      hue standing in for roles that have no order between
+                      them. They are named instead. */}
+                  <td className="py-2.5 pr-4 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                    {user.role}
+                  </td>
+                  <td className="warp-num py-2.5 pr-4 text-right text-foreground">
+                    {numberFormatter.format(user.totalPoints)}
+                  </td>
+                  <td className="warp-num py-2.5 pr-4 text-xs text-muted-foreground">
+                    {dateFormatter.format(new Date(user.createdAt))}
+                  </td>
+                  {/* Blocked is the one state here that warns: the account
+                      still exists but can no longer sign in. */}
+                  <td
+                    className={`py-2.5 pr-4 text-[10px] uppercase tracking-[0.14em] ${
+                      user.isBlocked
+                        ? 'text-destructive'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    {user.isBlocked ? 'Blocked' : 'Active'}
+                  </td>
+                  <td className="py-2 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Select
+                        value={user.role}
+                        onValueChange={(value) =>
+                          handleRoleChange(user.id, value as UserRole)
+                        }
+                      >
+                        <SelectTrigger className="h-7 w-24 border-[var(--warp-rule)] bg-transparent text-[11px] uppercase tracking-[0.12em]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={UserRole.USER}>USER</SelectItem>
+                          <SelectItem value={UserRole.LAB}>LAB</SelectItem>
+                          <SelectItem value={UserRole.ADMIN}>ADMIN</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <ChangePasswordDialog
+                        userId={user.id}
+                        userName={user.name}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleToggleBlock(user.id, user.isBlocked)
+                        }
+                        className={adminButtonClass}
+                      >
+                        {user.isBlocked ? 'Enable' : 'Disable'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPendingRevoke({ id: user.id, name: user.name })
+                        }
+                        className={adminButtonClass}
+                      >
+                        VPN
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPendingDelete({ id: user.id, name: user.name })
+                        }
+                        className={`${adminButtonClass} hover:text-destructive`}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {pagination.totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between gap-4">
+            <p className="warp-num text-xs text-muted-foreground">
+              {first}–{last} / {pagination.total}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={pagination.page === 1 || loading}
+                onClick={() => load(pagination.page - 1)}
+                className={adminButtonClass}
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                disabled={pagination.page === pagination.totalPages || loading}
+                onClick={() => load(pagination.page + 1)}
+                className={adminButtonClass}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </AdminLayout>
+
+      <Dialog
+        open={pendingRevoke !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingRevoke(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-normal">
+              Revoke VPN certificate
+            </DialogTitle>
+            {/* Separate from blocking on purpose: the case this covers is a
+                leaked .ovpn file, where the account is fine and only the
+                credential has to die. */}
+            <DialogDescription className="text-xs leading-relaxed text-muted-foreground">
+              {pendingRevoke?.name} 의 VPN 인증서를 폐기합니다. 배포된 .ovpn
+              파일은 즉시 사용할 수 없게 되고, 본인은 새 파일을 다시 받으면
+              됩니다. 계정 자체는 그대로 유지됩니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <button
+              type="button"
+              onClick={() => setPendingRevoke(null)}
+              disabled={revoking}
+              className={adminButtonClass}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleRevokeVpn}
+              disabled={revoking}
+              className={`${adminButtonClass} border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive`}
+            >
+              {revoking ? 'Revoking...' : 'Revoke'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-normal">
+              Delete user
+            </DialogTitle>
+            {/* Spelled out because the cascade is not obvious from the button:
+                every relation carrying a userId goes with the account, so the
+                delete also moves everyone else's ranking. */}
+            <DialogDescription className="text-xs leading-relaxed text-muted-foreground">
+              {pendingDelete?.name} 계정을 삭제합니다. 점수 기록, 문제 풀이,
+              제출 내역이 함께 사라지고 다른 사용자의 순위가 바뀝니다. 되돌릴 수
+              없습니다.
+              <br />
+              <br />
+              접속만 막으려면 Disable을 쓰세요.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <button
+              type="button"
+              onClick={() => setPendingDelete(null)}
+              disabled={deleting}
+              className={adminButtonClass}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className={`${adminButtonClass} border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive`}
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
@@ -467,6 +562,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         createdAt: true,
         totalPoints: true,
         currentRank: true,
+        isBlocked: true,
       },
       orderBy: {
         createdAt: 'desc',

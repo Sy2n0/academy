@@ -77,7 +77,7 @@ const UnlockAccount = ({
   };
 
   return (
-    <div className="rounded p-6 border">
+    <div className="warp-card">
       {message.text && message.status && (
         <Alert status={message.status}>{message.text}</Alert>
       )}
@@ -85,7 +85,7 @@ const UnlockAccount = ({
       {displayResendLink && (
         <Button
           wide
-          className="mt-4 btn btn-outline w-full"
+          className="warp-pill-outline mt-4 w-full"
           onClick={requestNewLink}
           loading={loading}
         >

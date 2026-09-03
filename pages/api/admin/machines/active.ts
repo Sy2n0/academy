@@ -33,6 +33,12 @@ const createMachineSchema = z.object({
   bloodBonus: z.boolean().default(false).optional(),
   containerImage: z.string().optional().nullable(),
   servicePort: z.number().int().min(1).max(65535).nullable().optional(),
+  // Decides how the platform writes the address it hands the student. Unset
+  // falls back to a guess from the category.
+  serviceProtocol: z
+    .enum(['http', 'https', 'tcp', 'ssh'])
+    .nullable()
+    .optional(),
   cpuLimit: z.number().int().min(1).nullable().optional(),
   memoryLimit: z.number().int().min(1).nullable().optional(),
   storageLimit: z.number().int().min(1).nullable().optional(),
@@ -130,6 +136,7 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
           bloodBonus: machine.bloodBonus,
           containerImage: machine.containerImage,
           servicePort: machine.servicePort,
+          serviceProtocol: machine.serviceProtocol,
           cpuLimit: machine.cpuLimit,
           memoryLimit: machine.memoryLimit,
           storageLimit: machine.storageLimit,
@@ -178,6 +185,7 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
         bloodBonus: validatedData.bloodBonus ?? false,
         containerImage: validatedData.containerImage || null,
         servicePort: validatedData.servicePort ?? null,
+        serviceProtocol: validatedData.serviceProtocol ?? null,
         cpuLimit: validatedData.cpuLimit ?? null,
         memoryLimit: validatedData.memoryLimit ?? null,
         storageLimit: validatedData.storageLimit ?? null,

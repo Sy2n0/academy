@@ -2,27 +2,18 @@ import { type ReactElement, useState } from 'react';
 import type { NextPageWithLayout } from 'types';
 import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { AppSidebar } from '@/components/app-sidebar';
+import { AdminLayout } from '@/components/layouts/AdminLayout';
+import {
+  adminButtonClass,
+  adminButtonPrimaryClass,
+} from '@/components/admin/styles';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { getSession } from '@/lib/session';
 import { getUserBySession } from 'models/user';
 import { isAdmin } from '@/lib/user-roles';
 import Head from 'next/head';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import {
@@ -229,181 +220,102 @@ const AdminModulesPage: NextPageWithLayout = () => {
         <title>Modules Management - HUB ACADEMY</title>
       </Head>
 
-      <div className="relative min-h-screen bg-background">
-        <div className="relative z-10">
-          <SidebarProvider defaultOpen={false}>
-            <AppSidebar />
-            <SidebarInset>
-              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-border/30">
-                <div className="flex items-center gap-2 px-6 md:px-12">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href="/admin/learn"
-                          className="font-mono text-xs uppercase tracking-wider"
-                        >
-                          Learn Management
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage className="font-mono text-xs uppercase tracking-wider">
-                          Modules
-                        </BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
-              </header>
-              <div className="flex flex-1 flex-col gap-6 p-6 md:p-12 pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2">
-                    <h1 className="font-[var(--font-bebas)] text-4xl md:text-6xl tracking-tight text-foreground">
-                      MODULES
-                    </h1>
-                    <p className="font-mono text-sm text-muted-foreground">
-                      Manage learning modules
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="font-mono text-xs uppercase tracking-wider"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Module
-                  </Button>
-                </div>
-
-                {/* Modules Table */}
-                <div className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm">
-                  <div className="p-6">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border/30">
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Title
-                            </th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Category
-                            </th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Difficulty
-                            </th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Tier
-                            </th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Duration
-                            </th>
-                            <th className="text-left py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Type
-                            </th>
-                            <th className="text-right py-3 px-4 font-mono text-xs uppercase tracking-wider text-foreground">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {modules.length === 0 ? (
-                            <tr>
-                              <td colSpan={7} className="py-8 text-center">
-                                <p className="font-mono text-sm text-muted-foreground">
-                                  No modules found. Create your first module.
-                                </p>
-                              </td>
-                            </tr>
-                          ) : (
-                            modules.map((module) => (
-                              <tr
-                                key={module.id}
-                                className="border-b border-border/20 hover:bg-background/60 transition-colors"
-                              >
-                                <td className="py-3 px-4">
-                                  <div>
-                                    <p className="font-mono text-sm text-foreground">
-                                      {module.title}
-                                    </p>
-                                    <p className="font-mono text-xs text-muted-foreground">
-                                      {module.description}
-                                    </p>
-                                  </div>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className="font-mono text-xs text-foreground">
-                                    {module.category}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className="font-mono text-xs text-foreground">
-                                    {module.difficulty}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className="font-mono text-xs text-foreground">
-                                    {module.tier}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className="font-mono text-xs text-foreground">
-                                    {module.duration}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className="font-mono text-xs text-foreground">
-                                    {module.type}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4 text-right">
-                                  <div className="flex items-center justify-end gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="font-mono text-xs"
-                                      onClick={() => {
-                                        window.location.href = `/admin/learn/modules/${module.id}/content`;
-                                      }}
-                                    >
-                                      Edit Content
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="font-mono text-xs"
-                                      onClick={() => {
-                                        window.location.href = `/admin/learn/modules/${module.id}/edit`;
-                                      }}
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="font-mono text-xs text-destructive hover:text-destructive"
-                                      onClick={() =>
-                                        handleDeleteModule(module.id)
-                                      }
-                                    >
-                                      Delete
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
+      <AdminLayout title="Modules" description="학습 모듈 관리">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            className={adminButtonPrimaryClass}
+          >
+            <Plus className="h-3 w-3" />
+            Module
+          </button>
         </div>
-      </div>
+
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full min-w-[52rem] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-[var(--warp-rule)] text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                <th className="py-2 pr-4 text-left font-normal">Title</th>
+                <th className="py-2 pr-4 text-left font-normal">Category</th>
+                <th className="py-2 pr-4 text-left font-normal">Difficulty</th>
+                <th className="py-2 pr-4 text-left font-normal">Tier</th>
+                <th className="py-2 pr-4 text-left font-normal">Duration</th>
+                <th className="py-2 pr-4 text-left font-normal">Type</th>
+                <th className="py-2 text-right font-normal">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {modules.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="py-10 text-sm text-muted-foreground"
+                  >
+                    등록된 모듈이 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                modules.map((module) => (
+                  <tr
+                    key={module.id}
+                    className="border-b border-[var(--warp-rule)]"
+                  >
+                    <td className="py-2.5 pr-4">
+                      <p className="text-foreground">{module.title}</p>
+                      {module.description && (
+                        <p className="mt-0.5 max-w-[22rem] truncate text-xs text-muted-foreground">
+                          {module.description}
+                        </p>
+                      )}
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {module.category}
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {module.difficulty}
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {module.tier}
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {module.duration}
+                    </td>
+                    <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                      {module.type}
+                    </td>
+                    <td className="py-2 text-right">
+                      {/* These were window.location.href assignments, so every
+                          one of them reloaded the whole app to move one route. */}
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/admin/learn/modules/${module.id}/content`}
+                          className={adminButtonClass}
+                        >
+                          Content
+                        </Link>
+                        <Link
+                          href={`/admin/learn/modules/${module.id}/edit`}
+                          className={adminButtonClass}
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteModule(module.id)}
+                          className={`${adminButtonClass} hover:text-destructive`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </AdminLayout>
 
       {/* Create/Edit Module Modal */}
       <Dialog
@@ -437,7 +349,7 @@ const AdminModulesPage: NextPageWithLayout = () => {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+              <label className="mb-1.5 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Title *
               </label>
               <Input
@@ -450,7 +362,7 @@ const AdminModulesPage: NextPageWithLayout = () => {
               />
             </div>
             <div>
-              <label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+              <label className="mb-1.5 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Description
               </label>
               <Input
@@ -464,11 +376,11 @@ const AdminModulesPage: NextPageWithLayout = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                <label className="mb-1.5 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Category
                 </label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full h-10 px-3 py-2 bg-background border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent transition-colors">
+                  <DropdownMenuTrigger className="w-full h-10 px-3 py-2 bg-background border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-white/[0.03] transition-colors">
                     <span>{newModule.category}</span>
                     <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
@@ -498,11 +410,11 @@ const AdminModulesPage: NextPageWithLayout = () => {
                 </DropdownMenu>
               </div>
               <div>
-                <label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                <label className="mb-1.5 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Difficulty
                 </label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full h-10 px-3 py-2 bg-background border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent transition-colors">
+                  <DropdownMenuTrigger className="w-full h-10 px-3 py-2 bg-background border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-white/[0.03] transition-colors">
                     <span>{newModule.difficulty}</span>
                     <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
@@ -544,11 +456,11 @@ const AdminModulesPage: NextPageWithLayout = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                <label className="mb-1.5 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Tier
                 </label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full h-10 px-3 py-2 bg-background border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent transition-colors">
+                  <DropdownMenuTrigger className="w-full h-10 px-3 py-2 bg-background border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-white/[0.03] transition-colors">
                     <span>{newModule.tier}</span>
                     <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
@@ -578,11 +490,11 @@ const AdminModulesPage: NextPageWithLayout = () => {
                 </DropdownMenu>
               </div>
               <div>
-                <label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+                <label className="mb-1.5 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Type
                 </label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full h-10 px-3 py-2 bg-background border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-accent transition-colors">
+                  <DropdownMenuTrigger className="w-full h-10 px-3 py-2 bg-background border border-border rounded-md font-mono text-xs flex items-center justify-between hover:bg-white/[0.03] transition-colors">
                     <span>{newModule.type}</span>
                     <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
@@ -606,7 +518,7 @@ const AdminModulesPage: NextPageWithLayout = () => {
               </div>
             </div>
             <div>
-              <label className="font-mono text-xs uppercase tracking-wider text-foreground mb-2 block">
+              <label className="mb-1.5 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 Duration
               </label>
               <Input
